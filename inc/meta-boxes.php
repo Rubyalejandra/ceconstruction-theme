@@ -177,6 +177,15 @@ function ce_construction_save_meta_boxes( $post_id ) {
 		return;
 	}
 
+	// QA-007 (Sprint 5, Fase 1 — corrección alta): WordPress también
+	// dispara `save_post` para el post de tipo `revision` que se crea
+	// internamente al actualizar un post con revisiones habilitadas.
+	// Sin esta guardia, los metadatos podían escribirse también sobre
+	// el ID de la revisión (filas de meta redundantes/incorrectas en BD).
+	if ( wp_is_post_revision( $post_id ) ) {
+		return;
+	}
+
 	// SERVICIO.
 	if ( isset( $_POST['ce_servicio_nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['ce_servicio_nonce'] ) ), 'ce_save_servicio_meta' ) ) {
 		if ( current_user_can( 'edit_post', $post_id ) ) {

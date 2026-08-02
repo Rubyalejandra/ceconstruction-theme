@@ -94,6 +94,23 @@ function ce_construction_breadcrumbs() {
 		$items[] = array( 'label' => get_the_title(), 'url' => '' );
 	} elseif ( is_post_type_archive( 'proyecto' ) ) {
 		$items[] = array( 'label' => __( 'Proyectos', 'ce-construction' ), 'url' => '' );
+	} elseif ( is_singular( 'miembro_equipo' ) ) {
+		$items[] = array( 'label' => __( 'Equipo', 'ce-construction' ), 'url' => get_post_type_archive_link( 'miembro_equipo' ) );
+		$items[] = array( 'label' => get_the_title(), 'url' => '' );
+	} elseif ( is_post_type_archive( 'miembro_equipo' ) ) {
+		$items[] = array( 'label' => __( 'Equipo', 'ce-construction' ), 'url' => '' );
+	} elseif ( is_singular( 'cliente' ) ) {
+		// NOTA (Sprint 5, Fase 3): antes 'cliente' no tenía archivo público
+		// (has_archive => false), así que este nivel intermedio no enlazaba
+		// a ningún archivo. Tras habilitar has_archive en inc/cpt-clientes.php
+		// (ver ese archivo para el detalle), ahora sí enlaza correctamente,
+		// igual que las ramas de Servicios/Proyectos/Equipo de arriba.
+		$items[] = array( 'label' => __( 'Clientes', 'ce-construction' ), 'url' => get_post_type_archive_link( 'cliente' ) );
+		$items[] = array( 'label' => get_the_title(), 'url' => '' );
+	} elseif ( is_post_type_archive( 'cliente' ) ) {
+		// Rama nueva (Sprint 5): antes no existía porque este archivo era
+		// inalcanzable (has_archive era false). Ahora sí puede ser 'true'.
+		$items[] = array( 'label' => __( 'Clientes', 'ce-construction' ), 'url' => '' );
 	} elseif ( is_singular( 'post' ) ) {
 		$items[] = array( 'label' => __( 'Blog', 'ce-construction' ), 'url' => get_permalink( get_option( 'page_for_posts' ) ) );
 		$items[] = array( 'label' => get_the_title(), 'url' => '' );
@@ -297,3 +314,80 @@ function ce_construction_schema_project() {
 	echo '<script type="application/ld+json">' . wp_json_encode( $breadcrumb_schema ) . '</script>' . "\n";
 }
 add_action( 'wp_head', 'ce_construction_schema_project' );
+
+/* =========================================================
+ * Añadido en Sprint 5 (módulo Equipo y Clientes).
+ * No modifica ninguna función anterior de este archivo
+ * (las ramas de breadcrumbs para estos CPTs se insertaron
+ * dentro de ce_construction_breadcrumbs(), ver más arriba).
+ * ========================================================= */
+
+/**
+ * Schema.org JSON-LD para single de Miembro del Equipo: `Person`,
+ * vinculado a la organización mediante `worksFor`.
+ */
+function ce_construction_schema_person() {
+	if ( ! ce_construction_seo_enabled() || ! is_singular( 'miembro_equipo' ) ) {
+		return;
+	}
+
+	$post_id  = get_the_ID();
+	$cargo    = get_post_meta( $post_id, '_ce_equipo_cargo', true );
+	$linkedin = get_post_meta( $post_id, '_ce_equipo_linkedin', true );
+
+	$schema = array(
+		'@context' => 'https://schema.org',
+		'@type'    => 'Person',
+		'name'     => get_the_title( $post_id ),
+		'url'      => get_permalink( $post_id ),
+		'worksFor' => array(
+			'@type' => 'GeneralContractor',
+			'name'  => get_bloginfo( 'name' ),
+			'url'   => home_url( '/' ),
+		),
+	);
+
+	if ( $cargo ) {
+		$schema['jobTitle'] = $cargo;
+	}
+	if ( has_post_thumbnail( $post_id ) ) {
+		$schema['image'] = get_the_post_thumbnail_url( $post_id, 'ce-card' );
+	}
+	if ( $linkedin ) {
+		$schema['sameAs'] = array( $linkedin );
+	}
+
+	echo '<script type="application/ld+json">' . wp_json_encode( $schema ) . '</script>' . "\n";
+}
+add_action( 'wp_head', 'ce_construction_schema_person' );
+
+/**
+ * Schema.org JSON-LD para single de Cliente: `Organization` simple.
+ * El CPT `cliente` no soporta `editor` (solo título + imagen de logo,
+ * ver inc/cpt-clientes.php), por lo que este schema es intencionalmente
+ * mínimo.
+ */
+function ce_construction_schema_client_organization() {
+	if ( ! ce_construction_seo_enabled() || ! is_singular( 'cliente' ) ) {
+		return;
+	}
+
+	$post_id = get_the_ID();
+	$sitio   = get_post_meta( $post_id, '_ce_cliente_sitio', true );
+
+	$schema = array(
+		'@context' => 'https://schema.org',
+		'@type'    => 'Organization',
+		'name'     => get_the_title( $post_id ),
+	);
+
+	if ( $sitio ) {
+		$schema['url'] = $sitio;
+	}
+	if ( has_post_thumbnail( $post_id ) ) {
+		$schema['logo'] = get_the_post_thumbnail_url( $post_id, 'ce-card' );
+	}
+
+	echo '<script type="application/ld+json">' . wp_json_encode( $schema ) . '</script>' . "\n";
+}
+add_action( 'wp_head', 'ce_construction_schema_client_organization' );

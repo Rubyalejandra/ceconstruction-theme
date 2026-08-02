@@ -14,7 +14,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Seguridad: evita acceso directo al archivo.
 }
 
-define( 'CE_THEME_VERSION', '1.0.0' );
+// QA-008 (Sprint 5, Fase 1 — corrección alta): esta constante estaba
+// fijada en '1.0.0' desde el Sprint 1 y nunca se sincronizó con las
+// versiones reales del proyecto documentadas en CHANGELOG.md, lo cual
+// rompía el cache-busting de assets/css/main.css y assets/js/main.js
+// entre despliegues. A partir de ahora debe actualizarse en cada
+// versión que modifique CSS/JS (ver CHANGELOG.md para el historial).
+define( 'CE_THEME_VERSION', '0.4.1' );
 define( 'CE_THEME_DIR', get_template_directory() );
 define( 'CE_THEME_URI', get_template_directory_uri() );
 

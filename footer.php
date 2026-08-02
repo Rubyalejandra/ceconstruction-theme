@@ -49,6 +49,23 @@
 							<?php
 						}
 						?>
+
+						<?php
+						// QA-006 (Sprint 5, Fase 1 — corrección alta): "Footer - Columna 1"
+						// estaba registrado en inc/setup.php pero nunca se renderizaba en
+						// ningún archivo del tema — un admin podía agregarle widgets desde
+						// Apariencia → Widgets y nunca verlos reflejados en el sitio. Se
+						// renderiza aquí, en la misma columna de "Enlaces", únicamente si
+						// tiene widgets asignados (is_active_sidebar), para no alterar el
+						// layout visual aprobado cuando la columna esté vacía.
+						if ( is_active_sidebar( 'footer-1' ) ) :
+							?>
+							<div class="ce-mt-4">
+								<?php dynamic_sidebar( 'footer-1' ); ?>
+							</div>
+							<?php
+						endif;
+						?>
 					</div>
 
 					<div class="ce-footer__contact">

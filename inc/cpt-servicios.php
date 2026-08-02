@@ -25,7 +25,12 @@ function ce_construction_register_cpt_servicio() {
 		'has_archive'   => true,
 		'rewrite'       => array( 'slug' => 'servicios' ),
 		'menu_icon'     => 'dashicons-hammer',
-		'supports'      => array( 'title', 'editor', 'thumbnail', 'excerpt' ),
+		// QA-009 (Sprint 5, Fase 1 — corrección alta): 'page-attributes'
+		// habilita el campo "Orden" nativo de WordPress en el editor.
+		// Sin este soporte, template-parts/services.php (que ya ordena
+		// por 'menu_order') no tenía ninguna forma de que el admin
+		// definiera ese orden — todos los servicios quedaban en 0.
+		'supports'      => array( 'title', 'editor', 'thumbnail', 'excerpt', 'page-attributes' ),
 		'show_in_rest'  => true,
 	) );
 
