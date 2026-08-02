@@ -1,0 +1,14 @@
+/*
+Theme Name: CE Construction
+Theme URI: https://ceconstruction.com
+Author: CE Construction
+Author URI: https://ceconstruction.com
+Description: Tema corporativo profesional para CE Construction. Desarrollado como parte del WP Master Theme.
+Version: 1.0.0
+Requires at least: 7.0
+Tested up to: 7.0
+Requires PHP: 8.1
+License: Proprietary
+Text Domain: ce-construction
+*/
+@import url("assets/css/main.css");
