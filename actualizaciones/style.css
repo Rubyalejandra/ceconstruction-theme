@@ -1,0 +1,83 @@
+/*
+Theme Name: CE Construction
+Theme URI: https://ceconstruction.com
+Author: CE Construction Dev Team
+Author URI: https://ceconstruction.com
+Description: Tema profesional a medida para CE Construction. Desarrollado 100% con PHP, HTML5, CSS3 y JavaScript moderno, sin builders visuales. Incluye Custom Post Types para Servicios, Proyectos, Testimonios, Equipo, Clientes y Preguntas Frecuentes, Theme Customizer completo, formulario de cotización seguro con Nonces, y arquitectura modular por componentes.
+Version: 0.4.1
+Requires at least: 6.0
+Requires PHP: 7.4
+Text Domain: ce-construction
+Tags: custom-background, custom-logo, custom-menu, featured-images, threaded-comments, translation-ready, responsive-layout
+
+CE Construction Theme is distributed under the terms of the GNU GPL v2 or later.
+*/
+
+/* =========================================================
+   NOTA: Los estilos reales del tema viven en
+   assets/css/main.css (se cargan vía wp_enqueue_style en
+   inc/enqueue.php). Este archivo debe existir para que
+   WordPress reconozca el tema, y aquí definimos solo un
+   reset mínimo + las variables de diseño (design tokens)
+   que también reutiliza main.css mediante @import.
+   ========================================================= */
+
+:root{
+  /* Colores institucionales CE Construction */
+  --ce-color-primary:      #0F2A43; /* azul acero oscuro - confianza/solidez */
+  --ce-color-primary-dark: #081A2B;
+  --ce-color-secondary:    #D98E29; /* ambar/naranja - energía, construcción */
+  --ce-color-secondary-dark:#B8721A;
+  --ce-color-accent:       #1E6F5C; /* verde ingeniería - detalles/success */
+  --ce-color-neutral-900:  #10161C;
+  --ce-color-neutral-800:  #1B2530;
+  --ce-color-neutral-600:  #4A5A68;
+  --ce-color-neutral-300:  #C7D0D6;
+  --ce-color-neutral-100:  #F4F6F7;
+  --ce-color-white:        #FFFFFF;
+  --ce-color-error:        #B3261E;
+  --ce-color-success:      #1E6F5C;
+
+  /* Tipografía */
+  --ce-font-heading: 'Poppins', 'Segoe UI', sans-serif;
+  --ce-font-body: 'Inter', 'Segoe UI', sans-serif;
+
+  /* Espaciados */
+  --ce-space-1: 4px;
+  --ce-space-2: 8px;
+  --ce-space-3: 16px;
+  --ce-space-4: 24px;
+  --ce-space-5: 32px;
+  --ce-space-6: 48px;
+  --ce-space-7: 64px;
+  --ce-space-8: 96px;
+
+  /* Bordes y sombras */
+  --ce-radius-sm: 6px;
+  --ce-radius-md: 12px;
+  --ce-radius-lg: 20px;
+  --ce-shadow-sm: 0 2px 8px rgba(15,42,67,0.08);
+  --ce-shadow-md: 0 8px 24px rgba(15,42,67,0.12);
+  --ce-shadow-lg: 0 20px 48px rgba(15,42,67,0.18);
+
+  /* Transiciones */
+  --ce-transition-fast: 150ms ease;
+  --ce-transition-base: 250ms ease;
+  --ce-transition-slow: 450ms ease;
+
+  --ce-container-max: 1240px;
+}
+
+*, *::before, *::after{ box-sizing: border-box; }
+html{ scroll-behavior: smooth; }
+body{
+  margin:0;
+  font-family: var(--ce-font-body);
+  color: var(--ce-color-neutral-900);
+  background: var(--ce-color-white);
+  -webkit-font-smoothing: antialiased;
+}
+img{ max-width:100%; height:auto; display:block; }
+a{ text-decoration:none; color:inherit; }
+ul{ list-style:none; margin:0; padding:0; }
+button{ font-family:inherit; cursor:pointer; }
