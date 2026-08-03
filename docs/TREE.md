@@ -12,7 +12,7 @@ ce-construction-theme/
 ├── header.php                         ✅ Doctype, barra superior, header, menú móvil
 ├── footer.php                         ✅ Contacto, redes, mapa, footer, flotantes, modales — 🔧 QA-006 (Sprint 5): renderiza footer-1 condicionalmente
 ├── front-page.php                     ✅ Ensamblado de las 10 secciones del home
-├── index.php                          ⬜ PENDIENTE — crítico, requerido por WordPress
+├── index.php                          ✅ Entregable 6A — fallback genérico (single/página, archivos genéricos, búsqueda, 404); único bloqueador crítico ya resuelto
 ├── page.php                           ⬜ Pendiente
 ├── single.php                         ⬜ Pendiente
 ├── comments.php                       ⬜ Pendiente
@@ -71,6 +71,8 @@ ce-construction-theme/
 │   ├── sidebar-proyectos.php          ✅ 🆕 Sprint 4 — Sidebar opcional (listado de proyectos + tarjeta de contacto)
 │   ├── content-equipo.php             ✅ 🆕 Sprint 5 — Partial de tarjeta de miembro del equipo (usado en el archive)
 │   ├── content-cliente.php            ✅ 🆕 Sprint 5 — Partial de logo de cliente (usado en el archive; alineado a .ce-clients-grid__item)
+│   ├── content-fallback.php           ✅ 🆕 Entregable 6A — Tarjeta genérica para loops de búsqueda/archivo (usado por index.php)
+│   ├── no-results.php                 ✅ 🆕 Entregable 6A — Estado vacío reutilizable con formulario de búsqueda propio (usado por index.php)
 │   ├── floating-buttons.php           ⬜ No creado como archivo aparte — implementado directamente dentro de footer.php (WhatsApp + volver arriba). Ver nota de arquitectura abajo.
 │   ├── modals.php                     ⬜ No creado como archivo aparte — implementado directamente dentro de footer.php (modales éxito/error). Ver nota de arquitectura abajo.
 │   ├── accordion.php                  ⬜ No creado como archivo aparte — implementado inline dentro de single-servicio.php (sección FAQ) + CSS/JS genéricos en assets/. Reutilizable en futuras plantillas sin duplicar código CSS/JS.
@@ -78,7 +80,7 @@ ce-construction-theme/
 │
 └── assets/
     ├── css/
-    │   └── main.css                   ✅ Sistema de diseño completo (19 secciones, mobile-first) + 🆕 Sección 20 (Sprint 3): page-hero interno, sidebar, accordion, navegación entre servicios, paginación + 🆕 Sección 21 (Sprint 4): ficha de metadatos de proyecto + 🆕 Sección 22 (Sprint 5): tarjetas de equipo, grid de logos de clientes + 🔧 QA-005 (Sprint 5, Fase 1): variable `--ce-color-secondary-text` y overrides de contraste
+    │   └── main.css                   ✅ Sistema de diseño completo (19 secciones, mobile-first) + 🆕 Sección 20 (Sprint 3): page-hero interno, sidebar, accordion, navegación entre servicios, paginación + 🆕 Sección 21 (Sprint 4): ficha de metadatos de proyecto + 🆕 Sección 22 (Sprint 5): tarjetas de equipo, grid de logos de clientes + 🔧 QA-005 (Sprint 5, Fase 1): variable `--ce-color-secondary-text` y overrides de contraste + 🔧 Entregable 6A: `.ce-mt-6`/`.ce-mb-6` (bug preexistente, en uso desde Sprint 3 pero nunca definidas)
     ├── js/
     │   └── main.js                    ✅ 12 módulos ES6 (ver TODO.md sección 7) + 🆕 `ModuleAccordion` (Sprint 3), enganchado al bootstrap existente. **Sin cambios en Sprint 4** (el lightbox ya existente cubre la galería de Proyectos sin modificación).
     └── img/                           ⬜ Vacía — pendiente de imágenes reales del cliente (logo, hero, placeholders)
@@ -103,3 +105,7 @@ Este árbol fue re-verificado contra el sistema de archivos real (`find . -type 
 ### Verificación de cierre de etapa (Sprint 5 — Correcciones QA + ARCHITECTURE.md + Módulo Equipo/Clientes)
 
 Sprint ejecutado en 2 sesiones (la primera interrumpida por límite de mensajes). Al reanudar, se verificó con `grep`/hashes que las 9 correcciones QA y el trabajo parcial de Equipo/Clientes ya estaban aplicados correctamente en disco antes de continuar. Se agregaron: `ARCHITECTURE.md`, 4 plantillas nuevas (`archive-equipo.php`, `single-equipo.php`, `archive-clientes.php`, `single-clientes.php`), 2 template-parts (`content-equipo.php`, `content-cliente.php` — este último reescrito para alinear su nomenclatura CSS con `main.css`, ya que nunca había sido entregado/aprobado). Se corrigieron 9 hallazgos de `QA_REPORT.md` en `inc/quote-form.php`, `inc/meta-boxes.php`, `inc/cpt-servicios.php`, `footer.php`, `functions.php`, `style.css` y `assets/css/main.css`. Se realizó un cambio necesario y documentado en `inc/cpt-clientes.php` (`has_archive`) con su ajuste acoplado en `inc/seo.php`. `assets/js/main.js` no requirió ningún cambio. Balance de llaves/paréntesis y `node --check` verificados en todos los archivos tocados.
+
+### Verificación de cierre de etapa (Entregable 6A — index.php)
+
+Se agregó `index.php` (resuelve el único bloqueador crítico de arquitectura pendiente) + 2 template-parts nuevos (`content-fallback.php`, `no-results.php`). Se detectó y corrigió un bug preexistente en `assets/css/main.css`: las utilidades `.ce-mt-6`/`.ce-mb-6` se usaban desde el Sprint 3 en 10 archivos ya aprobados pero nunca se habían definido — corregido de forma aditiva, sin tocar ninguna regla existente. Sin cambios en `inc/helpers.php`, `inc/seo.php` ni `assets/js/main.js`. Balance de llaves/paréntesis y `node --check` verificados sin errores.

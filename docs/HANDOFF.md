@@ -3,8 +3,8 @@
 
 > Este documento, junto con `PROJECT_STATUS.md`, `TODO.md`, `TREE.md`, `CHANGELOG.md`, `DECISIONS.md`, `QA_REPORT.md` y `ARCHITECTURE.md`, es la fuente oficial del estado del proyecto. Si esta conversación se corta por límite de mensajes/tokens, cualquier sesión nueva debe poder retomar el trabajo exactamente desde aquí, sin releer el historial completo de chat.
 
-**Versión de referencia:** v0.5.0 (ver `CHANGELOG.md`)
-**Última sesión de trabajo:** Sprint 5 (3 fases: correcciones QA Críticas/Altas, `ARCHITECTURE.md`, Módulo Equipo y Clientes) — ejecutado en 2 sesiones, la primera interrumpida por límite de mensajes.
+**Versión de referencia:** v0.6.0 (ver `CHANGELOG.md`)
+**Última sesión de trabajo:** Entregable 6A — `index.php` (bloqueador crítico de arquitectura resuelto).
 
 ---
 
@@ -13,11 +13,11 @@
 CE Construction es un tema profesional de WordPress a medida, desarrollado 100% en PHP/HTML5/CSS3/JS moderno (sin builders visuales), con arquitectura modular. A la fecha:
 
 - **Backend completo:** 6 Custom Post Types + 1 CPT interno de cotizaciones, Theme Customizer con 7 secciones, metaboxes seguros, formulario de cotización funcional (AJAX + email + adjuntos + nonce + rate-limiting + retención automática), SEO propio con auto-desactivación si hay plugin SEO.
-- **Frontend completo:** Home, Servicios (archive+single), Proyectos (archive+single, con galería/lightbox), Equipo (archive+single) y Clientes (archive+single) — los 6 CPTs de contenido ya tienen presencia completa en el frontend.
+- **Frontend completo:** Home, Servicios (archive+single), Proyectos (archive+single, con galería/lightbox), Equipo (archive+single) y Clientes (archive+single) — los 6 CPTs de contenido ya tienen presencia completa en el frontend. `index.php` (Entregable 6A) cubre single de blog/página, archivos genéricos, búsqueda y 404 como fallback funcional.
 - **QA:** auditoría completa realizada (`QA_REPORT.md`, 29 hallazgos); los 9 Críticos/Altos ya corregidos (v0.4.1); los 20 Medios/Bajos/Mejoras futuras siguen documentados y sin tocar.
 - **Documentación de arquitectura:** `ARCHITECTURE.md` describe la arquitectura real (no propuesta) del proyecto completo.
-- **Pendiente crítico:** el tema **sigue sin `index.php`**, archivo mínimo que WordPress exige junto a `style.css` para reconocer un tema como válido.
-- **Pendiente funcional:** Blog y páginas genéricas (`single.php`, `page.php`, `comments.php`, `404.php`), `inc/widgets.php`, `screenshot.png`.
+- **Bloqueador crítico resuelto:** `index.php` ya existe — el tema cumple el mínimo que WordPress exige (`style.css` + `index.php`) para ser reconocido y activado con seguridad.
+- **Pendiente funcional:** Blog y páginas genéricas dedicadas (`single.php`, `page.php`, `comments.php`, `404.php` — hoy cubiertas por el fallback de `index.php`), `inc/widgets.php`, `screenshot.png`.
 
 El proyecto sigue una metodología de "sprint por sprint con aprobación explícita del cliente antes de avanzar", y mantiene documentación viva (los 7 archivos `.md` mencionados arriba) que se actualiza al cierre de cada sprint.
 
@@ -58,7 +58,7 @@ ce-construction-theme/
     └── img/ (vacía, pendiente de assets reales del cliente)
 ```
 
-**Aún pendiente:** `index.php` (crítico), `page.php`, `single.php`, `comments.php`, `404.php`, `archive.php` genérico, `inc/widgets.php`, `screenshot.png`.
+**Aún pendiente:** `page.php`, `single.php`, `comments.php`, `404.php`, `archive.php` genérico, `inc/widgets.php`, `screenshot.png`.
 
 ---
 
@@ -81,6 +81,7 @@ ce-construction-theme/
 15. Correcciones QA Críticas/Altas (9 hallazgos, v0.4.1)
 16. `ARCHITECTURE.md`
 17. Módulo Equipo y Clientes completo (archive + single + schema para ambos)
+18. `index.php` (Entregable 6A) — bloqueador crítico de arquitectura resuelto
 
 Detalle línea por línea en `TODO.md` y `CHANGELOG.md` (v0.1.0 a v0.5.0).
 
@@ -95,13 +96,12 @@ Detalle línea por línea en `TODO.md` y `CHANGELOG.md` (v0.1.0 a v0.5.0).
 
 ## 6. Módulos pendientes (no iniciados)
 
-1. **`index.php`** — 🔴 crítico, requerido por WordPress.
-2. `single.php`, `page.php`, `comments.php`, `404.php` (Blog y páginas genéricas)
-3. `archive.php` genérico (fallback)
-4. `inc/widgets.php`
-5. `screenshot.png`
-6. Corrección de hallazgos Medios/Bajos/Mejoras futuras de `QA_REPORT.md` (con aprobación explícita)
-7. Auditoría transversal de accesibilidad y performance
+1. `single.php`, `page.php`, `comments.php`, `404.php` (Blog y páginas genéricas — hoy cubiertas por el fallback funcional de `index.php`)
+2. `archive.php` genérico (fallback específico para archivos; hoy `index.php` ya lo cubre de forma genérica)
+3. `inc/widgets.php`
+4. `screenshot.png`
+5. Corrección de hallazgos Medios/Bajos/Mejoras futuras de `QA_REPORT.md` (con aprobación explícita)
+6. Auditoría transversal de accesibilidad y performance
 
 ---
 
@@ -120,7 +120,7 @@ Detalle línea por línea en `TODO.md` y `CHANGELOG.md` (v0.1.0 a v0.5.0).
 
 Ver `PROJECT_STATUS.md` sección 6 para la tabla completa. Resumen actualizado:
 
-- 🔴 **Falta `index.php`** — bloquea una activación 100% garantizada del tema.
+- ✅ **`index.php` resuelto (Entregable 6A)** — el tema ya cumple el mínimo que WordPress exige para activarse con seguridad.
 - 🟡 Dependencia de CDNs externos (Google Fonts, Font Awesome) — impacto en Core Web Vitals (QA-026/027, sin corregir).
 - 🟡 Relación Servicio↔Proyecto (ambas direcciones) sigue siendo heurística por coincidencia de taxonomía, no un campo relacional explícito.
 - 🟢 Sin fallback sin-JS en el formulario de cotización (decisión aceptada, D-005).
@@ -135,6 +135,7 @@ Ver `PROJECT_STATUS.md` sección 6 para la tabla completa. Resumen actualizado:
 | BUG-002 | `mkdir -p` con llaves no se expandió correctamente, generando carpetas corruptas. | ✅ Corregido manualmente antes de crear contenido en esas rutas. |
 | BUG-003 | `template-parts/content-cliente.php` se creó (sesión previa, interrumpida) con clases CSS (`.ce-client-card*`) distintas a las ya definidas en `main.css` (`.ce-clients-grid__item`), lo que habría generado CSS duplicado. | ✅ Corregido en Sprint 5: el archivo (nunca entregado/aprobado) se reescribió para alinear con la convención ya existente. Ver `DECISIONS.md` D-027. |
 | BUG-004 | `inc/cpt-clientes.php` tenía `has_archive => false`, lo que habría hecho que `archive-clientes.php` (pedido en Sprint 5) fuera inalcanzable vía URL amigable. | ✅ Corregido: `has_archive` cambiado a `true`, con el ajuste acoplado correspondiente en las ramas de breadcrumbs de `inc/seo.php`. Ver `DECISIONS.md` D-025. |
+| BUG-005 | `.ce-mt-6`/`.ce-mb-6` se usaban desde el Sprint 3 en 10 archivos ya aprobados, pero nunca se definieron en `main.css` — el margen no se aplicaba, sin que ninguna auditoría previa (incluido `QA_REPORT.md`) lo detectara. | ✅ Corregido en Entregable 6A al construir `index.php` (mismo patrón de clases). Ver `DECISIONS.md` D-029. |
 
 Los 9 hallazgos QA Críticos/Altos (QA-001 a QA-009) también se trataron como bugs corregidos — ver `QA_REPORT.md` y `DECISIONS.md` D-017 a D-024 para el detalle completo de cada uno (no se repiten aquí para no duplicar información, ya documentada exhaustivamente en esos dos archivos).
 
@@ -144,7 +145,7 @@ No hay bugs abiertos conocidos a la fecha de este documento.
 
 ## 10. Decisiones arquitectónicas importantes
 
-Registro completo y acumulativo en `DECISIONS.md` (D-001 a D-027 a la fecha). Las más relevantes para continuar el desarrollo:
+Registro completo y acumulativo en `DECISIONS.md` (D-001 a D-029 a la fecha). Las más relevantes para continuar el desarrollo:
 
 - **D-001 a D-008:** nonces por acción, CPT `cotizacion` no público, secciones auto-ocultas, SEO auto-desactivable, sin fallback sin-JS, `helpers.php` adelantado, flotantes/modales en footer, bugfix de `ModuleModals`.
 - **D-009 a D-016:** `page-hero.php` reutilizable, relación heurística Servicio↔Proyecto, extensiones aditivas de `helpers.php`/`seo.php`, FAQ sin relación directa, Schema `Project` como `@type` múltiple, relación inversa Proyecto→Servicio, reutilización de clases CSS entre módulos.
@@ -152,6 +153,8 @@ Registro completo y acumulativo en `DECISIONS.md` (D-001 a D-027 a la fecha). La
 - **D-025:** `has_archive` habilitado para Cliente (cambio necesario, no discrecional).
 - **D-026:** alcance deliberadamente más ligero para Equipo/Clientes (sin CTA/sidebar/formulario).
 - **D-027:** reconciliación de `content-cliente.php` con la convención CSS ya existente.
+- **D-028:** `index.php` diseñado como fallback genérico completo (no placeholder), cubriendo 4 contextos con ramas condicionales explícitas.
+- **D-029:** corrección del bug preexistente `.ce-mt-6`/`.ce-mb-6` (detectado, no introducido, al construir `index.php`).
 
 ---
 
@@ -172,19 +175,17 @@ Registro completo y acumulativo en `DECISIONS.md` (D-001 a D-027 a la fecha). La
 
 ## 12. Orden recomendado para continuar
 
-1. **`index.php`** (crítico, bajo esfuerzo, desbloquea activación segura del tema).
-2. **Blog y páginas genéricas:** `single.php`, `page.php`, `comments.php`, `404.php`.
-3. **Extras de menor prioridad:** `inc/widgets.php`, `screenshot.png`, `archive.php` genérico.
-4. **Hallazgos QA Medios/Bajos** de `QA_REPORT.md` (con aprobación explícita de cuáles corregir).
-5. **Auditoría transversal final:** accesibilidad, performance (Core Web Vitals, auto-hospedar fuentes — QA-026/027), revisión cruzada de sanitización/escaping.
+1. **Blog y páginas genéricas:** `single.php`, `page.php`, `comments.php`, `404.php` (reemplazan el fallback de `index.php` con plantillas dedicadas y estilo completo).
+2. **Extras de menor prioridad:** `inc/widgets.php`, `screenshot.png`, `archive.php` genérico.
+3. **Hallazgos QA Medios/Bajos** de `QA_REPORT.md` (con aprobación explícita de cuáles corregir).
+4. **Auditoría transversal final:** accesibilidad, performance (Core Web Vitals, auto-hospedar fuentes — QA-026/027), revisión cruzada de sanitización/escaping.
 
 ## 13. Próximo sprint recomendado
 
-**Sprint 6: "`index.php` + Blog y páginas genéricas"**
-- `index.php`
+**Sprint 6B: "Blog y páginas genéricas"**
 - `single.php`, `page.php`, `comments.php`, `404.php`
 
-Justificación: con los 4 tipos de contenido personalizado ya completos (Servicios, Proyectos, Equipo, Clientes), `index.php` sigue siendo el único bloqueador técnico crítico de arquitectura, y Blog/páginas genéricas son el contenido de mayor visibilidad aún pendiente.
+Justificación: con `index.php` resuelto, el tema ya es activable con seguridad. `single.php`/`page.php`/`404.php` ofrecerán una experiencia más refinada que el fallback genérico de `index.php` (que seguirá existiendo como el fallback final que WordPress exige, pero dejará de ser invocado en estos contextos específicos en cuanto existan las plantillas dedicadas). `comments.php` propio reemplazará el fallback de compatibilidad nativa de WordPress que usa hoy `index.php`.
 
 ---
 
@@ -211,6 +212,7 @@ Justificación: con los 4 tipos de contenido personalizado ya completos (Servici
 - `inc/quote-form.php` — sin este archivo, el endpoint AJAX del formulario no existe, y tampoco el cron de retención.
 - `inc/seo.php` — sin este archivo, ninguno de los 5 tipos de Schema.org del proyecto se emite, y las breadcrumbs HTML dejan de funcionar en todo el sitio.
 - `header.php`/`footer.php` — cargados por **toda** plantilla; un error de sintaxis aquí rompe el sitio completo.
+- `index.php` — fallback obligatorio de WordPress; sin este archivo, single de blog/página, archivos genéricos, búsqueda y 404 no tendrían ninguna plantilla que WordPress pudiera resolver.
 - `assets/css/main.css`/`assets/js/main.js` — ya enqueados en `inc/enqueue.php`; si se eliminan, todas las páginas cargan sin estilos ni interactividad.
 
 ---

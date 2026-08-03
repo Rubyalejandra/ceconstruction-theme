@@ -2,7 +2,7 @@
 
 > Checklist maestro del proyecto. No se resume ni se reinicia: solo se actualizan los estados (✅ / 🟡 / ⬜) y se agregan tareas nuevas si surgen.
 >
-> **Nota (Sprint 5 completado — 3 fases, 2 sesiones):** ver secciones 14 (QA, actualizada) y 16-17 (nuevas) al final. Fase 1: los 9 hallazgos Críticos/Altos de QA quedan ✅. Fase 2: ARCHITECTURE.md creado. Fase 3: Equipo y Clientes completados.
+> **Nota (Entregable 6A completado):** `index.php` resuelto — ver nueva sección 18 al final. El bloqueador crítico de arquitectura del proyecto ya no existe.
 
 ---
 
@@ -86,7 +86,7 @@
 - ✅ `template-parts/quote-form.php`
 
 ## 9. Plantillas — Pendientes
-- ⬜ `index.php` (🔴 crítico — requerido por WordPress)
+- ✅ `index.php` (completado en Entregable 6A — resuelve el bloqueador crítico)
 - ✅ `archive-servicio.php` (completado en Sprint 3)
 - ✅ `single-servicio.php` (completado en Sprint 3)
 - ✅ `archive-proyecto.php` (completado en Sprint 4)
@@ -197,3 +197,11 @@
 - ✅ Integración completa con el resto del tema (header/footer/design system sin cambios)
 - ✅ Cambio necesario documentado: `inc/cpt-clientes.php` `has_archive` de `false` a `true` (ver `DECISIONS.md` D-025)
 - ⬜ CTA / sidebar / formulario de cotización — **deliberadamente no incluidos** en Equipo/Clientes (fuera del alcance explícito del brief de este sprint, ver `DECISIONS.md` D-026)
+
+## 18. Entregable 6A — index.php (completo)
+- ✅ `index.php` (plantilla de respaldo genérica: single/página, archivos genéricos, búsqueda, 404)
+- ✅ `template-parts/content-fallback.php` (tarjeta genérica para loops de búsqueda/archivo)
+- ✅ `template-parts/no-results.php` (estado vacío con formulario de búsqueda propio del sistema de diseño)
+- ✅ Bug preexistente corregido: `.ce-mt-6`/`.ce-mb-6` faltaban en `main.css` pese a usarse desde el Sprint 3 en 10 archivos ya aprobados
+- ✅ Sin cambios en `inc/helpers.php`, `inc/seo.php` ni `assets/js/main.js` (todo reutilizado)
+- ⬜ `comments.php` propio con el estilo del sistema de diseño — pendiente para el sprint de Blog (hoy usa el fallback nativo de WordPress, funcional pero sin estilo propio)

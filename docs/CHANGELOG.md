@@ -220,8 +220,33 @@
 
 ---
 
+## v0.6.0 — Entregable 6A: index.php (bloqueador crítico resuelto)
+
+**Módulo:** Plantilla de respaldo obligatoria de WordPress
+
+### Añadido
+- `index.php`: plantilla de respaldo genérica y completamente funcional (no un placeholder). Cubre los 4 contextos que hoy recaen sobre ella (aún sin `single.php`/`page.php`/`archive.php`/`search.php`/`404.php` propios): vista single de blog/página, archivos genéricos (categoría/autor/fecha/CPTs sin archive propio como Testimonios/FAQ), resultados de búsqueda, y 404.
+- `template-parts/content-fallback.php`: tarjeta genérica reutilizada en los loops de búsqueda y archivo genérico.
+- `template-parts/no-results.php`: estado vacío reutilizable (búsqueda sin resultados, archivo vacío, 404) con formulario de búsqueda propio del sistema de diseño.
+
+### Corregido
+- **Bug preexistente (detectado al construir `index.php`):** `assets/css/main.css` — las utilidades `.ce-mt-6`/`.ce-mb-6` se usaban desde el Sprint 3 en 10 archivos ya aprobados (`single-servicio.php`, `single-proyecto.php`, `archive-servicio.php`, `archive-proyecto.php`, `archive-equipo.php`, `archive-clientes.php`, `single-clientes.php`, `single-equipo.php`) pero nunca se habían definido — el margen simplemente no se aplicaba. Corregidas de forma aditiva, junto a la familia `.ce-mt-*`/`.ce-mb-*` ya existente, sin tocar ninguna regla previa.
+
+### Sin cambios
+- `inc/helpers.php`, `inc/seo.php`, `assets/js/main.js`: `index.php` reutilizó exclusivamente funciones/componentes ya existentes, sin requerir ninguna extensión.
+
+### Decisiones clave
+- Ver `DECISIONS.md`: D-028 (diseño de `index.php` como fallback genérico completo, no placeholder), D-029 (corrección del bug de utilidades `.ce-mt-6`/`.ce-mb-6`).
+
+### Notas
+- El tema ya cumple el mínimo que WordPress exige (`style.css` + `index.php`) para ser reconocido y activado con seguridad.
+- Limitación conocida y aceptada: los comentarios de blog usan la plantilla de compatibilidad nativa de WordPress hasta que se cree `comments.php` (sprint de Blog futuro).
+- Ver `TODO.md` para el detalle completo.
+
+---
+
 ## Próximas versiones (planeadas, no confirmadas)
 
-- **v0.6.0 (propuesta):** `index.php` (aún pendiente, crítico de arquitectura) + Blog y páginas genéricas (`single.php`, `page.php`, `comments.php`, `404.php`).
-- **v0.7.0 (propuesta):** Widgets custom, `screenshot.png`, hallazgos Medios de `QA_REPORT.md` (con aprobación explícita).
-- **v0.8.0 (propuesta):** Auditoría de accesibilidad y performance (incluye QA-026/QA-027: auto-hospedar fuentes/Font Awesome).
+- **v0.7.0 (propuesta):** Blog y páginas genéricas (`single.php`, `page.php`, `comments.php`, `404.php`), reemplazando el fallback de `index.php` con plantillas dedicadas y con el estilo completo del sistema de diseño.
+- **v0.8.0 (propuesta):** Widgets custom, `screenshot.png`, hallazgos Medios de `QA_REPORT.md` (con aprobación explícita).
+- **v0.9.0 (propuesta):** Auditoría de accesibilidad y performance (incluye QA-026/QA-027: auto-hospedar fuentes/Font Awesome).

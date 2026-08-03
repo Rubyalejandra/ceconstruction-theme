@@ -32,7 +32,7 @@ ce-construction-theme/
                                 tema instalable; ver sección 8 de este documento)
 ```
 
-**Archivos de plantilla de WordPress aún pendientes** (no existen todavía; ver `TODO.md`): `index.php` (crítico), `page.php`, `single.php`, `comments.php`, `404.php`, `archive.php`, y las plantillas de Equipo/Clientes que corresponden al Sprint 5 en curso.
+**Archivos de plantilla de WordPress aún pendientes** (no existen todavía; ver `TODO.md`): `page.php`, `single.php`, `comments.php`, `404.php`, `archive.php` genérico. `index.php` (Entregable 6A) ya resuelve el fallback para estos contextos mientras tanto.
 
 ---
 
@@ -66,6 +66,7 @@ Todo lo que se sirve tal cual al navegador vía `wp_enqueue_style()`/`wp_enqueue
 | `front-page.php` | `get_header()` → 10 `get_template_part()` en secuencia → `get_footer()`. Sin lógica propia. |
 | `archive-servicio.php` / `archive-proyecto.php` | `get_header()` → hero interno (`page-hero`) → loop con `content-{cpt}.php` → paginación → sidebar opcional → CTA → `get_footer()`. |
 | `single-servicio.php` / `single-proyecto.php` | `get_header()` → hero interno → metadatos/contenido → navegación prev/next → "relacionados" → sidebar → CTA → formulario de cotización → `get_footer()`. |
+| `index.php` | Fallback obligatorio de WordPress (Entregable 6A). Cubre, con ramas condicionales explícitas, 4 contextos sin plantilla propia todavía: `is_search()`, `is_404()`, `is_archive()` (genérico) e `is_singular()` (single de blog/página). Reutiliza exclusivamente componentes ya existentes; no requirió extender `helpers.php`/`seo.php`/`main.js`. |
 
 ### `inc/`
 | Archivo | Responsabilidad |
@@ -375,3 +376,4 @@ si su marcado existe en el DOM antes de operar.
 
 - **v0.4.1 (Sprint 5, Fase 2):** creación inicial de `ARCHITECTURE.md`, documentando el estado real del proyecto tras Sprints 1-4 y las correcciones de QA de la Fase 1 de este mismo sprint.
 - **v0.5.0 (Sprint 5, Fase 3, cierre):** se completó el Módulo de Equipo y Clientes. Cambios relevantes a la arquitectura documentada: (1) `inc/cpt-clientes.php` cambió `has_archive` de `false` a `true` (ver sección 3 y `DECISIONS.md` D-025), habilitando `archive-clientes.php`; (2) `inc/seo.php` ganó dos nuevas funciones de Schema.org (`ce_construction_schema_person()`, `ce_construction_schema_client_organization()`) y completó la rama de breadcrumbs de archivo de Cliente, antes inalcanzable; (3) `assets/css/main.css` sumó la sección 22 (tarjetas de equipo, grid de logos de clientes); (4) `assets/js/main.js` no cambió — Equipo/Clientes no requieren ningún componente interactivo nuevo. El flujo de los CPT (sección 7) y de carga de CSS/JS (sección 9) descritos arriba siguen aplicando sin modificación al nuevo módulo.
+- **v0.6.0 (Entregable 6A):** `index.php` añadido como fallback obligatorio de WordPress (ver sección 3, nueva fila de la tabla). No cambia ningún flujo descrito en las secciones 4-9 — `index.php` reutiliza exclusivamente lo ya documentado (helpers, clases CSS, paginación, breadcrumbs globales). Se corrigió, de paso, un bug preexistente no arquitectónico en `main.css` (utilidades `.ce-mt-6`/`.ce-mb-6` faltantes desde el Sprint 3) — ver `DECISIONS.md` D-029.

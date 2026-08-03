@@ -3,9 +3,9 @@
 > Este documento es la fuente oficial de verdad del proyecto.
 > Se actualiza al finalizar cada módulo. No se reinicia ni se resume: solo se agrega/actualiza estado.
 
-**Última actualización:** Sprint 5 completado (en dos sesiones, la primera interrumpida por límite de mensajes y verificada/continuada en la segunda) — Fase 1: corregidos los 9 hallazgos Críticos/Altos de `QA_REPORT.md`. Fase 2: creado `ARCHITECTURE.md`. Fase 3: Módulo de Equipo y Clientes (archive + single + schema.org para ambos CPTs).
+**Última actualización:** Entregable 6A completado — `index.php` (bloqueador crítico de arquitectura resuelto). El tema ya cumple el mínimo exigido por WordPress (`style.css` + `index.php`) para ser reconocido como válido y activable.
 
-**Versión de proyecto correspondiente:** v0.5.0 (ver `CHANGELOG.md`)
+**Versión de proyecto correspondiente:** v0.6.0 (ver `CHANGELOG.md`)
 
 ---
 
@@ -16,7 +16,7 @@ El tema tiene:
 - Sistema de diseño frontend completo (CSS) y capa de interactividad (JS) implementados y verificados sintácticamente.
 - Capa de plantillas del **Home** completa y funcional: `header.php`, `footer.php`, `front-page.php` y los 10 template-parts que arman la portada.
 
-El tema **aún no es instalable/activable de forma segura en WordPress** porque falta `index.php` (WordPress exige como mínimo `style.css` + `index.php` para reconocer un tema). Ver sección de Riesgos.
+El tema **ya cumple el mínimo exigido por WordPress para ser reconocido y activado de forma segura** (`style.css` + `index.php`, este último resuelto en el Entregable 6A). Sigue faltando contenido para una experiencia completa de blog/páginas genéricas (ver sección de Módulos pendientes), pero `index.php` actúa como fallback funcional para esos contextos mientras tanto.
 
 ---
 
@@ -41,6 +41,7 @@ El tema **aún no es instalable/activable de forma segura en WordPress** porque 
 | 15 | **Sprint 5, Fase 1 — Correcciones de QA (Críticos/Altos)** | QA-001 a QA-009 corregidos en `inc/quote-form.php`, `inc/meta-boxes.php`, `inc/cpt-servicios.php`, `footer.php`, `functions.php`, `style.css`, `assets/css/main.css` | ✅ |
 | 16 | **Sprint 5, Fase 2 — Documentación de arquitectura** | `ARCHITECTURE.md` (estructura de carpetas, flujos de carga/renderizado/CPT/formulario/CSS-JS, convenciones) | ✅ |
 | 17 | **Sprint 5, Fase 3 — Módulo Equipo y Clientes** | `archive-equipo.php`, `single-equipo.php`, `archive-clientes.php`, `single-clientes.php`, `template-parts/content-equipo.php`, `template-parts/content-cliente.php`, extensión de `inc/seo.php` (Schema `Person`/`Organization`), extensión de `assets/css/main.css`, cambio necesario en `inc/cpt-clientes.php` (`has_archive`) | ✅ |
+| 18 | **Entregable 6A — `index.php` (bloqueador crítico resuelto)** | `index.php`, `template-parts/content-fallback.php`, `template-parts/no-results.php`, extensión de `assets/css/main.css` (`.ce-mt-6`/`.ce-mb-6`, bug preexistente corregido) | ✅ |
 
 ## 3. Módulos en desarrollo
 
@@ -50,7 +51,7 @@ Ninguno activo. Sprint 5 completado en sus 3 fases. **Los 20 hallazgos Medios/Ba
 
 | # | Módulo | Archivos esperados | Prioridad |
 |---|--------|---------------------|-----------|
-| 12 | Archivo raíz obligatorio | `index.php` | 🔴 Crítica (bloquea activación segura del tema) |
+| 12 | ~~Archivo raíz obligatorio~~ | ~~`index.php`~~ | ✅ Completado en Entregable 6A (ver módulo 18 en sección 2) |
 | 13 | ~~Servicios (frontend)~~ | ~~`archive-servicio.php`, `single-servicio.php`~~ | ✅ Completado en Sprint 3 (ver módulo 12 en sección 2) |
 | 14 | ~~Proyectos (frontend)~~ | ~~`archive-proyecto.php`, `single-proyecto.php` (con galería + lightbox)~~ | ✅ Completado en Sprint 4 (ver módulo 14 en sección 2) |
 | 15 | Blog y páginas genéricas | `single.php`, `page.php`, `comments.php`, `404.php` | Media |
@@ -85,7 +86,7 @@ Ninguno activo. Sprint 5 completado en sus 3 fases. **Los 20 hallazgos Medios/Ba
 
 | Riesgo | Severidad | Detalle | Mitigación planeada |
 |---|---|---|---|
-| Falta `index.php` | 🔴 Alta | WordPress requiere `style.css` + `index.php` como mínimo para un tema válido. Hoy el tema depende 100% de `front-page.php`, lo cual cubre el home pero no garantiza un fallback seguro en el listado de temas de wp-admin. | Crear `index.php` en el próximo módulo de plantillas (ítem #12 de pendientes). |
+| ~~Falta `index.php`~~ | ✅ Resuelto en Entregable 6A | WordPress requiere `style.css` + `index.php` como mínimo para un tema válido. | Resuelto — `index.php` ya existe como fallback funcional (single/página, archivos genéricos, búsqueda, 404). Ver `DECISIONS.md`. |
 | Secciones sin contenido en instalación limpia | 🟡 Media | Si el administrador no carga Servicios/Proyectos/Testimonios, esas secciones del home se ocultan automáticamente (por diseño), pero el home puede verse "corto" hasta que se cargue contenido. | Es comportamiento esperado; se documentará en un futuro README de instalación. |
 | Dependencia de Google Fonts y CDN de Font Awesome | 🟡 Media | `inc/enqueue.php` carga fuentes e iconos desde CDNs externos. Afecta Core Web Vitals y cumplimiento GDPR en algunos países (carga de recursos de terceros). | Evaluar auto-hospedar fuentes/iconos en el módulo de performance (#20). |
 | Sin fallback sin-JS en formulario de cotización | 🟢 Baja | Si el visitante tiene JS deshabilitado, el formulario no se puede enviar. | Decisión de alcance aceptada (ver Decisión #7); revisar si el cliente lo requiere. |
@@ -103,13 +104,14 @@ Ninguno activo. Sprint 5 completado en sus 3 fases. **Los 20 hallazgos Medios/Ba
 | ~~CPT Servicio sin `page-attributes` (QA-009)~~ | ✅ Resuelto en v0.4.1 | Añadido soporte `page-attributes`, habilitando el campo "Orden". | Corregido — ver `DECISIONS.md` D-024. |
 | Relación inversa Proyecto↔Servicio heurística (Sprint 4) | 🟡 Media | Ver fila equivalente arriba (Sprint 3), mismo mecanismo en dirección inversa. | Sin cambios — sigue siendo la misma limitación aceptada. |
 | `has_archive` habilitado para Cliente (Sprint 5) | 🟢 Baja (cambio ya aplicado, no un riesgo abierto) | Se documenta aquí por trazabilidad: `inc/cpt-clientes.php` cambió `has_archive` de `false` a `true` para que `archive-clientes.php` fuera alcanzable. | Ninguna acción pendiente — ver `DECISIONS.md` D-025. |
+| ~~Utilidades `.ce-mt-6`/`.ce-mb-6` usadas pero nunca definidas~~ | ✅ Resuelto en Entregable 6A | Bug preexistente detectado al construir `index.php`: 10 archivos de Sprints 3-5 (`single-servicio.php`, `single-proyecto.php`, `archive-servicio.php`, `archive-proyecto.php`, `archive-equipo.php`, `archive-clientes.php`, `single-clientes.php`, `single-equipo.php`) ya usaban estas clases de espaciado, pero nunca se definieron en `main.css` — el margen simplemente no se aplicaba. | Corregido — 2 líneas añadidas de forma aditiva junto a la familia `.ce-mt-*`/`.ce-mb-*` existente. Ver `DECISIONS.md`. |
 | Relación inversa Proyecto↔Servicio heurística (Sprint 4) | 🟡 Media | "Servicios relacionados" en `single-proyecto.php` depende de la misma coincidencia textual de nombres de taxonomía que el riesgo ya documentado para Servicios (ver fila anterior de Sprint 3); mismo mecanismo, ahora en dirección inversa. | Misma mitigación propuesta: campo relacional explícito en un sprint futuro si se requiere precisión editorial. |
 
 ## 7. Próximo módulo recomendado
 
-**Sprint 6 (recomendado): `index.php` (crítico de arquitectura, aún pendiente) + Blog y páginas genéricas (`single.php`, `page.php`, `comments.php`, `404.php`).**
+**Sprint 6B (recomendado): Blog y páginas genéricas (`single.php`, `page.php`, `comments.php`, `404.php`).**
 
-Razón: con Servicios, Proyectos, Equipo y Clientes completos, los tipos de contenido personalizado del tema están terminados. `index.php` sigue siendo el único bloqueador técnico crítico de arquitectura sin resolver (WordPress lo exige como mínimo junto a `style.css`). Las plantillas de Blog/páginas genéricas son el siguiente contenido de mayor visibilidad pendiente.
+Razón: con `index.php` resuelto (Entregable 6A), el tema ya es activable de forma segura. `index.php` funciona hoy como fallback completo para single/página/búsqueda/404, pero WordPress dará prioridad automática a plantillas más específicas en cuanto existan — `single.php`/`page.php`/`404.php` ofrecerán una experiencia más refinada (ej. `comments.php` propio en vez del fallback nativo de WordPress usado hoy por `index.php` para comentarios de blog).
 
 Los 20 hallazgos Medios/Bajos/Mejoras futuras de `QA_REPORT.md` siguen sin corregir — quedan disponibles para un sprint de refinamiento futuro si el cliente lo autoriza.
 
@@ -153,3 +155,14 @@ Estos tres archivos, junto con `PROJECT_STATUS.md`, `TODO.md` y `TREE.md`, son l
 - **Fase 1 (Correcciones QA):** los 9 hallazgos Críticos/Altos de QA_REPORT.md corregidos. Ver módulo 15 en sección 2 y DECISIONS.md D-017 a D-024.
 - **Fase 2 (Documentación de arquitectura):** ARCHITECTURE.md creado, describiendo la arquitectura real (no propuesta) del proyecto: estructura de carpetas, responsabilidad de cada directorio/archivo, flujo de carga del tema, dependencias entre módulos, flujo de renderizado del home, flujo de los CPT, flujo del formulario de cotización, flujo de CSS/JS, y convenciones de organización.
 - **Fase 3 (Módulo Equipo y Clientes):** archive-equipo.php, single-equipo.php, archive-clientes.php, single-clientes.php + 2 template-parts nuevos + Schema.org Person/Organization + cambio necesario de has_archive en el CPT Cliente (documentado en D-025). Alcance deliberadamente más ligero que Servicios/Proyectos (sin CTA/sidebar/formulario), conforme al brief explícito del sprint (D-026).
+
+---
+
+## 12. Resumen del Entregable 6A — index.php
+
+- **Archivo entregado:** `index.php`, resolviendo el único bloqueador crítico de arquitectura que quedaba pendiente desde el inventario original del proyecto (Sprint 1). El tema ya cumple el mínimo (`style.css` + `index.php`) que WordPress exige para reconocerlo y activarlo con seguridad.
+- **Diseño de la plantilla:** dado que `single.php`, `page.php`, `archive.php`, `search.php` y `404.php` todavía no existen, `index.php` se construyó como un fallback genérico y completamente funcional (no un placeholder) que cubre los 4 contextos que hoy recaerían sobre él: vista single de blog/página, archivos genéricos (categorías, autor, fecha, o CPTs sin archive-{cpt}.php propio como Testimonios/FAQ), resultados de búsqueda, y 404. Cuando se creen esas plantillas específicas en un sprint futuro, WordPress les dará prioridad automática sobre `index.php` (comportamiento nativo de la Template Hierarchy), sin necesidad de modificar nada aquí.
+- **Archivos nuevos de apoyo:** `template-parts/content-fallback.php` (tarjeta genérica para los loops de búsqueda/archivo) y `template-parts/no-results.php` (estado vacío reutilizable con formulario de búsqueda propio del sistema de diseño, usado en búsqueda sin resultados, archivo vacío, y 404).
+- **Bug preexistente detectado y corregido:** al construir `index.php` se detectó que las utilidades `.ce-mt-6`/`.ce-mb-6` se usan desde el Sprint 3 en 10 archivos ya aprobados, pero nunca se definieron en `assets/css/main.css` — el margen simplemente no se aplicaba en ninguno de esos casos. Se corrigió de forma aditiva (2 líneas, junto a la familia `.ce-mt-*`/`.ce-mb-*` ya existente), beneficiando retroactivamente a los 10 archivos que ya lo usaban, no solo a `index.php`.
+- **Sin cambios en `inc/helpers.php`, `inc/seo.php` ni `assets/js/main.js`:** `index.php` reutilizó exclusivamente funciones y componentes ya existentes (`ce_get_short_excerpt()`, clases `.ce-card`/`.ce-grid`/`.ce-form`/`.ce-field`/`.ce-btn`, paginación ya estilizada, breadcrumbs globales ya enganchados en `header.php`).
+- **Limitación conocida, aceptada por alcance:** los comentarios de blog (`comments_template()`) usan la plantilla de compatibilidad nativa de WordPress hasta que se cree `comments.php` en el sprint de Blog — funcional pero sin el estilo del sistema de diseño del tema. Documentado, no es un bug.

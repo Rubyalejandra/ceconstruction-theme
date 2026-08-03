@@ -259,3 +259,21 @@
 - **Alternativas descartadas:** Añadir las clases `.ce-client-card*` faltantes al CSS (rechazado: crearía dos sistemas de tarjetas de cliente visualmente equivalentes, violando la regla "no generes código duplicado").
 - **Motivo:** Un archivo no entregado/aprobado puede corregirse sin restricción de "no reescribir"; se prioriza la convención ya establecida en CSS por ser la que ya tenía más desarrollo (incluía también el estilo de `single-cliente.php`).
 - **Impacto:** Ninguno sobre código ya aprobado — `content-cliente.php` se entrega en su primera versión funcional real en esta misma continuación de sprint.
+
+### D-028 — `index.php` diseñado como fallback genérico completo, no un placeholder
+- **Fecha:** Entregable 6A
+- **Problema:** `index.php` es la plantilla de respaldo final de WordPress. Sin `single.php`, `page.php`, `archive.php`, `search.php` ni `404.php` propios todavía, `index.php` recibiría en la práctica 4 contextos muy distintos (single de blog/página, archivos genéricos, búsqueda, 404), y las reglas del proyecto prohíben entregar archivos "placeholder" no funcionales.
+- **Solución elegida:** Construir `index.php` con ramas condicionales explícitas (`is_search()`, `is_404()`, `is_archive()`, `is_singular()`) que cubren cada uno de esos 4 contextos con una experiencia visual completa (hero/título contextual, tarjetas, paginación, o mensaje de error apropiado), en vez de un `if (have_posts())` genérico único.
+- **Alternativas descartadas:**
+  1. Un `index.php` mínimo de un solo loop genérico sin distinguir contextos (rechazado: no seria "completamente funcional" para 404/búsqueda, que necesitan mensajes y UI distintos a un archivo normal).
+  2. Esperar a construir `single.php`/`archive.php`/`search.php`/`404.php` en el mismo entregable (rechazado: excede explícitamente el alcance de "desarrolla únicamente index.php").
+- **Motivo:** Cumplir la regla del proyecto de que todo archivo nuevo debe quedar completamente funcional, sin exceder el alcance de este entregable puntual.
+- **Impacto:** Cuando se construyan `single.php`/`page.php`/`archive.php`/`search.php`/`404.php` en un sprint futuro, WordPress les dará prioridad automática sobre `index.php` para sus contextos específicos (comportamiento nativo de la Template Hierarchy) — no se requiere ningún cambio en `index.php` para que eso ocurra, simplemente dejará de ser invocado en esos casos y seguirá existiendo como el fallback final que WordPress exige.
+
+### D-029 — Corrección del bug preexistente `.ce-mt-6`/`.ce-mb-6` (detectado, no introducido, en este entregable)
+- **Fecha:** Entregable 6A
+- **Problema:** Al verificar las clases CSS usadas por `index.php` contra `assets/css/main.css`, se detectó que `.ce-mt-6` y `.ce-mb-6` ya estaban en uso desde el Sprint 3 en 10 archivos aprobados (`single-servicio.php`, `single-proyecto.php`, `archive-servicio.php`, `archive-proyecto.php`, `archive-equipo.php`, `archive-clientes.php`, `single-clientes.php`, `single-equipo.php`), pero nunca se habían definido — el margen correspondiente simplemente no se aplicaba en ninguno de esos casos, un defecto visual silencioso no detectado en ninguna auditoría previa (incluyendo `QA_REPORT.md`).
+- **Solución elegida:** Añadir `.ce-mt-6{margin-top:var(--ce-space-6);}` y `.ce-mb-6{margin-bottom:var(--ce-space-6);}` junto a la familia `.ce-mt-2` a `.ce-mt-5`/`.ce-mb-2` a `.ce-mb-5` ya existente, siguiendo exactamente el mismo patrón numérico y usando el design token `--ce-space-6` (ya definido, ya usado en otras reglas del sistema).
+- **Alternativas descartadas:** Ninguna — es la corrección mínima y obvia dado el patrón ya establecido; no había ambigüedad de diseño que resolver.
+- **Motivo:** `index.php` (este entregable) también necesita estas clases; corregirlas de paso beneficia retroactivamente a los 10 archivos que ya las usaban sin saber que no tenían efecto.
+- **Impacto:** Cambio puramente aditivo (2 líneas), cero riesgo de romper nada. Mejora visual inmediata y automática en los 10 archivos ya aprobados que usaban estas clases, sin necesidad de tocarlos.
