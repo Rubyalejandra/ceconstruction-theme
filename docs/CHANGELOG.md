@@ -245,8 +245,47 @@
 
 ---
 
+## v0.6.1 — Sprint 6B, Entregable 6B.1: page.php
+
+**Módulo:** Páginas genéricas de WordPress (primer Entregable del Sprint 6B, dividido conforme a la nueva metodología permanente de Gestión de Sprints y Entregables)
+
+### Añadido
+- `page.php`: plantilla para páginas genéricas de WordPress. Reutiliza `template-parts/page-hero.php` y `.ce-service-content` para consistencia visual total con Servicios/Proyectos/Equipo/Clientes. Incluye soporte completo de página protegida por contraseña (`post_password_required()`/`get_the_password_form()`), `wp_link_pages()` para contenido paginado internamente, y comentarios condicionales si el admin los habilita en una página.
+
+### Sin cambios
+- `inc/helpers.php`, `inc/seo.php`, `assets/css/main.css`, `assets/js/main.js`: no requirieron ninguna extensión — todas las clases y funciones necesarias ya existían.
+
+### Notas
+- Desde esta versión, WordPress da prioridad automática a `page.php` sobre `index.php` para cualquier página (comportamiento nativo de la Template Hierarchy); `index.php` sigue existiendo sin cambios como fallback final.
+- Limitación conocida heredada (sin cambios): los comentarios siguen usando el fallback de compatibilidad nativo de WordPress hasta que `comments.php` exista (Entregable 6B.2, siguiente).
+- Ver `DECISIONS.md` para el detalle de la primera aplicación práctica de la metodología de Entregables (D-030).
+
+---
+
+## v0.6.2 — Sprint 6B, Entregable 6B.2: single.php + comments.php
+
+**Módulo:** Entrada individual de blog + plantilla de comentarios (unidad funcional acoplada)
+
+### Añadido
+- `single.php`: entrada individual de blog. Hero interno reutilizado (`template-parts/page-hero.php`), meta de autor/fecha/categorías, `wp_link_pages()`, tags como badges (`.ce-badge`), navegación entre entradas (reutiliza `.ce-service-nav`, mismo patrón de Servicios/Proyectos — D-016), comentarios integrados vía `comments_template()`.
+- `comments.php`: reemplaza el fallback de compatibilidad nativo de WordPress que usaban `index.php`/`page.php` hasta ahora. Callback propio (`ce_construction_render_comment`) para hilos anidados con avatar/meta/enlace de respuesta, paginación de comentarios (`the_comments_pagination()`), formulario (`comment_form()`) con markup integrado a `.ce-form`/`.ce-field`/`.ce-btn` ya existentes.
+- `inc/seo.php` (extensión aditiva): `ce_construction_schema_blog_post()` — Schema.org `BlogPosting` para entradas de blog, manteniendo la misma consistencia de calidad SEO que el resto de tipos de contenido.
+- `assets/css/main.css` (extensión aditiva, sección 23): árbol de comentarios (avatar, meta, hilos anidados, estado "comentarios cerrados"). El formulario reutiliza `.ce-form`/`.ce-field`/`.ce-btn` ya existentes, sin duplicar estilos.
+
+### Sin cambios
+- `inc/helpers.php`, `assets/js/main.js`: no requirieron ninguna modificación.
+
+### Decisiones clave
+- Ver `DECISIONS.md`: D-032 (single.php + comments.php desarrollados como unidad acoplada), D-033 (callback de comentario definido localmente en comments.php, no en helpers.php).
+
+### Notas
+- Limitación heredada del Entregable 6B.1 ya resuelta: tanto `single.php` como `page.php` (si el admin habilita comentarios en una página) usan ahora `comments.php` con el estilo completo del sistema de diseño.
+- Ver `TODO.md` para el detalle completo.
+
+---
+
 ## Próximas versiones (planeadas, no confirmadas)
 
-- **v0.7.0 (propuesta):** Blog y páginas genéricas (`single.php`, `page.php`, `comments.php`, `404.php`), reemplazando el fallback de `index.php` con plantillas dedicadas y con el estilo completo del sistema de diseño.
-- **v0.8.0 (propuesta):** Widgets custom, `screenshot.png`, hallazgos Medios de `QA_REPORT.md` (con aprobación explícita).
-- **v0.9.0 (propuesta):** Auditoría de accesibilidad y performance (incluye QA-026/QA-027: auto-hospedar fuentes/Font Awesome).
+- **v0.6.3 (propuesta):** Entregable 6B.3 — `404.php` (cierre del Sprint 6B).
+- **v0.7.0 (propuesta):** Sprint 7 — Widgets custom, `screenshot.png`, hallazgos Medios de `QA_REPORT.md` (con aprobación explícita), dividido en sus Entregables correspondientes conforme a la metodología permanente.
+- **v0.8.0 (propuesta):** Auditoría de accesibilidad y performance (incluye QA-026/QA-027: auto-hospedar fuentes/Font Awesome).

@@ -1158,3 +1158,42 @@ img[loading="lazy"] {
 .ce-nav__list .current-menu-item > a { color: var(--ce-color-secondary-text); }
 .ce-sidebar__link:hover, .ce-sidebar__link.is-current { color: var(--ce-color-secondary-text); }
 .ce-breadcrumbs__item a:hover { color: var(--ce-color-secondary-text); }
+
+/* =============================================================
+   23. ENTREGABLE 6B.2 — COMENTARIOS (comments.php)
+   Sección añadida sin modificar reglas anteriores. El formulario
+   de comentarios reutiliza deliberadamente .ce-form/.ce-field/
+   .ce-btn ya existentes (ver comments.php); aquí solo se añaden
+   las clases específicas del árbol de comentarios en sí.
+   ============================================================= */
+
+.ce-comments { margin-top: var(--ce-space-6); }
+.ce-comments__title { font-family: var(--ce-font-heading); }
+.ce-comments__list { display: flex; flex-direction: column; gap: var(--ce-space-4); }
+.ce-comments__list .ce-comments__list { margin-top: var(--ce-space-4); padding-left: var(--ce-space-5); border-left: 2px solid var(--ce-color-neutral-300); }
+.ce-comments__closed {
+  background: var(--ce-color-neutral-100); border-radius: var(--ce-radius-md);
+  padding: var(--ce-space-4); color: var(--ce-color-neutral-600); text-align: center;
+}
+
+.ce-comment { list-style: none; }
+.ce-comment__body { display: flex; gap: var(--ce-space-3); }
+.ce-comment__avatar img { width: 56px; height: 56px; border-radius: 50%; box-shadow: var(--ce-shadow-sm); }
+.ce-comment__content-wrap {
+  flex: 1; background: var(--ce-color-white); border: 1px solid var(--ce-color-neutral-300);
+  border-radius: var(--ce-radius-md); padding: var(--ce-space-4);
+}
+.ce-comment__meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ce-space-2); margin-bottom: var(--ce-space-2); }
+.ce-comment__author { font-family: var(--ce-font-heading); font-weight: 700; color: var(--ce-color-primary); }
+.ce-comment__date a { font-size: 0.82rem; color: var(--ce-color-neutral-600); }
+.ce-comment__date a:hover { color: var(--ce-color-secondary-text); }
+.ce-comment__text { color: var(--ce-color-neutral-800); line-height: 1.7; }
+.ce-comment__text p:last-child { margin-bottom: 0; }
+.ce-comment__reply { margin-top: var(--ce-space-2); }
+.ce-comment__reply a {
+  font-family: var(--ce-font-heading); font-weight: 600; font-size: 0.85rem;
+  color: var(--ce-color-secondary-text); display: inline-flex; align-items: center; gap: 6px;
+}
+.ce-comment.bypostauthor > .ce-comment__body .ce-comment__content-wrap { border-color: var(--ce-color-secondary); }
+
+.ce-comments__form { max-width: 640px; margin-top: var(--ce-space-4); }

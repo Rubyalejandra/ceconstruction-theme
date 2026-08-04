@@ -277,3 +277,37 @@
 - **Alternativas descartadas:** Ninguna — es la corrección mínima y obvia dado el patrón ya establecido; no había ambigüedad de diseño que resolver.
 - **Motivo:** `index.php` (este entregable) también necesita estas clases; corregirlas de paso beneficia retroactivamente a los 10 archivos que ya las usaban sin saber que no tenían efecto.
 - **Impacto:** Cambio puramente aditivo (2 líneas), cero riesgo de romper nada. Mejora visual inmediata y automática en los 10 archivos ya aprobados que usaban estas clases, sin necesidad de tocarlos.
+
+### D-030 — Adopción de la metodología permanente "Gestión automática de Sprints y Entregables"
+- **Fecha:** Tras el Entregable 6A
+- **Problema:** El Sprint 5 se interrumpió por límite de mensajes a mitad de desarrollo (ver sección de continuidad en `PROJECT_STATUS.md`/`CHANGELOG.md` v0.5.0), requiriendo una sesión adicional de verificación y continuación. Aunque el trabajo se recuperó sin pérdida ni duplicación gracias a la disciplina de verificación ya establecida, la interrupción en sí fue evitable si el trabajo se hubiera planificado en unidades más pequeñas desde el inicio.
+- **Solución elegida:** Adoptar como regla permanente del proyecto que todo Sprint se divida automáticamente en **Entregables** — unidades funcionales completas, terminables en una sola sesión, con un flujo de cierre obligatorio (verificación de sintaxis/dependencias, actualización de documentación, marcado como Completado, propuesta del siguiente Entregable y su prompt de continuación) antes de detenerse a esperar aprobación. La calidad del código nunca se reduce por reducir el alcance de un Entregable.
+- **Alternativas descartadas:**
+  1. Mantener el enfoque de "un Sprint = una sola entrega monolítica" y solo dividir reactivamente si ocurre una interrupción (rechazado: es exactamente el patrón que ya falló una vez en el Sprint 5).
+  2. Definir un límite arbitrario de líneas/archivos por entrega sin atender a si constituye una unidad funcional completa (rechazado: podría forzar a dejar un archivo a medias, violando la regla explícita de "nunca dejar un archivo parcialmente implementado").
+- **Motivo:** Formalizar como práctica preventiva y permanente lo que ya se venía aplicando de forma implícita e intuitiva en los últimos dos entregables del proyecto (Sprint 5 dividido en 3 fases; Entregable 6A tratado como unidad independiente de `index.php`), en vez de depender de que una futura interrupción vuelva a forzar ese mismo patrón de forma reactiva.
+- **Impacto:** A partir de este punto, todo Sprint del proyecto (empezando por el que continúe después de esta decisión) se planifica y comunica ya dividido en Entregables desde su inicio, con su propio flujo de cierre documentado en `HANDOFF.md` sección 16 y `PROJECT_STATUS.md` sección 13. No afecta ningún código ya entregado — es una decisión de proceso, no de arquitectura de software.
+
+### D-031 — `page.php` reutiliza el hero interno sin condicionarlo a la presencia de imagen destacada
+- **Fecha:** Sprint 6B, Entregable 6B.1
+- **Problema:** A diferencia de los CPTs de contenido (Servicios, Proyectos, etc.), las páginas genéricas de WordPress varían mucho en propósito (una página "Política de Privacidad" no necesita el mismo tratamiento visual que una página "Nuestra Historia"). Había que decidir si `page.php` siempre muestra el hero interno (`template-parts/page-hero.php`) o solo condicionalmente.
+- **Solución elegida:** Mostrar siempre el hero interno (con imagen destacada si existe, o el degradado de fondo por defecto si no), usando el excerpt de la página como subtítulo solo si existe (`has_excerpt()`).
+- **Alternativas descartadas:** Omitir el hero para páginas sin imagen destacada, mostrando solo un `<h1>` simple (rechazado: generaría dos experiencias visuales distintas para "página con imagen" vs. "página sin imagen", inconsistente con el resto del sitio, que siempre muestra el mismo componente de hero interno independientemente de si hay imagen).
+- **Motivo:** Consistencia visual total en todo el tema — el mismo componente (`page-hero.php`) ya maneja correctamente el caso sin imagen (fondo con gradiente sobre `--ce-color-primary`), por lo que no hay necesidad de una rama condicional adicional en `page.php`.
+- **Impacto:** Ninguno sobre código existente; es una decisión de uso de un componente ya aprobado (D-009), no una modificación de ese componente.
+
+### D-032 — `single.php` y `comments.php` desarrollados como un único Entregable acoplado
+- **Fecha:** Sprint 6B, Entregable 6B.2
+- **Problema:** Conforme a la metodología permanente de Entregables (D-030), cabía la duda de si `single.php` y `comments.php` debían tratarse como dos Entregables separados o uno solo.
+- **Solución elegida:** Tratarlos como un único Entregable (6B.2), ya que `single.php` invoca `comments_template()` y, sin `comments.php`, los comentarios de blog seguirían mostrando el fallback de compatibilidad nativo de WordPress — dejando el Entregable incompleto en la práctica pese a que `single.php` en sí mismo funcionaría.
+- **Alternativas descartadas:** Entregar `single.php` solo y posponer `comments.php` a un Entregable 6B.2b separado (rechazado: violaría la regla de la metodología permanente de que cada Entregable debe ser una "unidad funcional completa", no un archivo técnicamente funcional pero con una experiencia de usuario a medias en un aspecto tan visible como los comentarios).
+- **Motivo:** Coherencia con la regla ya establecida en `HANDOFF.md` sección 16: "nunca se deja un archivo parcialmente implementado ni se divide un mismo archivo entre varias entregas, salvo razón técnica excepcional" — aquí se extiende el mismo criterio a una pareja de archivos con dependencia funcional directa.
+- **Impacto:** Ninguno negativo — ambos archivos se entregaron completos y verificados en la misma sesión, sin fragmentar el trabajo.
+
+### D-033 — Callback de renderizado de comentarios definido localmente en `comments.php`, no en `inc/helpers.php`
+- **Fecha:** Sprint 6B, Entregable 6B.2
+- **Problema:** `wp_list_comments()` requiere una función de callback para personalizar el marcado de cada comentario. Había que decidir dónde definir esa función.
+- **Solución elegida:** Definir `ce_construction_render_comment()` directamente dentro de `comments.php` (envuelta en `function_exists()` para evitar redeclaración si el archivo se incluyera más de una vez), en vez de añadirla a `inc/helpers.php`.
+- **Alternativas descartadas:** Añadirla a `inc/helpers.php` junto a las demás funciones reutilizables del proyecto (rechazado: esta función es marcado de presentación específico y acoplado a `comments.php` — no hay ningún otro archivo del tema que la reutilice ni se prevé que la reutilice, a diferencia de funciones genuinamente transversales como `ce_get_short_excerpt()`).
+- **Motivo:** `inc/helpers.php` está reservado, por convención ya establecida en el proyecto, para funciones reutilizables entre múltiples archivos — añadir código de un solo uso ahí iría en contra de esa convención sin aportar ningún beneficio real de reutilización.
+- **Impacto:** Si en el futuro se necesitara reutilizar esta función de renderizado en otro contexto (poco probable, ya que `comments.php` es único por diseño de WordPress), se podría mover a `inc/helpers.php` en ese momento sin romper nada, ya que su firma no depende de ningún estado específico de `comments.php`.

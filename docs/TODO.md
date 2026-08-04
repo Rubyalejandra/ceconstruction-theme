@@ -2,7 +2,7 @@
 
 > Checklist maestro del proyecto. No se resume ni se reinicia: solo se actualizan los estados (✅ / 🟡 / ⬜) y se agregan tareas nuevas si surgen.
 >
-> **Nota (Entregable 6A completado):** `index.php` resuelto — ver nueva sección 18 al final. El bloqueador crítico de arquitectura del proyecto ya no existe.
+> **Nota (Sprint 6B en curso — Entregable 6B.2 completado):** `single.php` + `comments.php` resueltos. Ver nueva sección 20 al final. Siguiente y último Entregable del Sprint: 6B.3 (`404.php`).
 
 ---
 
@@ -91,10 +91,10 @@
 - ✅ `single-servicio.php` (completado en Sprint 3)
 - ✅ `archive-proyecto.php` (completado en Sprint 4)
 - ✅ `single-proyecto.php` (completado en Sprint 4, con galería completa + lightbox + metadatos de cliente/ubicación/fecha/estado)
-- ⬜ `single.php` (blog)
-- ⬜ `page.php`
-- ⬜ `comments.php`
-- ⬜ `404.php`
+- ✅ `single.php` (blog) — completado en Entregable 6B.2
+- ✅ `page.php` (completado en Entregable 6B.1)
+- ✅ `comments.php` — completado en Entregable 6B.2 (callback propio, hilos anidados, formulario integrado)
+- ⬜ `404.php` — Entregable 6B.3 (siguiente y último del Sprint 6B)
 - ⬜ `archive.php` genérico (fallback para Equipo/Clientes/FAQ si no se crean plantillas dedicadas)
 
 ## 10. Componentes reutilizables (del brief original)
@@ -204,4 +204,26 @@
 - ✅ `template-parts/no-results.php` (estado vacío con formulario de búsqueda propio del sistema de diseño)
 - ✅ Bug preexistente corregido: `.ce-mt-6`/`.ce-mb-6` faltaban en `main.css` pese a usarse desde el Sprint 3 en 10 archivos ya aprobados
 - ✅ Sin cambios en `inc/helpers.php`, `inc/seo.php` ni `assets/js/main.js` (todo reutilizado)
-- ⬜ `comments.php` propio con el estilo del sistema de diseño — pendiente para el sprint de Blog (hoy usa el fallback nativo de WordPress, funcional pero sin estilo propio)
+- ✅ `comments.php` propio con el estilo del sistema de diseño — completado en Entregable 6B.2 (antes usaba el fallback nativo de WordPress)
+
+## 19. Entregable 6B.1 — page.php (completo)
+- ✅ `page.php` (hero interno reutilizado, tipografía de contenido reutilizada)
+- ✅ Soporte de página protegida por contraseña (`post_password_required()`/`get_the_password_form()`)
+- ✅ `wp_link_pages()` para paginación interna de contenido
+- ✅ Comentarios condicionales (si el admin los habilita en una página)
+- ✅ Sin cambios en `inc/helpers.php`, `inc/seo.php`, `assets/css/main.css`, `assets/js/main.js` (todo reutilizado)
+- ✅ Estilo propio de comentarios — resuelto por `comments.php` (Entregable 6B.2)
+
+## 20. Entregable 6B.2 — single.php + comments.php (completo)
+- ✅ `single.php` (hero interno, meta autor/fecha/categorías, contenido, tags, navegación entre entradas, comentarios integrados)
+- ✅ `comments.php` (callback propio `ce_construction_render_comment`, hilos anidados, avatar, meta, enlace de respuesta)
+- ✅ Paginación de comentarios (`the_comments_pagination()`)
+- ✅ Formulario de comentarios (`comment_form()`) con markup integrado a `.ce-form`/`.ce-field`/`.ce-btn` ya existentes
+- ✅ Estado "comentarios cerrados" estilizado
+- ✅ Soporte de página protegida por contraseña (heredado del patrón de `page.php`)
+- ✅ `wp_link_pages()` para paginación interna de contenido
+- ✅ Navegación entre entradas de blog (reutiliza `.ce-service-nav`, mismo patrón de Servicios/Proyectos — ver `DECISIONS.md` D-016)
+- ✅ Schema.org `BlogPosting` (`inc/seo.php` → `ce_construction_schema_blog_post()`, extensión aditiva)
+- ✅ SEO/Open Graph (ya cubiertos por `ce_construction_meta_tags()` genérica)
+- ✅ Responsive y accesibilidad (mismos componentes ya verificados del sistema de diseño)
+- ✅ Integración completa: cero cambios en `inc/helpers.php` ni `assets/js/main.js`; extensión aditiva en `inc/seo.php` y nueva sección 23 en `assets/css/main.css`

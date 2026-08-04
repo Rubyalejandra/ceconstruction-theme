@@ -3,8 +3,8 @@
 
 > Este documento, junto con `PROJECT_STATUS.md`, `TODO.md`, `TREE.md`, `CHANGELOG.md`, `DECISIONS.md`, `QA_REPORT.md` y `ARCHITECTURE.md`, es la fuente oficial del estado del proyecto. Si esta conversación se corta por límite de mensajes/tokens, cualquier sesión nueva debe poder retomar el trabajo exactamente desde aquí, sin releer el historial completo de chat.
 
-**Versión de referencia:** v0.6.0 (ver `CHANGELOG.md`)
-**Última sesión de trabajo:** Entregable 6A — `index.php` (bloqueador crítico de arquitectura resuelto).
+**Versión de referencia:** v0.6.2 (ver `CHANGELOG.md`)
+**Última sesión de trabajo:** Sprint 6B ("Blog y páginas genéricas"), Entregable 6B.2 — `single.php` + `comments.php` completados.
 
 ---
 
@@ -17,7 +17,7 @@ CE Construction es un tema profesional de WordPress a medida, desarrollado 100% 
 - **QA:** auditoría completa realizada (`QA_REPORT.md`, 29 hallazgos); los 9 Críticos/Altos ya corregidos (v0.4.1); los 20 Medios/Bajos/Mejoras futuras siguen documentados y sin tocar.
 - **Documentación de arquitectura:** `ARCHITECTURE.md` describe la arquitectura real (no propuesta) del proyecto completo.
 - **Bloqueador crítico resuelto:** `index.php` ya existe — el tema cumple el mínimo que WordPress exige (`style.css` + `index.php`) para ser reconocido y activado con seguridad.
-- **Pendiente funcional:** Blog y páginas genéricas dedicadas (`single.php`, `page.php`, `comments.php`, `404.php` — hoy cubiertas por el fallback de `index.php`), `inc/widgets.php`, `screenshot.png`.
+- **Pendiente funcional:** `404.php` (Entregable 6B.3, cierra el Sprint 6B), `inc/widgets.php`, `screenshot.png`.
 
 El proyecto sigue una metodología de "sprint por sprint con aprobación explícita del cliente antes de avanzar", y mantiene documentación viva (los 7 archivos `.md` mencionados arriba) que se actualiza al cierre de cada sprint.
 
@@ -58,7 +58,7 @@ ce-construction-theme/
     └── img/ (vacía, pendiente de assets reales del cliente)
 ```
 
-**Aún pendiente:** `page.php`, `single.php`, `comments.php`, `404.php`, `archive.php` genérico, `inc/widgets.php`, `screenshot.png`.
+**Aún pendiente:** `404.php` (Entregable 6B.3, cierra el Sprint 6B), `archive.php` genérico, `inc/widgets.php`, `screenshot.png`.
 
 ---
 
@@ -82,6 +82,8 @@ ce-construction-theme/
 16. `ARCHITECTURE.md`
 17. Módulo Equipo y Clientes completo (archive + single + schema para ambos)
 18. `index.php` (Entregable 6A) — bloqueador crítico de arquitectura resuelto
+19. `page.php` (Sprint 6B, Entregable 6B.1)
+20. `single.php` + `comments.php` (Sprint 6B, Entregable 6B.2)
 
 Detalle línea por línea en `TODO.md` y `CHANGELOG.md` (v0.1.0 a v0.5.0).
 
@@ -90,13 +92,13 @@ Detalle línea por línea en `TODO.md` y `CHANGELOG.md` (v0.1.0 a v0.5.0).
 | Módulo | Qué existe | Qué falta |
 |---|---|---|
 | Formulario de cotización | Backend + AJAX + validación + email + adjuntos reales + rate-limiting + retención, todo funcional | Fallback sin JavaScript (fuera de alcance, D-005) |
-| SEO | Meta tags, OG, Schema (5 tipos), breadcrumbs | Sitemap XML propio (o delegar a plugin) |
+| SEO | Meta tags, OG, Schema (6 tipos: Organization, Service, Project, Person, Organization-cliente, BlogPosting), breadcrumbs | Sitemap XML propio (o delegar a plugin) |
 | QA | 9/29 hallazgos corregidos | 20 hallazgos Medios/Bajos/Mejoras futuras sin tocar (fuera de alcance del Sprint 5) |
 | Componentes reutilizables del brief | Hero, Cards, Buttons, Forms, Modals, Alerts, Navbar, Footer, Breadcrumb, Gallery, Counter, Testimonials, CTA, Accordion | Timeline (sin sección que lo use aún), Sidebar de blog (sin plantilla de blog aún) |
 
 ## 6. Módulos pendientes (no iniciados)
 
-1. `single.php`, `page.php`, `comments.php`, `404.php` (Blog y páginas genéricas — hoy cubiertas por el fallback funcional de `index.php`)
+1. `404.php` (Entregable 6B.3, siguiente y último — cierra el Sprint 6B)
 2. `archive.php` genérico (fallback específico para archivos; hoy `index.php` ya lo cubre de forma genérica)
 3. `inc/widgets.php`
 4. `screenshot.png`
@@ -155,6 +157,8 @@ Registro completo y acumulativo en `DECISIONS.md` (D-001 a D-029 a la fecha). La
 - **D-027:** reconciliación de `content-cliente.php` con la convención CSS ya existente.
 - **D-028:** `index.php` diseñado como fallback genérico completo (no placeholder), cubriendo 4 contextos con ramas condicionales explícitas.
 - **D-029:** corrección del bug preexistente `.ce-mt-6`/`.ce-mb-6` (detectado, no introducido, al construir `index.php`).
+- **D-030:** adopción de la metodología permanente de Gestión de Sprints y Entregables.
+- **D-031:** `page.php` reutiliza siempre el hero interno, independientemente de si la página tiene imagen destacada.
 
 ---
 
@@ -175,17 +179,16 @@ Registro completo y acumulativo en `DECISIONS.md` (D-001 a D-029 a la fecha). La
 
 ## 12. Orden recomendado para continuar
 
-1. **Blog y páginas genéricas:** `single.php`, `page.php`, `comments.php`, `404.php` (reemplazan el fallback de `index.php` con plantillas dedicadas y estilo completo).
-2. **Extras de menor prioridad:** `inc/widgets.php`, `screenshot.png`, `archive.php` genérico.
-3. **Hallazgos QA Medios/Bajos** de `QA_REPORT.md` (con aprobación explícita de cuáles corregir).
-4. **Auditoría transversal final:** accesibilidad, performance (Core Web Vitals, auto-hospedar fuentes — QA-026/027), revisión cruzada de sanitización/escaping.
+1. **Entregable 6B.3 (siguiente y último del Sprint 6B): `404.php`.**
+3. **Extras de menor prioridad:** `inc/widgets.php`, `screenshot.png`, `archive.php` genérico.
+4. **Hallazgos QA Medios/Bajos** de `QA_REPORT.md` (con aprobación explícita de cuáles corregir).
+5. **Auditoría transversal final:** accesibilidad, performance (Core Web Vitals, auto-hospedar fuentes — QA-026/027), revisión cruzada de sanitización/escaping.
 
 ## 13. Próximo sprint recomendado
 
-**Sprint 6B: "Blog y páginas genéricas"**
-- `single.php`, `page.php`, `comments.php`, `404.php`
+**Sprint 6B en curso — próximo y último Entregable: 6B.3 "404.php"**
 
-Justificación: con `index.php` resuelto, el tema ya es activable con seguridad. `single.php`/`page.php`/`404.php` ofrecerán una experiencia más refinada que el fallback genérico de `index.php` (que seguirá existiendo como el fallback final que WordPress exige, pero dejará de ser invocado en estos contextos específicos en cuanto existan las plantillas dedicadas). `comments.php` propio reemplazará el fallback de compatibilidad nativa de WordPress que usa hoy `index.php`.
+Justificación: `page.php` (6B.1) y `single.php` + `comments.php` (6B.2) ya están resueltos. `404.php` es independiente y de bajo acoplamiento (no depende de ningún otro archivo pendiente). Al completarse, el Sprint 6B queda **COMPLETADO** en su totalidad, y corresponde actualizar el Roadmap y dividir el Sprint 7 (propuesto: `inc/widgets.php` + `screenshot.png` + hallazgos QA Medios) en sus Entregables correspondientes.
 
 ---
 
@@ -210,10 +213,69 @@ Justificación: con `index.php` resuelto, el tema ya es activable con seguridad.
 - `inc/customizer.php` — sin este archivo, el sitio pierde toda personalización.
 - `inc/helpers.php` — sin este archivo, varios archivos producen errores fatales de PHP (funciones no definidas), incluyendo ahora las 4 plantillas de Equipo/Proyectos que usan sus funciones de relación.
 - `inc/quote-form.php` — sin este archivo, el endpoint AJAX del formulario no existe, y tampoco el cron de retención.
-- `inc/seo.php` — sin este archivo, ninguno de los 5 tipos de Schema.org del proyecto se emite, y las breadcrumbs HTML dejan de funcionar en todo el sitio.
+- `inc/seo.php` — sin este archivo, ninguno de los 6 tipos de Schema.org del proyecto se emite, y las breadcrumbs HTML dejan de funcionar en todo el sitio.
 - `header.php`/`footer.php` — cargados por **toda** plantilla; un error de sintaxis aquí rompe el sitio completo.
 - `index.php` — fallback obligatorio de WordPress; sin este archivo, single de blog/página, archivos genéricos, búsqueda y 404 no tendrían ninguna plantilla que WordPress pudiera resolver.
 - `assets/css/main.css`/`assets/js/main.js` — ya enqueados en `inc/enqueue.php`; si se eliminan, todas las páginas cargan sin estilos ni interactividad.
+
+---
+
+## 16. Metodología permanente: Gestión automática de Sprints y Entregables
+
+> **Regla permanente del proyecto**, incorporada tras el Entregable 6A. Aplica a todo el desarrollo restante del proyecto, sin excepción, hasta que se documente explícitamente lo contrario.
+
+### Principio general
+
+Cada Sprint debe dividirse automáticamente en uno o más **Entregables**. Cada Entregable representa una **unidad funcional completa**, lista para producción. El único propósito de esta división es facilitar el desarrollo y evitar interrupciones por límite de contexto o de mensajes (como ya ocurrió una vez en el Sprint 5). **La división nunca debe reducir la calidad del código ni simplificar la implementación** — la reducción aplica exclusivamente al *alcance* de trabajo realizado en cada sesión, nunca a su profundidad o rigor.
+
+### Reglas para los Entregables
+
+Cada Entregable debe:
+- Tener un objetivo único y claramente definido.
+- Ser una unidad funcional completa (no un archivo a medias, no una función parcial).
+- Poder finalizarse completamente en una sola sesión.
+- Mantener exactamente los mismos estándares de calidad del proyecto (arquitectura, modularidad, seguridad, SEO, accesibilidad, rendimiento, UX/UI, mantenibilidad, documentación).
+- Respetar toda la arquitectura existente (ver `ARCHITECTURE.md`).
+- Mantener compatibilidad con WordPress 7.x y PHP 8.x.
+- Seguir WordPress Coding Standards.
+- No generar código duplicado.
+- No reescribir archivos existentes salvo por un bug crítico.
+- Realizar únicamente modificaciones aditivas cuando sea necesario ampliar archivos existentes (`helpers.php`, `seo.php`, `main.css`, `main.js`, o cualquier otro ya aprobado).
+
+### Calidad: la regla que no admite excepciones
+
+Reducir el alcance de un Entregable **nunca** significa reducir la calidad. Cada archivo se desarrolla con el mismo nivel de rigor descrito en toda la documentación del proyecto (`ARCHITECTURE.md`, `DECISIONS.md`), sin importar cuán pequeño sea el Entregable.
+
+### Flujo obligatorio al finalizar cada Entregable
+
+1. Verificar sintaxis PHP.
+2. Verificar sintaxis JavaScript.
+3. Verificar dependencias e includes.
+4. Actualizar toda la documentación que haya cambiado (`PROJECT_STATUS.md`, `TODO.md`, `TREE.md`, `CHANGELOG.md`, `DECISIONS.md`, `HANDOFF.md`, `ARCHITECTURE.md` si corresponde).
+5. Marcar el Entregable como **Completado**.
+6. Indicar cuál es el siguiente Entregable recomendado del Sprint actual.
+7. Generar automáticamente el prompt para continuar con ese siguiente Entregable.
+8. Detenerse y esperar aprobación explícita del cliente.
+9. No generar código duplicado.
+10. No reescribir archivos existentes salvo por un bug crítico.
+11. Realizar únicamente modificaciones aditivas cuando sea necesario ampliar archivos existentes.
+
+### Tamaño de los Entregables
+
+El tamaño de cada Entregable debe minimizar el consumo de contexto/mensajes, pero **nunca** limitar la arquitectura ni la calidad del código. Si un archivo requiere una implementación extensa para quedar correctamente terminado, debe desarrollarse completamente dentro de su Entregable — nunca se deja un archivo parcialmente implementado, y nunca se divide un mismo archivo entre varias entregas salvo que exista una razón técnica excepcional (documentada explícitamente si ocurre).
+
+### Finalización de un Sprint
+
+Cuando todos los Entregables de un Sprint estén completados:
+- Marcar el Sprint como **COMPLETADO**.
+- Actualizar el Roadmap del proyecto (ver `CHANGELOG.md` → "Próximas versiones").
+- Indicar cuál es el siguiente Sprint recomendado.
+- Dividir automáticamente ese siguiente Sprint en los Entregables que se consideren adecuados.
+- Generar el prompt para iniciar el primer Entregable del nuevo Sprint.
+
+### Antecedente que motivó esta regla
+
+El Sprint 5 se interrumpió por límite de mensajes a mitad de desarrollo, requiriendo una sesión adicional de verificación y continuación (ver sección 9, y `PROJECT_STATUS.md`/`CHANGELOG.md` v0.5.0). Esta metodología formaliza, como práctica permanente, la división preventiva en unidades más pequeñas que ya se venía aplicando de forma implícita (Sprint 5 en 3 fases, luego el "Entregable 6A" independiente para `index.php`), evitando depender de que una interrupción ya haya ocurrido para trabajar de forma incremental.
 
 ---
 
@@ -232,21 +294,29 @@ No asumas nada del historial de chat que no esté reflejado en ellos.
 
 Reglas para continuar:
 - Conserva toda la arquitectura y las convenciones ya documentadas en
-  HANDOFF.md (secciones 2, 10 y 11), ARCHITECTURE.md y DECISIONS.md.
+  HANDOFF.md (secciones 2, 10, 11 y 16), ARCHITECTURE.md y DECISIONS.md.
+- Aplica la metodología permanente de Gestión de Sprints y Entregables
+  (HANDOFF.md sección 16): cada Sprint se divide en Entregables, cada uno
+  una unidad funcional completa terminable en una sola sesión, sin reducir
+  nunca la calidad ni la profundidad del código por reducir el alcance.
 - No reinicies el proyecto ni reescribas archivos ya marcados como ✅ en
   TREE.md, salvo que exista un error real (indícamelo explícitamente antes
   de tocar el archivo).
 - Antes de generar código, confirma el inventario leyendo TREE.md y TODO.md,
   y dime si detectas alguna inconsistencia contra lo que te comparto.
-- Trabajaremos sprint por sprint. Cada entrega debe contener únicamente los
-  archivos del siguiente sprint pendiente según el orden recomendado en
-  HANDOFF.md sección 12 (empezando por index.php si aún no existe).
-- Al finalizar cada sprint, actualiza los 7 documentos de control
-  (PROJECT_STATUS.md, TODO.md, TREE.md, CHANGELOG.md, DECISIONS.md,
-  QA_REPORT.md si aplica, y ARCHITECTURE.md si cambia la arquitectura) antes
-  de detenerte, y espera mi aprobación antes de avanzar al siguiente sprint.
+- Trabajaremos Entregable por Entregable dentro del Sprint actual. Cada
+  entrega debe contener únicamente los archivos del Entregable en curso,
+  según el orden recomendado en HANDOFF.md sección 12/13.
+- Al finalizar cada Entregable, sigue el flujo obligatorio de HANDOFF.md
+  sección 16 (verificar sintaxis PHP/JS, dependencias e includes, actualizar
+  la documentación que haya cambiado, marcar el Entregable como Completado,
+  indicar el siguiente Entregable recomendado, generar el prompt de
+  continuación correspondiente) y espera mi aprobación antes de avanzar.
+- Cuando se complete el último Entregable de un Sprint, márcalo como
+  Sprint COMPLETADO, actualiza el Roadmap, y divide automáticamente el
+  siguiente Sprint en Entregables antes de proponer el primero.
 
-El siguiente sprint a desarrollar es: [indica aquí el módulo, o escribe
+El siguiente Entregable a desarrollar es: [indícalo aquí, o escribe
 "el que recomiendes según HANDOFF.md sección 13" para que continúes con
-el sprint recomendado].
+el Entregable/Sprint recomendado].
 ```

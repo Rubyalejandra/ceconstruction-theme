@@ -391,3 +391,51 @@ function ce_construction_schema_client_organization() {
 	echo '<script type="application/ld+json">' . wp_json_encode( $schema ) . '</script>' . "\n";
 }
 add_action( 'wp_head', 'ce_construction_schema_client_organization' );
+
+/* =========================================================
+ * Añadido en Entregable 6B.2 (single.php + comments.php).
+ * No modifica ninguna función anterior de este archivo.
+ * ========================================================= */
+
+/**
+ * Schema.org JSON-LD para entradas de blog (post_type 'post'): BlogPosting.
+ * Mantiene la misma consistencia de calidad SEO que el resto de tipos de
+ * contenido del tema (Service, Project, Person, Organization-cliente).
+ */
+function ce_construction_schema_blog_post() {
+	if ( ! ce_construction_seo_enabled() || ! is_singular( 'post' ) ) {
+		return;
+	}
+
+	$post_id = get_the_ID();
+
+	$schema = array(
+		'@context'         => 'https://schema.org',
+		'@type'            => 'BlogPosting',
+		'headline'         => get_the_title( $post_id ),
+		'description'      => wp_strip_all_tags( ce_get_short_excerpt( $post_id, 30 ) ),
+		'url'              => get_permalink( $post_id ),
+		'datePublished'    => get_the_date( 'c', $post_id ),
+		'dateModified'     => get_the_modified_date( 'c', $post_id ),
+		'author'           => array(
+			'@type' => 'Person',
+			'name'  => get_the_author_meta( 'display_name', get_post_field( 'post_author', $post_id ) ),
+		),
+		'publisher'        => array(
+			'@type' => 'Organization',
+			'name'  => get_bloginfo( 'name' ),
+			'url'   => home_url( '/' ),
+		),
+		'mainEntityOfPage' => array(
+			'@type' => 'WebPage',
+			'@id'   => get_permalink( $post_id ),
+		),
+	);
+
+	if ( has_post_thumbnail( $post_id ) ) {
+		$schema['image'] = get_the_post_thumbnail_url( $post_id, 'ce-hero' );
+	}
+
+	echo '<script type="application/ld+json">' . wp_json_encode( $schema ) . '</script>' . "\n";
+}
+add_action( 'wp_head', 'ce_construction_schema_blog_post' );

@@ -13,10 +13,10 @@ ce-construction-theme/
 ├── footer.php                         ✅ Contacto, redes, mapa, footer, flotantes, modales — 🔧 QA-006 (Sprint 5): renderiza footer-1 condicionalmente
 ├── front-page.php                     ✅ Ensamblado de las 10 secciones del home
 ├── index.php                          ✅ Entregable 6A — fallback genérico (single/página, archivos genéricos, búsqueda, 404); único bloqueador crítico ya resuelto
-├── page.php                           ⬜ Pendiente
-├── single.php                         ⬜ Pendiente
-├── comments.php                       ⬜ Pendiente
-├── 404.php                            ⬜ Pendiente
+├── page.php                           ✅ Entregable 6B.1 — páginas genéricas (contraseña, wp_link_pages, comentarios condicionales)
+├── single.php                         ✅ Entregable 6B.2 — entrada de blog (meta, tags, navegación entre entradas, schema BlogPosting)
+├── comments.php                       ✅ Entregable 6B.2 — callback propio, hilos anidados, formulario integrado
+├── 404.php                            ⬜ Pendiente — Entregable 6B.3 (siguiente y último del Sprint 6B)
 ├── archive.php                        ⬜ Pendiente (fallback genérico)
 ├── archive-servicio.php               ✅ Sprint 3 — listado con hero interno, sidebar, paginación, CTA
 ├── single-servicio.php                ✅ Sprint 3 — single completo (ver detalle en TODO.md sección 13)
@@ -50,7 +50,7 @@ ce-construction-theme/
 │   ├── cpt-faq.php                    ✅ CPT Preguntas Frecuentes
 │   ├── meta-boxes.php                 ✅ Metaboxes + guardado seguro (5 CPTs de contenido) — 🔧 QA-007 (Sprint 5): guardia wp_is_post_revision() añadida
 │   ├── quote-form.php                 ✅ CPT Cotización + handler AJAX + email + adjuntos — 🔧 Sprint 5: QA-001 (validación real de extensión), QA-002 (registro como attachment), QA-003 (cron de retención), QA-004 (rate-limiting por IP)
-│   ├── seo.php                        ✅ Meta tags, OG, Schema.org (Organization), breadcrumbs HTML + 🆕 Schema `Service`/`BreadcrumbList` (Sprint 3) + 🆕 Schema `CreativeWork`/`Project`/`BreadcrumbList` (Sprint 4) + 🆕 Schema `Person`/`Organization` para Equipo/Clientes (Sprint 5, aditivo) + 🔧 rama de breadcrumbs de Cliente actualizada (acoplado al fix de has_archive, ver DECISIONS.md D-025)
+│   ├── seo.php                        ✅ Meta tags, OG, Schema.org (Organization), breadcrumbs HTML + 🆕 Schema `Service`/`BreadcrumbList` (Sprint 3) + 🆕 Schema `CreativeWork`/`Project`/`BreadcrumbList` (Sprint 4) + 🆕 Schema `Person`/`Organization` para Equipo/Clientes (Sprint 5, aditivo) + 🔧 rama de breadcrumbs de Cliente actualizada (acoplado al fix de has_archive, ver DECISIONS.md D-025) + 🆕 Schema `BlogPosting` (Entregable 6B.2, aditivo)
 │   └── widgets.php                    ⬜ Pendiente (baja prioridad)
 │
 ├── template-parts/
@@ -80,7 +80,7 @@ ce-construction-theme/
 │
 └── assets/
     ├── css/
-    │   └── main.css                   ✅ Sistema de diseño completo (19 secciones, mobile-first) + 🆕 Sección 20 (Sprint 3): page-hero interno, sidebar, accordion, navegación entre servicios, paginación + 🆕 Sección 21 (Sprint 4): ficha de metadatos de proyecto + 🆕 Sección 22 (Sprint 5): tarjetas de equipo, grid de logos de clientes + 🔧 QA-005 (Sprint 5, Fase 1): variable `--ce-color-secondary-text` y overrides de contraste + 🔧 Entregable 6A: `.ce-mt-6`/`.ce-mb-6` (bug preexistente, en uso desde Sprint 3 pero nunca definidas)
+    │   └── main.css                   ✅ Sistema de diseño completo (19 secciones, mobile-first) + 🆕 Sección 20 (Sprint 3): page-hero interno, sidebar, accordion, navegación entre servicios, paginación + 🆕 Sección 21 (Sprint 4): ficha de metadatos de proyecto + 🆕 Sección 22 (Sprint 5): tarjetas de equipo, grid de logos de clientes + 🔧 QA-005 (Sprint 5, Fase 1): variable `--ce-color-secondary-text` y overrides de contraste + 🔧 Entregable 6A: `.ce-mt-6`/`.ce-mb-6` (bug preexistente, en uso desde Sprint 3 pero nunca definidas) + 🆕 Sección 23 (Entregable 6B.2): árbol de comentarios
     ├── js/
     │   └── main.js                    ✅ 12 módulos ES6 (ver TODO.md sección 7) + 🆕 `ModuleAccordion` (Sprint 3), enganchado al bootstrap existente. **Sin cambios en Sprint 4** (el lightbox ya existente cubre la galería de Proyectos sin modificación).
     └── img/                           ⬜ Vacía — pendiente de imágenes reales del cliente (logo, hero, placeholders)
@@ -109,3 +109,11 @@ Sprint ejecutado en 2 sesiones (la primera interrumpida por límite de mensajes)
 ### Verificación de cierre de etapa (Entregable 6A — index.php)
 
 Se agregó `index.php` (resuelve el único bloqueador crítico de arquitectura pendiente) + 2 template-parts nuevos (`content-fallback.php`, `no-results.php`). Se detectó y corrigió un bug preexistente en `assets/css/main.css`: las utilidades `.ce-mt-6`/`.ce-mb-6` se usaban desde el Sprint 3 en 10 archivos ya aprobados pero nunca se habían definido — corregido de forma aditiva, sin tocar ninguna regla existente. Sin cambios en `inc/helpers.php`, `inc/seo.php` ni `assets/js/main.js`. Balance de llaves/paréntesis y `node --check` verificados sin errores.
+
+### Verificación de cierre de etapa (Sprint 6B, Entregable 6B.1 — page.php)
+
+Primer Entregable del Sprint 6B ("Blog y páginas genéricas"), dividido conforme a la metodología permanente de Gestión de Sprints y Entregables (ver `HANDOFF.md` sección 16). Se agregó `page.php`, completamente funcional (soporte de contraseña, `wp_link_pages()`, comentarios condicionales), reutilizando exclusivamente componentes ya existentes — cero cambios en `inc/helpers.php`, `inc/seo.php`, `assets/css/main.css` o `assets/js/main.js`. Balance de llaves/paréntesis verificado sin errores; JS verificado sin cambios.
+
+### Verificación de cierre de etapa (Sprint 6B, Entregable 6B.2 — single.php + comments.php)
+
+Segundo Entregable del Sprint 6B. Se agregaron `single.php` y `comments.php` (unidad funcional acoplada), completamente funcionales (callback propio de comentarios, hilos anidados, formulario integrado, navegación entre entradas, schema BlogPosting). Se extendió de forma aditiva `inc/seo.php` (Schema `BlogPosting`) y `assets/css/main.css` (sección 23, exclusiva del árbol de comentarios). Cero cambios en `inc/helpers.php` y `assets/js/main.js`. Balance de llaves/paréntesis verificado sin errores; JS verificado sin cambios. Siguiente Entregable recomendado: 6B.3 (`404.php`), que cierra el Sprint 6B.
