@@ -3,9 +3,9 @@
 > Este documento es la fuente oficial de verdad del proyecto.
 > Se actualiza al finalizar cada módulo. No se reinicia ni se resume: solo se agrega/actualiza estado.
 
-**Última actualización:** Entregable 6B.2 completado — `single.php` + `comments.php`. Sprint 6B ("Blog y páginas genéricas") en curso, dividido en 3 Entregables (6B.1 ✅, 6B.2 ✅, 6B.3 pendiente) conforme a la metodología permanente adoptada (ver sección 13). Siguiente Entregable recomendado: **6B.3 (`404.php`)**, que cierra el Sprint 6B.
+**Última actualización:** Entregable 6B.3 completado — `404.php`. **Sprint 6B ("Blog y páginas genéricas") queda COMPLETADO** (6B.1 `page.php`, 6B.2 `single.php`+`comments.php`, 6B.3 `404.php`, los 3 Entregables ✅). Ver sección 16 (nueva) para el Roadmap actualizado y la propuesta de Sprint 7.
 
-**Versión de proyecto correspondiente:** v0.6.2 (ver `CHANGELOG.md`)
+**Versión de proyecto correspondiente:** v0.6.3 (ver `CHANGELOG.md`)
 
 ---
 
@@ -44,13 +44,14 @@ El tema **ya cumple el mínimo exigido por WordPress para ser reconocido y activ
 | 18 | **Entregable 6A — `index.php` (bloqueador crítico resuelto)** | `index.php`, `template-parts/content-fallback.php`, `template-parts/no-results.php`, extensión de `assets/css/main.css` (`.ce-mt-6`/`.ce-mb-6`, bug preexistente corregido) | ✅ |
 | 19 | **Entregable 6B.1 — `page.php`** | `page.php` (páginas genéricas de WordPress, con soporte de contraseña, `wp_link_pages`, comentarios) | ✅ |
 | 20 | **Entregable 6B.2 — `single.php` + `comments.php`** | `single.php` (entrada de blog, meta autor/fecha/categorías/tags, navegación entre entradas, schema BlogPosting), `comments.php` (callback propio, hilos anidados, formulario integrado), extensión de `inc/seo.php` (Schema `BlogPosting`), extensión de `assets/css/main.css` (sección 23) | ✅ |
+| 21 | **Entregable 6B.3 — `404.php`** | `404.php` (`status_header(404)`, `nocache_headers()`, numeral 404 estilizado, tarjetas de enlaces rápidos a Servicios/Proyectos/Equipo/Inicio) | ✅ |
 
 ## 3. Módulos en desarrollo
 
-**Sprint 6B "Blog y páginas genéricas" en curso**, dividido en 3 Entregables:
+Ninguno activo. **Sprint 6B "Blog y páginas genéricas" COMPLETADO** (3/3 Entregables):
 - 6B.1 `page.php` — ✅ Completado
 - 6B.2 `single.php` + `comments.php` — ✅ Completado
-- 6B.3 `404.php` — ⬜ Siguiente Entregable recomendado (cierra el Sprint 6B)
+- 6B.3 `404.php` — ✅ Completado
 
 Los 20 hallazgos Medios/Bajos/Mejoras futuras de `QA_REPORT.md` siguen sin corregir (fuera de alcance de este sprint). Ver sección 9.
 
@@ -61,7 +62,7 @@ Los 20 hallazgos Medios/Bajos/Mejoras futuras de `QA_REPORT.md` siguen sin corre
 | 12 | ~~Archivo raíz obligatorio~~ | ~~`index.php`~~ | ✅ Completado en Entregable 6A (ver módulo 18 en sección 2) |
 | 13 | ~~Servicios (frontend)~~ | ~~`archive-servicio.php`, `single-servicio.php`~~ | ✅ Completado en Sprint 3 (ver módulo 12 en sección 2) |
 | 14 | ~~Proyectos (frontend)~~ | ~~`archive-proyecto.php`, `single-proyecto.php` (con galería + lightbox)~~ | ✅ Completado en Sprint 4 (ver módulo 14 en sección 2) |
-| 15 | Blog y páginas genéricas | ~~`page.php`~~ ✅ Sprint 6B.1 · ~~`single.php`, `comments.php`~~ ✅ Sprint 6B.2 · `404.php` (6B.3) — en curso | Media |
+| 15 | ~~Blog y páginas genéricas~~ | ~~`page.php`, `single.php`, `comments.php`, `404.php`~~ | ✅ Completado — Sprint 6B (Entregables 6B.1, 6B.2, 6B.3) |
 | 16 | ~~Archivos de equipo/clientes~~ | ~~`archive-equipo.php`, `single-equipo.php`, `archive-clientes.php`, `single-clientes.php`~~ | ✅ Completado en Sprint 5 (ver módulo 17 en sección 2) |
 | 17 | Widgets personalizados | `inc/widgets.php` | Baja |
 | 18 | `screenshot.png` del tema | — | Baja (cosmético, no bloquea funcionalidad) |
@@ -117,11 +118,15 @@ Los 20 hallazgos Medios/Bajos/Mejoras futuras de `QA_REPORT.md` siguen sin corre
 
 ## 7. Próximo módulo recomendado
 
-**Entregable 6B.3 (recomendado, siguiente y último dentro del Sprint 6B en curso): `404.php`.**
+**Sprint 6B COMPLETADO** (6B.1 `page.php` ✅, 6B.2 `single.php`+`comments.php` ✅, 6B.3 `404.php` ✅).
 
-Razón: `page.php` (6B.1) y `single.php`+`comments.php` (6B.2) ya están resueltos. `404.php` es independiente y de bajo acoplamiento (no depende de ningún otro archivo pendiente), y su finalización cierra por completo el Sprint 6B. Tras 6B.3, corresponde marcar el Sprint 6B como **COMPLETADO**, actualizar el Roadmap, y dividir el siguiente Sprint (Sprint 7, propuesto: `inc/widgets.php` + `screenshot.png` + hallazgos QA Medios) en sus Entregables correspondientes.
+**Sprint 7 (propuesto, a dividir en Entregables cuando se apruebe iniciar):**
+- 7.1 — `inc/widgets.php` (widgets custom)
+- 7.2 — `archive.php` genérico (fallback para archivos sin plantilla dedicada, ej. Testimonios/FAQ)
+- 7.3 — Hallazgos QA Medios (QA-010 a QA-018 de `QA_REPORT.md`), con aprobación explícita de cuáles corregir
+- 7.4 — `screenshot.png` (puede depender de definiciones visuales finales del cliente)
 
-Los 20 hallazgos Medios/Bajos/Mejoras futuras de `QA_REPORT.md` siguen sin corregir — quedan disponibles para un sprint de refinamiento futuro si el cliente lo autoriza.
+Los 20 hallazgos Medios/Bajos/Mejoras futuras de `QA_REPORT.md` siguen sin corregir — quedan disponibles para el Entregable 7.3 si el cliente lo autoriza.
 
 ---
 
@@ -218,3 +223,13 @@ Ver `DECISIONS.md` D-030 para el registro formal de esta decisión metodológica
 - **CSS:** nueva sección 23 en `assets/css/main.css`, exclusivamente para el árbol de comentarios (avatar, meta, hilos anidados, estado "comentarios cerrados"). El formulario de comentarios reutiliza deliberadamente `.ce-form`/`.ce-field`/`.ce-btn` ya existentes, sin duplicar estilos.
 - **Sin cambios en `inc/helpers.php` ni `assets/js/main.js`.**
 - **Limitación resuelta:** la limitación heredada documentada en el Entregable 6B.1 ("los comentarios usan el fallback nativo de WordPress") ya no aplica — tanto `single.php` como `page.php` (si el admin habilita comentarios en una página puntual) usan ahora `comments.php` con el estilo completo del sistema de diseño.
+
+---
+
+## 16. Resumen del Entregable 6B.3 — 404.php (cierre del Sprint 6B)
+
+- **Archivo entregado:** `404.php`, tercer y último Entregable del Sprint 6B.
+- **Completitud real, superando el mínimo:** además de reutilizar `template-parts/no-results.php` (mismo componente ya usado por `index.php`), añade `status_header( 404 )` y `nocache_headers()` como refuerzo defensivo explícito (WordPress ya envía la cabecera 404 correcta al resolver `is_404()`, pero declararlo explícitamente es un patrón estándar en temas profesionales, protegiendo contra que algún plugin de terceros la sobreescriba), un numeral "404" estilizado, y una sección "Quizás te interese" con tarjetas de enlace rápido a Servicios/Proyectos/Equipo/Inicio (condicionadas a que cada CPT tenga contenido publicado, vía `ce_cpt_has_posts()` ya existente).
+- **Decisión de diseño documentada:** `404.php` ofrece una experiencia visual más completa que la rama `is_404()` de `index.php` (que mantiene su mensaje mínimo original). Es una divergencia deliberada, no una inconsistencia — ver `DECISIONS.md` D-035.
+- **Sin cambios en `inc/helpers.php`, `inc/seo.php`, `assets/css/main.css` ni `assets/js/main.js`:** todas las funciones/clases necesarias ya existían.
+- **Sprint 6B queda formalmente COMPLETADO.** Ver Roadmap actualizado en `CHANGELOG.md` y la propuesta de Sprint 7 (sección 7) dividida en 4 Entregables.

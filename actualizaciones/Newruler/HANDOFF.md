@@ -3,8 +3,8 @@
 
 > Este documento, junto con `PROJECT_STATUS.md`, `TODO.md`, `TREE.md`, `CHANGELOG.md`, `DECISIONS.md`, `QA_REPORT.md` y `ARCHITECTURE.md`, es la fuente oficial del estado del proyecto. Si esta conversación se corta por límite de mensajes/tokens, cualquier sesión nueva debe poder retomar el trabajo exactamente desde aquí, sin releer el historial completo de chat.
 
-**Versión de referencia:** v0.6.3 (ver `CHANGELOG.md`)
-**Última sesión de trabajo:** Sprint 6B ("Blog y páginas genéricas") — **COMPLETADO** (6B.1 `page.php`, 6B.2 `single.php`+`comments.php`, 6B.3 `404.php`). Esta actualización de `HANDOFF.md` corresponde a la finalización completa de un Sprint — uno de los 3 únicos disparadores de esta plantilla bajo la política de actualización incremental (ver sección 16).
+**Versión de referencia:** v0.6.2 (ver `CHANGELOG.md`)
+**Última sesión de trabajo:** Sprint 6B ("Blog y páginas genéricas"), Entregable 6B.2 — `single.php` + `comments.php` completados. Esta actualización de `HANDOFF.md` corresponde a un cambio metodológico importante (política de actualización incremental de documentación, ver sección 16), no a un nuevo Entregable de código — bajo la nueva regla, `HANDOFF.md` ya no se actualiza automáticamente en cada Entregable.
 
 ---
 
@@ -17,7 +17,7 @@ CE Construction es un tema profesional de WordPress a medida, desarrollado 100% 
 - **QA:** auditoría completa realizada (`QA_REPORT.md`, 29 hallazgos); los 9 Críticos/Altos ya corregidos (v0.4.1); los 20 Medios/Bajos/Mejoras futuras siguen documentados y sin tocar.
 - **Documentación de arquitectura:** `ARCHITECTURE.md` describe la arquitectura real (no propuesta) del proyecto completo.
 - **Bloqueador crítico resuelto:** `index.php` ya existe — el tema cumple el mínimo que WordPress exige (`style.css` + `index.php`) para ser reconocido y activado con seguridad.
-- **Pendiente funcional:** `archive.php` genérico (bajo impacto), `inc/widgets.php`, `screenshot.png`.
+- **Pendiente funcional:** `404.php` (Entregable 6B.3, cierra el Sprint 6B), `inc/widgets.php`, `screenshot.png`.
 
 El proyecto sigue una metodología de "sprint por sprint con aprobación explícita del cliente antes de avanzar", y mantiene documentación viva (los 7 archivos `.md` mencionados arriba) que se actualiza al cierre de cada sprint.
 
@@ -58,7 +58,7 @@ ce-construction-theme/
     └── img/ (vacía, pendiente de assets reales del cliente)
 ```
 
-**Aún pendiente:** `archive.php` genérico, `inc/widgets.php`, `screenshot.png`.
+**Aún pendiente:** `404.php` (Entregable 6B.3, cierra el Sprint 6B), `archive.php` genérico, `inc/widgets.php`, `screenshot.png`.
 
 ---
 
@@ -84,7 +84,6 @@ ce-construction-theme/
 18. `index.php` (Entregable 6A) — bloqueador crítico de arquitectura resuelto
 19. `page.php` (Sprint 6B, Entregable 6B.1)
 20. `single.php` + `comments.php` (Sprint 6B, Entregable 6B.2)
-21. `404.php` (Sprint 6B, Entregable 6B.3) — **Sprint 6B COMPLETADO**
 
 Detalle línea por línea en `TODO.md` y `CHANGELOG.md` (v0.1.0 a v0.5.0).
 
@@ -99,11 +98,12 @@ Detalle línea por línea en `TODO.md` y `CHANGELOG.md` (v0.1.0 a v0.5.0).
 
 ## 6. Módulos pendientes (no iniciados)
 
-1. `archive.php` genérico (fallback de bajo impacto — `index.php` ya cubre archivos genéricos)
-2. `inc/widgets.php`
-3. `screenshot.png`
-4. Corrección de hallazgos Medios/Bajos/Mejoras futuras de `QA_REPORT.md` (con aprobación explícita)
-5. Auditoría transversal de accesibilidad y performance
+1. `404.php` (Entregable 6B.3, siguiente y último — cierra el Sprint 6B)
+2. `archive.php` genérico (fallback específico para archivos; hoy `index.php` ya lo cubre de forma genérica)
+3. `inc/widgets.php`
+4. `screenshot.png`
+5. Corrección de hallazgos Medios/Bajos/Mejoras futuras de `QA_REPORT.md` (con aprobación explícita)
+6. Auditoría transversal de accesibilidad y performance
 
 ---
 
@@ -179,23 +179,16 @@ Registro completo y acumulativo en `DECISIONS.md` (D-001 a D-029 a la fecha). La
 
 ## 12. Orden recomendado para continuar
 
-1. **Sprint 7, Entregable 7.1: `inc/widgets.php`.**
-2. **Sprint 7, Entregable 7.2: `archive.php` genérico.**
-3. **Sprint 7, Entregable 7.3: Hallazgos QA Medios** de `QA_REPORT.md` (con aprobación explícita de cuáles corregir).
-4. **Sprint 7, Entregable 7.4: `screenshot.png`.**
-5. **Auditoría transversal final** (sprint futuro, no numerado aún): accesibilidad, performance (Core Web Vitals, auto-hospedar fuentes — QA-026/027), revisión cruzada de sanitización/escaping.
+1. **Entregable 6B.3 (siguiente y último del Sprint 6B): `404.php`.**
+3. **Extras de menor prioridad:** `inc/widgets.php`, `screenshot.png`, `archive.php` genérico.
+4. **Hallazgos QA Medios/Bajos** de `QA_REPORT.md` (con aprobación explícita de cuáles corregir).
+5. **Auditoría transversal final:** accesibilidad, performance (Core Web Vitals, auto-hospedar fuentes — QA-026/027), revisión cruzada de sanitización/escaping.
 
 ## 13. Próximo sprint recomendado
 
-**Sprint 6B — COMPLETADO** (6B.1 `page.php`, 6B.2 `single.php`+`comments.php`, 6B.3 `404.php`).
+**Sprint 6B en curso — próximo y último Entregable: 6B.3 "404.php"**
 
-**Sprint 7 (propuesto): "Extras y refinamiento QA"**, dividido en 4 Entregables:
-- **7.1** — `inc/widgets.php` (widgets custom)
-- **7.2** — `archive.php` genérico (fallback de bajo impacto)
-- **7.3** — Hallazgos QA Medios (QA-010 a QA-018 de `QA_REPORT.md`), con aprobación explícita de cuáles corregir
-- **7.4** — `screenshot.png` (puede depender de definiciones visuales finales del cliente)
-
-Justificación: con Servicios, Proyectos, Equipo, Clientes, Blog y páginas genéricas completos, el tema ya cubre el 100% del contenido de "primera clase" previsto en el inventario original. Los 4 Entregables restantes de Sprint 7 son de menor prioridad/impacto individual, por lo que se dividen en unidades pequeñas e independientes entre sí (sin acoplamiento funcional como el que sí existía entre `single.php`/`comments.php`), permitiendo aprobar y ejecutar cada uno por separado si el cliente lo prefiere.
+Justificación: `page.php` (6B.1) y `single.php` + `comments.php` (6B.2) ya están resueltos. `404.php` es independiente y de bajo acoplamiento (no depende de ningún otro archivo pendiente). Al completarse, el Sprint 6B queda **COMPLETADO** en su totalidad, y corresponde actualizar el Roadmap y dividir el Sprint 7 (propuesto: `inc/widgets.php` + `screenshot.png` + hallazgos QA Medios) en sus Entregables correspondientes.
 
 ---
 

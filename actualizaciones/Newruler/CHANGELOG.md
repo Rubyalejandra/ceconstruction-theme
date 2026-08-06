@@ -290,40 +290,8 @@ Se refinó la metodología permanente de Gestión de Sprints y Entregables (D-03
 
 ---
 
-## v0.6.3 — Sprint 6B, Entregable 6B.3: 404.php (Sprint 6B COMPLETADO)
-
-**Módulo:** Página de error 404 dedicada — cierre del Sprint 6B ("Blog y páginas genéricas")
-
-### Añadido
-- `404.php`: página de error 404 dedicada. `status_header( 404 )` + `nocache_headers()` como refuerzo defensivo explícito (patrón estándar en temas profesionales). Numeral "404" estilizado, mensaje de error, formulario de búsqueda reutilizado (`template-parts/no-results.php`), y sección "Quizás te interese" con tarjetas de enlace rápido a Servicios/Proyectos/Equipo/Inicio, condicionadas a que cada CPT tenga contenido publicado (`ce_cpt_has_posts()`).
-
-### Sin cambios
-- `inc/helpers.php`, `inc/seo.php`, `assets/css/main.css`, `assets/js/main.js`: no requirieron ninguna modificación.
-
-### Decisiones clave
-- Ver `DECISIONS.md`: D-035 (`404.php` con experiencia visual más completa que la rama `is_404()` de `index.php`, divergencia deliberada y documentada, no una inconsistencia).
-
-## 🎉 SPRINT 6B COMPLETADO
-
-Los 3 Entregables del Sprint 6B ("Blog y páginas genéricas") están terminados:
-- 6B.1 — `page.php` (v0.6.1)
-- 6B.2 — `single.php` + `comments.php` (v0.6.2)
-- 6B.3 — `404.php` (v0.6.3)
-
-El tema ahora tiene plantillas dedicadas para blog, páginas genéricas, comentarios y error 404 — completando todo el contenido de "primera clase" previsto desde el inventario original del proyecto, salvo `archive.php` genérico (fallback de bajo impacto, ya que `index.php` ya cubre archivos genéricos) y `inc/widgets.php`/`screenshot.png` (extras de menor prioridad).
-
-### Roadmap actualizado — Sprint 7 (propuesto, dividido en Entregables)
-- **7.1** — `inc/widgets.php` (widgets custom)
-- **7.2** — `archive.php` genérico (fallback para archivos sin plantilla dedicada, ej. Testimonios/FAQ)
-- **7.3** — Hallazgos QA Medios (QA-010 a QA-018 de `QA_REPORT.md`), con aprobación explícita de cuáles corregir
-- **7.4** — `screenshot.png` (puede depender de definiciones visuales finales del cliente)
-
----
-
 ## Próximas versiones (planeadas, no confirmadas)
 
-- **v0.7.0 (propuesta):** Entregable 7.1 — `inc/widgets.php`.
-- **v0.7.1 (propuesta):** Entregable 7.2 — `archive.php` genérico.
-- **v0.7.2 (propuesta):** Entregable 7.3 — Hallazgos QA Medios (con aprobación explícita).
-- **v0.7.3 (propuesta):** Entregable 7.4 — `screenshot.png`.
+- **v0.6.3 (propuesta):** Entregable 6B.3 — `404.php` (cierre del Sprint 6B).
+- **v0.7.0 (propuesta):** Sprint 7 — Widgets custom, `screenshot.png`, hallazgos Medios de `QA_REPORT.md` (con aprobación explícita), dividido en sus Entregables correspondientes conforme a la metodología permanente.
 - **v0.8.0 (propuesta):** Auditoría de accesibilidad y performance (incluye QA-026/QA-027: auto-hospedar fuentes/Font Awesome).

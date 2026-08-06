@@ -2,7 +2,7 @@
 
 > Checklist maestro del proyecto. No se resume ni se reinicia: solo se actualizan los estados (✅ / 🟡 / ⬜) y se agregan tareas nuevas si surgen.
 >
-> **Nota (Sprint 6B en curso — Entregable 6B.2 completado):** `single.php` + `comments.php` resueltos. Ver nueva sección 20 al final. Siguiente y último Entregable del Sprint: 6B.3 (`404.php`).
+> **Nota (Sprint 6B COMPLETADO):** `404.php` resuelto (Entregable 6B.3). Ver nueva sección 21 al final. Sprint 7 (propuesto) dividido en 4 Entregables — ver `PROJECT_STATUS.md` sección 7.
 
 ---
 
@@ -94,7 +94,7 @@
 - ✅ `single.php` (blog) — completado en Entregable 6B.2
 - ✅ `page.php` (completado en Entregable 6B.1)
 - ✅ `comments.php` — completado en Entregable 6B.2 (callback propio, hilos anidados, formulario integrado)
-- ⬜ `404.php` — Entregable 6B.3 (siguiente y último del Sprint 6B)
+- ✅ `404.php` — completado en Entregable 6B.3 (cierra el Sprint 6B)
 - ⬜ `archive.php` genérico (fallback para Equipo/Clientes/FAQ si no se crean plantillas dedicadas)
 
 ## 10. Componentes reutilizables (del brief original)
@@ -227,3 +227,16 @@
 - ✅ SEO/Open Graph (ya cubiertos por `ce_construction_meta_tags()` genérica)
 - ✅ Responsive y accesibilidad (mismos componentes ya verificados del sistema de diseño)
 - ✅ Integración completa: cero cambios en `inc/helpers.php` ni `assets/js/main.js`; extensión aditiva en `inc/seo.php` y nueva sección 23 en `assets/css/main.css`
+
+## 21. Entregable 6B.3 — 404.php (completo, cierra el Sprint 6B)
+- ✅ `404.php` (numeral 404 estilizado, mensaje de error, `status_header(404)` + `nocache_headers()`)
+- ✅ Reutiliza `template-parts/no-results.php` (formulario de búsqueda) sin duplicar código
+- ✅ Sección "Quizás te interese" con enlaces rápidos a Servicios/Proyectos/Equipo/Inicio (condicionados vía `ce_cpt_has_posts()`)
+- ✅ Sin cambios en `inc/helpers.php`, `inc/seo.php`, `assets/css/main.css`, `assets/js/main.js` (todo reutilizado)
+- ✅ **Sprint 6B COMPLETADO** (3/3 Entregables)
+
+## 22. Backlog — Sprint 7 (propuesto, pendiente de aprobación para iniciar)
+- ⬜ 7.1 `inc/widgets.php` (widgets custom)
+- ⬜ 7.2 `archive.php` genérico (fallback para archivos sin plantilla dedicada)
+- ⬜ 7.3 Hallazgos QA Medios (QA-010 a QA-018 de `QA_REPORT.md`) — requiere aprobación explícita de cuáles corregir
+- ⬜ 7.4 `screenshot.png` — puede depender de definiciones visuales finales del cliente
