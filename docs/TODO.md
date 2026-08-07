@@ -2,7 +2,7 @@
 
 > Checklist maestro del proyecto. No se resume ni se reinicia: solo se actualizan los estados (✅ / 🟡 / ⬜) y se agregan tareas nuevas si surgen.
 >
-> **Nota (Sprint 7 en curso):** Entregables 7.1 (`inc/widgets.php`) y 7.2 (`archive.php`) **entregados**, pendientes de aprobación explícita del usuario conforme a la nueva regla permanente (ver `DECISIONS.md` D-038 y `HANDOFF.md` sección 16). El Entregable 7.3 no inicia hasta recibir esa aprobación.
+> **Nota (Sprint 7 en curso):** Entregables 7.1 (`inc/widgets.php`) y 7.2 (`archive.php`) **Completados** (aprobación interpretada de la instrucción de continuar hacia 7.3). Entregable 7.3 (corrección QA-018) **entregado**, pendiente de aprobación explícita del usuario conforme a la regla permanente D-038. El Entregable 7.4 no inicia hasta recibir esa aprobación.
 
 ---
 
@@ -62,6 +62,10 @@
 - ⬜ Sitemap compatible (pendiente de definir: XML propio vs. delegar a plugin)
 - 🟡 Breadcrumbs sin rama dedicada para categoría/etiqueta/autor/fecha y archivo de Testimonios/FAQ (ver `DECISIONS.md` D-037, observación no bloqueante del Entregable 7.2)
 
+## 6bis. Sprint 7 — Hallazgos QA (Entregable 7.3)
+- ✅ QA-018 (🟡 Medio) — Barra superior del header sin adaptación responsive — **corregido en v0.7.2** (entregado, pendiente de aprobación)
+- ⬜ QA-010 a QA-017 (🟡 Medio, 8 hallazgos restantes) — fuera del alcance aprobado para este Entregable; pendientes de una futura aprobación explícita
+
 ## 7. Frontend — Sistema de diseño
 - ✅ `assets/css/main.css`: 23 secciones — sin cambios en Sprint 7 (Entregables 7.1/7.2)
 - ✅ `assets/js/main.js`: 13 módulos ES6 — sin cambios en Sprint 7 (Entregables 7.1/7.2)
@@ -95,7 +99,7 @@
 Ver el historial completo de estas secciones en versiones anteriores de este archivo / `CHANGELOG.md` — no se repiten aquí por no haber cambiado durante el Sprint 7.
 
 ## 22. Backlog — Sprint 7 (en curso)
-- ✅ 7.1 `inc/widgets.php` (widgets custom) — **entregado, pendiente de aprobación del usuario**
-- ✅ 7.2 `archive.php` genérico (fallback para archivos sin plantilla dedicada) — **entregado, pendiente de aprobación del usuario**
-- ⬜ 7.3 Hallazgos QA Medios (QA-010 a QA-018 de `QA_REPORT.md`) — requiere aprobación explícita de cuáles corregir; **no inicia hasta que 7.1 y 7.2 sean aprobados** (nueva regla permanente, ver `DECISIONS.md` D-038)
-- ⬜ 7.4 `screenshot.png` — puede depender de definiciones visuales finales del cliente
+- ✅ 7.1 `inc/widgets.php` (widgets custom) — **Completado**
+- ✅ 7.2 `archive.php` genérico (fallback para archivos sin plantilla dedicada) — **Completado**
+- ✅ 7.3 Hallazgos QA Medios — **entregado (solo QA-018, aprobado explícitamente por el cliente), pendiente de aprobación final del usuario** conforme a `DECISIONS.md` D-038
+- ⬜ 7.4 `screenshot.png` — puede depender de definiciones visuales finales del cliente; **no inicia hasta que 7.3 sea aprobado**

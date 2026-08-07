@@ -21,6 +21,11 @@
    17. Utilidades
    18. Animaciones
    19. Responsive (mobile-first, min-width breakpoints)
+   20. Sprint 3 — Módulo Servicios
+   21. Sprint 4 — Módulo Proyectos
+   22. Sprint 5 — Módulo Equipo y Clientes / QA-005
+   23. Entregable 6B.2 — Comentarios
+   24. QA-018 (Entregable 7.3) — responsive de .ce-header__top
    ============================================================= */
 
 /* -------------------------------------------------------------
@@ -1197,3 +1202,39 @@ img[loading="lazy"] {
 .ce-comment.bypostauthor > .ce-comment__body .ce-comment__content-wrap { border-color: var(--ce-color-secondary); }
 
 .ce-comments__form { max-width: 640px; margin-top: var(--ce-space-4); }
+
+/* =============================================================
+   24. QA-018 (Sprint 7, Entregable 7.3 — corrección Media, con
+   aprobación explícita del usuario; el resto de hallazgos Medios
+   QA-010 a QA-017 permanecen sin corregir, fuera de este alcance).
+
+   Hallazgo: la barra superior del header (.ce-header__top) no
+   tenía ninguna regla @media que la ocultara, apilara o adaptara
+   para viewports pequeños. En 320-375px, la combinación de
+   teléfono + correo + horario + iconos sociales en una sola fila
+   flex sin flex-wrap podía desbordar horizontalmente o comprimirse
+   de forma ilegible (verificado por búsqueda exhaustiva en el
+   archivo, confirmando la ausencia total de la regla).
+
+   Corrección: se envuelve (flex-wrap) y centra el contenido de
+   .ce-header__top por debajo de 768px, sin tocar ninguna regla
+   original de la sección 9 (Navbar / Header) ni el layout de
+   escritorio. Sección 100% aditiva, añadida al final del archivo.
+   Ver DECISIONS.md D-039.
+   ============================================================= */
+@media (max-width: 767.98px) {
+  .ce-header__top .ce-container {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--ce-space-2);
+    text-align: center;
+  }
+  .ce-header__top .ce-header__contact {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--ce-space-2) var(--ce-space-3);
+  }
+  .ce-header__top .ce-header__social {
+    justify-content: center;
+  }
+}
