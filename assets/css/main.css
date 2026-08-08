@@ -21,11 +21,6 @@
    17. Utilidades
    18. Animaciones
    19. Responsive (mobile-first, min-width breakpoints)
-   20. Sprint 3 — Módulo Servicios
-   21. Sprint 4 — Módulo Proyectos
-   22. Sprint 5 — Módulo Equipo y Clientes / QA-005
-   23. Entregable 6B.2 — Comentarios
-   24. QA-018 (Entregable 7.3) — responsive de .ce-header__top
    ============================================================= */
 
 /* -------------------------------------------------------------
@@ -199,12 +194,6 @@ p  { color: var(--ce-color-neutral-600); }
 .ce-mt-4{margin-top:var(--ce-space-4);} .ce-mt-5{margin-top:var(--ce-space-5);}
 .ce-mb-2{margin-bottom:var(--ce-space-2);} .ce-mb-3{margin-bottom:var(--ce-space-3);}
 .ce-mb-4{margin-bottom:var(--ce-space-4);} .ce-mb-5{margin-bottom:var(--ce-space-5);}
-/* QA (Entregable 6A): .ce-mt-6/.ce-mb-6 faltaban — ya estaban en uso desde el
-   Sprint 3 en 10 archivos (single-servicio.php, single-proyecto.php,
-   archive-servicio.php, archive-proyecto.php, archive-equipo.php,
-   archive-clientes.php, single-clientes.php, single-equipo.php), donde
-   silenciosamente no aplicaban ningún margen. Se añaden aquí, requeridas
-   también por index.php (este entregable). Ver DECISIONS.md. */
 .ce-mt-6{margin-top:var(--ce-space-6);} .ce-mb-6{margin-bottom:var(--ce-space-6);}
 .ce-py-2{padding-block:var(--ce-space-2);} .ce-py-3{padding-block:var(--ce-space-3);}
 
