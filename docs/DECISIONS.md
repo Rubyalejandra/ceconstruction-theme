@@ -5,44 +5,44 @@
 
 ---
 
-> **Nota de este archivo:** las decisiones D-001 a D-035 se mantienen exactamente como en la versión previa de este documento (Nonces por módulo, CPT `cotizacion`, secciones auto-ocultas, SEO auto-desactivable, `page-hero.php` reutilizable, relaciones heurísticas Servicio↔Proyecto, Schema `Project` como `@type` múltiple, correcciones QA Críticas/Altas D-017 a D-024, `has_archive` de Cliente D-025, metodología permanente de Entregables D-030, política de actualización incremental de documentación D-034, `404.php` con experiencia visual más completa D-035). Esta entrega añade únicamente D-036 a D-039, correspondientes al Sprint 7.
+> **Nota de este archivo:** las decisiones D-001 a D-035 se mantienen exactamente como en la versión previa de este documento (Nonces por módulo, CPT `cotizacion`, secciones auto-ocultas, SEO auto-desactivable, `page-hero.php` reutilizable, relaciones heurísticas Servicio↔Proyecto, Schema `Project` como `@type` múltiple, correcciones QA Críticas/Altas D-017 a D-024, `has_archive` de Cliente D-025, metodología permanente de Entregables D-030, política de actualización incremental de documentación D-034, `404.php` con experiencia visual más completa D-035). Esta entrega añade D-036 a D-040, correspondientes al Sprint 7 completo.
 
 ---
 
 ### D-036 — Alcance de `inc/widgets.php`: 2 widgets orientados al footer, sin CSS/JS nuevo
 - **Fecha:** Sprint 7, Entregable 7.1
-- **Problema:** El brief no especifica qué widgets custom debía contener `inc/widgets.php`, solo que el archivo existiera ("widgets custom").
-- **Solución elegida:** 2 widgets (`CE_Construction_Widget_Contact`, `CE_Construction_Widget_Social`) diseñados específicamente para dar uso real a `footer-1`, sidebar registrado desde el Sprint 1 pero vacío hasta este Entregable (ver QA-006). Ambos reutilizan exclusivamente helpers y clases CSS ya existentes (`ce_get_social_links()`, `.ce-footer__social`, `.ce-footer__contact-item`).
-- **Alternativas descartadas:** Widgets de contenido dinámico (ej. "Servicios recientes") — descartado por exceder el alcance mínimo del Entregable y duplicar funcionalidad ya cubierta por `template-parts/services.php`/`projects.php`.
-- **Motivo:** Entregar valor real e inmediato sin generar código o CSS duplicado.
+- **Solución elegida:** 2 widgets (`CE_Construction_Widget_Contact`, `CE_Construction_Widget_Social`) para dar uso real a `footer-1`. Reutilizan exclusivamente `ce_get_social_links()` y clases CSS ya existentes.
 - **Impacto:** Archivo 100% nuevo y aditivo; cero cambios en archivos ya aprobados.
 
 ---
 
 ### D-037 — `archive.php` como fallback dedicado, sin extender breadcrumbs de Testimonios/FAQ
 - **Fecha:** Sprint 7, Entregable 7.2
-- **Problema:** `archive.php` debía cubrir contextos (categoría/etiqueta/autor/fecha, archivo de Testimonios/FAQ) para los cuales `ce_construction_breadcrumbs()` no tiene rama específica.
-- **Solución elegida:** Construir `archive.php` completamente funcional para su propio alcance (hero interno con título/subtítulo contextual, grid de tarjetas, paginación, estado vacío), sin extender `inc/seo.php` para agregar ramas de breadcrumbs nuevas.
-- **Alternativas descartadas:** Extender `ce_construction_breadcrumbs()` en el mismo Entregable — descartado por exceder el alcance literal de "archive.php genérico" y no haber sido solicitado explícitamente.
-- **Motivo:** Mantener cada Entregable acotado a su objetivo único (regla de la metodología de Entregables, `HANDOFF.md` sección 16).
-- **Impacto:** Los breadcrumbs para estos contextos siguen mostrando solo "Inicio" sin nivel intermedio — comportamiento ya existente para cualquier contexto sin rama explícita, documentado como observación, no como bug nuevo.
+- **Solución elegida:** `archive.php` completamente funcional para su propio alcance, sin extender `inc/seo.php`.
+- **Impacto:** Los breadcrumbs para categoría/etiqueta/autor/fecha/Testimonios/FAQ siguen mostrando solo "Inicio" — limitación preexistente documentada, no un bug nuevo.
 
 ---
 
 ### D-038 — Nueva regla permanente: aprobación explícita obligatoria al cierre de cada Entregable
 - **Fecha:** Tras el cierre inicial de los Entregables 7.1 y 7.2
-- **Problema:** La metodología de Entregables (D-030) ya exigía un flujo de cierre (verificación, documentación, marcado como Completado, propuesta del siguiente), pero no establecía de forma explícita que ese cierre requiriera la aprobación del usuario antes de iniciar el Entregable siguiente. Esto dejaba ambigüedad sobre si "entregar" un Entregable era equivalente a "finalizarlo".
-- **Solución elegida:** Se incorpora como regla permanente: **ningún Entregable se considera finalizado hasta que se hayan entregado todos los archivos creados o modificados durante ese Entregable y el usuario los haya aprobado explícitamente.** No debe iniciarse el siguiente Entregable sin haber realizado previamente la entrega completa del anterior y haber esperado esa aprobación. Regla obligatoria para todos los Sprints futuros, sin excepción. La aprobación debe ser un acto explícito del usuario (aprobar los archivos entregados, o instruir directamente avanzar al siguiente Entregable) — nunca algo que Claude infiera o dé por hecho sin esa señal concreta.
-- **Alternativas descartadas:** Mantener el criterio implícito previo (un Entregable se consideraba "Completado" en cuanto el código y la documentación quedaban listos, sin un paso de aprobación explícito separado) — descartado por dejar espacio a avanzar sobre trabajo no revisado por el cliente.
-- **Motivo:** Alinear la metodología con el principio ya establecido en D-030 ("nunca reducir la calidad ni saltarse control") y dar al cliente un punto de control real antes de cada avance, especialmente relevante en Entregables que tocan código de producción.
-- **Impacto:** Todos los Entregables se marcan como **"Entregado — pendiente de aprobación"** en `PROJECT_STATUS.md`/`TODO.md`/`CURRENT_SPRINT.md` hasta recibir la señal explícita de aprobación del usuario, momento en el cual pasan a **"Completado"**. Los Entregables 7.1 y 7.2 pasaron a "Completado" cuando el usuario, tras haberlos recibido en un cierre previo, instruyó explícitamente continuar con el Entregable 7.3 — esa instrucción directa de avanzar es la señal de aprobación exigida por esta regla, no una inferencia automática de Claude. `HANDOFF.md` sección 16 se actualiza con esta regla como parte del flujo obligatorio de cierre.
+- **Solución elegida:** Ningún Entregable se considera finalizado hasta que se hayan entregado todos sus archivos y el usuario los haya aprobado explícitamente (aprobando los archivos, o instruyendo directamente avanzar al siguiente Entregable). No debe iniciarse el siguiente Entregable sin esa señal previa. Regla obligatoria para todos los Sprints futuros.
+- **Impacto:** Todo Entregable se marca "Entregado — pendiente de aprobación" hasta recibir esa señal explícita, momento en el cual pasa a "Completado". `HANDOFF.md` sección 16 recoge esta regla como parte del flujo obligatorio de cierre.
 
 ---
 
 ### D-039 — Corrección QA-018: responsive de `.ce-header__top` vía `flex-wrap` + centrado
 - **Fecha:** Sprint 7, Entregable 7.3
-- **Problema:** `.ce-header__top` (teléfono + correo + horario + iconos sociales) no tenía ninguna regla `@media` que la adaptara para viewports pequeños (320-375px), pudiendo desbordar horizontalmente o comprimirse de forma ilegible (QA-018, verificado por búsqueda exhaustiva en `assets/css/main.css`).
-- **Solución elegida:** Se aplicó la alternativa propuesta en el propio hallazgo (`QA_REPORT.md`, opción de `flex-wrap`): una regla `@media (max-width: 767.98px)` que envuelve y centra `.ce-header__top .ce-container`, `.ce-header__contact` y `.ce-header__social`, añadida como sección 24 (nueva, al final) de `assets/css/main.css`.
-- **Alternativas descartadas:** Ocultar `.ce-header__top` por debajo de 768px y mover esa información al menú móvil off-canvas — descartada porque habría requerido modificar el markup de `header.php` (el menú móvil actual no incluye teléfono/correo/horario), excediendo el alcance de una corrección puramente CSS y el alcance aprobado explícitamente por el cliente para este Entregable (solo QA-018).
-- **Motivo:** Resolver el hallazgo real (desbordamiento/ilegibilidad en móvil) con el menor riesgo posible, sin tocar markup HTML ni otros archivos.
-- **Impacto:** Cambio 100% aditivo en `assets/css/main.css` (~18 líneas), cero riesgo de romper el layout de escritorio (la regla solo aplica por debajo de 768px), cero cambios en `header.php`, `inc/helpers.php` o `assets/js/main.js`.
+- **Solución elegida:** Regla `@media (max-width: 767.98px)` (sección 24, aditiva) en `assets/css/main.css` que envuelve y centra `.ce-header__top`, `.ce-header__contact` y `.ce-header__social`.
+- **Impacto:** Cambio 100% aditivo (~18 líneas), cero cambios en `header.php` ni otros archivos.
+
+---
+
+### D-040 — `screenshot.png` generado como mockup propio del sistema de diseño, sin fotografías reales del cliente
+- **Fecha:** Sprint 7, Entregable 7.4
+- **Problema:** WordPress requiere un archivo `screenshot.png` en la raíz del tema (1200×900px, ratio 4:3) para la vista previa del tema en Apariencia → Temas. El cliente no puede proporcionar fotografías reales de obras/proyectos en esta etapa, y `assets/img/` sigue vacía (ver `TREE.md`, pendiente de assets reales desde el Sprint 1).
+- **Solución elegida:** Se autorizó explícitamente a Claude a crear una imagen propia para este Entregable. Se generó un mockup ilustrativo de la portada del tema (barra de contacto, header con logo/menú, hero con título/subtítulo/CTA, inicio de la sección de Servicios con 3 tarjetas) usando **exclusivamente los tokens de diseño reales del tema** (`--ce-color-primary: #0F2A43`, `--ce-color-secondary: #D98E29`, tipografía Poppins para encabezados, radios de borde `999px`/`12px`, sombras suaves ya definidas en `assets/css/main.css`), más una ilustración vectorial propia (skyline abstracto + grúa de construcción, sin fotografías) como fondo del hero. Renderizado a 1200×900px, PNG RGB de 8 bits.
+- **Alternativas descartadas:**
+  1. Dejar `screenshot.png` pendiente indefinidamente hasta que el cliente provea fotografías reales — descartado porque el archivo es parte del entregable explícito del Sprint 7 (7.4) y su ausencia no bloquea ninguna funcionalidad del tema, pero sí la presentación en wp-admin.
+  2. Usar una captura de pantalla genérica sin relación con la identidad visual del proyecto — descartado por no aportar valor real y no representar el tema.
+- **Motivo:** Entregar un `screenshot.png` funcional, coherente con la identidad visual ya aprobada del proyecto (mismos colores/tipografía/radios que el CSS real), sin inventar contenido fotográfico que pudiera confundirse con material real del cliente.
+- **Impacto:** Archivo nuevo, cosmético, sin efecto en la funcionalidad del tema. **Reversible en cualquier momento:** cuando el cliente provea fotografías reales de proyectos/equipo, `screenshot.png` puede reemplazarse directamente sin ningún cambio de código, ya que WordPress solo lo usa como vista previa estática en el panel de administración.
