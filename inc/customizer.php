@@ -25,11 +25,24 @@ function ce_construction_customize_register( $wp_customize ) {
 		'ce_color_secondary' => array( '#D98E29', __( 'Color Secundario', 'ce-construction' ) ),
 		'ce_color_accent'    => array( '#1E6F5C', __( 'Color de Acento', 'ce-construction' ) ),
 	);
+	/*
+	 * QA-011 (Sprint 8, Entregable 8.1 — corrección Media): estos 3
+	 * ajustes declaraban 'transport' => 'postMessage' sin que exista
+	 * ningún script en 'customize_preview_init' que escuche esos
+	 * cambios y actualice el DOM del preview en vivo (ver
+	 * assets/js/main.js — ningún módulo se engancha a wp.customize).
+	 * Sin ese script, 'postMessage' no hace nada distinto de
+	 * 'refresh': WordPress simplemente no tiene forma de aplicar el
+	 * cambio sin recargar, así que el resultado real ya era un
+	 * refresh silencioso. Se quita la clave para que el código
+	 * refleje el comportamiento real (default 'refresh') en vez de
+	 * prometer una vista previa instantánea que nunca ocurría.
+	 * Ver DECISIONS.md D-042.
+	 */
 	foreach ( $color_fields as $id => $data ) {
 		$wp_customize->add_setting( $id, array(
 			'default'           => $data[0],
 			'sanitize_callback' => 'sanitize_hex_color',
-			'transport'         => 'postMessage',
 		) );
 		$wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, $id, array(
 			'label'   => $data[1],

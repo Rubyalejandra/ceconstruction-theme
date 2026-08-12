@@ -17,6 +17,29 @@ function ce_construction_seo_enabled() {
 	return ! ( defined( 'WPSEO_VERSION' ) || class_exists( 'RankMath' ) );
 }
 
+/* =========================================================
+ * QA-014 (Sprint 8, Entregable 8.1 — corrección Media).
+ * Los 8 bloques JSON-LD de este archivo inyectaban contenido
+ * editorial (títulos, excerpts, nombres de cliente/miembro del
+ * equipo, etc. — todos campos de wp-admin) directamente dentro
+ * de un <script type="application/ld+json"> vía wp_json_encode(),
+ * sin neutralizar una secuencia literal "</script>" que ese
+ * contenido pudiera contener. Si algún día ese texto la incluyera
+ * (aunque sea de forma accidental, ej. pegado desde otra fuente),
+ * cerraría el <script> antes de tiempo e inyectaría HTML/JS fuera
+ * de contexto en la página. Se centraliza el escapado en esta
+ * función auxiliar (JSON_UNESCAPED_SLASHES para que las URLs no se
+ * llenen de "\/", más un str_replace defensivo de "</script>" que
+ * cubre el caso de que JSON_UNESCAPED_SLASHES esté activo) y se
+ * usa en los 8 puntos de salida existentes, sin cambiar ningún
+ * schema ni su estructura de datos. Ver DECISIONS.md D-042.
+ * ========================================================= */
+function ce_construction_output_json_ld( $data ) {
+	$json = wp_json_encode( $data, JSON_UNESCAPED_SLASHES );
+	$json = str_replace( '</script', '<\/script', $json );
+	echo '<script type="application/ld+json">' . $json . '</script>' . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $json ya está codificado por wp_json_encode() y endurecido contra </script> arriba.
+}
+
 function ce_construction_meta_tags() {
 	if ( ! ce_construction_seo_enabled() ) {
 		return;
@@ -69,7 +92,7 @@ function ce_construction_schema_organization() {
 		),
 	);
 
-	echo '<script type="application/ld+json">' . wp_json_encode( $schema ) . '</script>' . "\n";
+	ce_construction_output_json_ld( $schema );
 }
 add_action( 'wp_head', 'ce_construction_schema_organization' );
 
@@ -169,7 +192,7 @@ function ce_construction_schema_service() {
 		$schema['serviceType'] = wp_list_pluck( $terms, 'name' );
 	}
 
-	echo '<script type="application/ld+json">' . wp_json_encode( $schema ) . '</script>' . "\n";
+	ce_construction_output_json_ld( $schema );
 
 	// BreadcrumbList (Inicio > Servicios > Nombre del servicio).
 	$breadcrumb_schema = array(
@@ -196,7 +219,7 @@ function ce_construction_schema_service() {
 			),
 		),
 	);
-	echo '<script type="application/ld+json">' . wp_json_encode( $breadcrumb_schema ) . '</script>' . "\n";
+	ce_construction_output_json_ld( $breadcrumb_schema );
 }
 add_action( 'wp_head', 'ce_construction_schema_service' );
 
@@ -284,7 +307,7 @@ function ce_construction_schema_project() {
 		$schema['keywords'] = implode( ', ', wp_list_pluck( $terms, 'name' ) );
 	}
 
-	echo '<script type="application/ld+json">' . wp_json_encode( $schema ) . '</script>' . "\n";
+	ce_construction_output_json_ld( $schema );
 
 	// BreadcrumbList (Inicio > Proyectos > Nombre del proyecto).
 	$breadcrumb_schema = array(
@@ -311,7 +334,7 @@ function ce_construction_schema_project() {
 			),
 		),
 	);
-	echo '<script type="application/ld+json">' . wp_json_encode( $breadcrumb_schema ) . '</script>' . "\n";
+	ce_construction_output_json_ld( $breadcrumb_schema );
 }
 add_action( 'wp_head', 'ce_construction_schema_project' );
 
@@ -357,7 +380,7 @@ function ce_construction_schema_person() {
 		$schema['sameAs'] = array( $linkedin );
 	}
 
-	echo '<script type="application/ld+json">' . wp_json_encode( $schema ) . '</script>' . "\n";
+	ce_construction_output_json_ld( $schema );
 }
 add_action( 'wp_head', 'ce_construction_schema_person' );
 
@@ -388,7 +411,7 @@ function ce_construction_schema_client_organization() {
 		$schema['logo'] = get_the_post_thumbnail_url( $post_id, 'ce-card' );
 	}
 
-	echo '<script type="application/ld+json">' . wp_json_encode( $schema ) . '</script>' . "\n";
+	ce_construction_output_json_ld( $schema );
 }
 add_action( 'wp_head', 'ce_construction_schema_client_organization' );
 
@@ -436,6 +459,6 @@ function ce_construction_schema_blog_post() {
 		$schema['image'] = get_the_post_thumbnail_url( $post_id, 'ce-hero' );
 	}
 
-	echo '<script type="application/ld+json">' . wp_json_encode( $schema ) . '</script>' . "\n";
+	ce_construction_output_json_ld( $schema );
 }
 add_action( 'wp_head', 'ce_construction_schema_blog_post' );

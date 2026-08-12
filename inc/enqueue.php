@@ -11,6 +11,45 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/* =========================================================
+ * QA-030 (Sprint 8, Entregable 8.2 — corrección alta).
+ *
+ * Causa raíz: los 3 wp_enqueue_style()/wp_enqueue_script() de
+ * los assets propios del tema (style.css, assets/css/main.css,
+ * assets/js/main.js) usaban CE_THEME_VERSION como parámetro
+ * $ver — una constante que dependía de que un desarrollador la
+ * actualizara "a mano" en cada despliegue que tocara CSS/JS.
+ * Quedó congelada en '0.4.1' desde el Sprint 5 pese a que el
+ * proyecto avanzó hasta v0.8.0 (ver CHANGELOG.md): el cache de
+ * navegador/CDN no tenía ninguna señal de que main.css/main.js
+ * habían cambiado entre despliegues, por lo que visitantes
+ * recurrentes podían seguir recibiendo CSS/JS desactualizado
+ * indefinidamente.
+ *
+ * Esta función resuelve la causa raíz, no solo el síntoma:
+ * usa filemtime() del archivo real en disco como versión, de
+ * forma que la URL de cache-busting cambia automáticamente
+ * CADA VEZ que el archivo cambia, sin que nadie tenga que
+ * recordar actualizar ninguna constante nunca más. Es el
+ * mecanismo que la documentación de WordPress recomienda para
+ * temas/plugins bajo desarrollo activo (ver Recomendación R-1
+ * de docs/QA_REPORT.md).
+ *
+ * Fallback defensivo: si el archivo no existiera en disco (no
+ * debería ocurrir en producción, pero evita un $ver vacío/falso
+ * que rompería el atributo del <link>/<script>), se usa
+ * CE_THEME_VERSION como respaldo.
+ *
+ * Ver DECISIONS.md D-044.
+ * ========================================================= */
+function ce_construction_asset_version( $relative_path ) {
+	$file = CE_THEME_DIR . '/' . ltrim( $relative_path, '/' );
+	if ( file_exists( $file ) ) {
+		return (string) filemtime( $file );
+	}
+	return CE_THEME_VERSION;
+}
+
 function ce_construction_enqueue_assets() {
 
 	// Tipografía (Poppins + Inter).
@@ -30,22 +69,25 @@ function ce_construction_enqueue_assets() {
 	);
 
 	// style.css raíz (requerido por WordPress).
-	wp_enqueue_style( 'ce-construction-style', get_stylesheet_uri(), array(), CE_THEME_VERSION );
+	// QA-030: versión por filemtime() real, no por CE_THEME_VERSION.
+	wp_enqueue_style( 'ce-construction-style', get_stylesheet_uri(), array(), ce_construction_asset_version( 'style.css' ) );
 
 	// Hoja de estilos principal del tema (design system real).
+	// QA-030: versión por filemtime() real, no por CE_THEME_VERSION.
 	wp_enqueue_style(
 		'ce-construction-main',
 		CE_THEME_URI . '/assets/css/main.css',
 		array( 'ce-construction-style' ),
-		CE_THEME_VERSION
+		ce_construction_asset_version( 'assets/css/main.css' )
 	);
 
 	// JS principal del tema (ES6 modular), cargado en el footer.
+	// QA-030: versión por filemtime() real, no por CE_THEME_VERSION.
 	wp_enqueue_script(
 		'ce-construction-main',
 		CE_THEME_URI . '/assets/js/main.js',
 		array(),
-		CE_THEME_VERSION,
+		ce_construction_asset_version( 'assets/js/main.js' ),
 		true
 	);
 	wp_script_add_data( 'ce-construction-main', 'defer', true );
@@ -68,13 +110,21 @@ function ce_construction_enqueue_assets() {
 }
 add_action( 'wp_enqueue_scripts', 'ce_construction_enqueue_assets' );
 
-/**
- * Añade defer a nuestro script principal (mejora Core Web Vitals).
- */
-function ce_construction_add_defer_attribute( $tag, $handle ) {
-	if ( 'ce-construction-main' === $handle && strpos( $tag, 'defer' ) === false ) {
-		$tag = str_replace( ' src', ' defer src', $tag );
-	}
-	return $tag;
-}
-add_filter( 'script_loader_tag', 'ce_construction_add_defer_attribute', 10, 2 );
+/* =========================================================
+ * QA-010 (Sprint 8, Entregable 8.1 — corrección Media).
+ * Antes existía, además de wp_script_add_data('defer', true)
+ * (arriba, soporte nativo de WordPress desde la versión 6.3),
+ * un filtro manual `ce_construction_add_defer_attribute()` sobre
+ * 'script_loader_tag' que hacía exactamente lo mismo vía
+ * str_replace() sobre el <script> ya impreso. Con el mínimo de
+ * WordPress del proyecto (>= 6.0, ver style.css) ya cubierto por
+ * versiones reales en producción >= 6.3, y el proyecto apuntando
+ * a compatibilidad con WordPress 7.x, el soporte nativo es
+ * suficiente y el filtro manual es código muerto/redundante que
+ * solo añadía una segunda vía (potencialmente conflictiva si un
+ * plugin de terceros también engancha 'script_loader_tag' para
+ * el mismo handle) de lograr el mismo resultado. Se elimina el
+ * filtro; wp_script_add_data() sigue intacto y es quien realmente
+ * añade `defer` al <script src="main.js">.
+ * Ver DECISIONS.md D-042.
+ * ========================================================= */

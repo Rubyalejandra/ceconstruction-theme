@@ -12,7 +12,7 @@ ce-construction-theme/
 ├── footer.php                         ✅
 ├── front-page.php                     ✅
 ├── index.php                          ✅
-├── page.php                           ✅
+├── page.php                           ⬜ NO EXISTE (verificado en Sprint 8, ver QA_REPORT.md QA-041 — TREE.md lo marcaba erróneamente como ✅; WordPress usa index.php como fallback para páginas estáticas, sin plantilla dedicada)
 ├── single.php                         ✅
 ├── comments.php                       ✅
 ├── 404.php                            ✅

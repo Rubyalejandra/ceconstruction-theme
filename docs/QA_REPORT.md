@@ -27,13 +27,18 @@
 
 - QA-001 a QA-009: ✅ corregidos y documentados en v0.4.1.
 - QA-018: ✅ corregido y documentado en v0.7.2 / Sprint 7 Entregable 7.3.
-- QA-010 a QA-017: ⬜ pendientes.
+- **QA-010, QA-011, QA-014, QA-017: ✅ corregidos en Sprint 8, Entregable 8.1** — ver `DECISIONS.md` D-042.
+- **QA-013: 🟡 parcialmente corregido en Sprint 8, Entregable 8.1** (solo el comentario inexacto; la unificación real queda en backlog) — ver `DECISIONS.md` D-042.
+- **QA-015: ✅ verificado en Sprint 8, Entregable 8.1 — no se reproduce en el código actual, sin cambio de código.**
+- **QA-030 (Alto): ✅ corregido en Sprint 8, Entregable 8.2** (cache-busting por `filemtime()` + `CE_THEME_VERSION` derivada de `wp_get_theme()`) — ver `DECISIONS.md` D-044.
+- QA-012, QA-016: ⬜ pendientes (agrupados en el Entregable 8.5 de la reorganización de `DECISIONS.md` D-043).
 - QA-019 a QA-029: ⬜ pendientes / mejoras futuras según su clasificación.
-- QA-030 a QA-040: 🆕 abiertos según la auditoría integral.
-- QA-041: ⚠️ limitación metodológica; no es un bug confirmado.
+- **QA-031 (Alto):** 🆕 abierto — siguiente prioridad del Sprint 8 (Entregable 8.3 de `DECISIONS.md` D-043), requiere decisión arquitectónica previa de cómo servir adjuntos protegidos.
+- QA-032 a QA-040: 🆕 abiertos según la auditoría integral (agrupados en Entregables 8.4/8.5/8.6 de D-043).
+- QA-041: ✅ verificado — page.php no existe en el repositorio actual (no es un bug, ver detalle sección 4.6). Decisión pendiente: crear page.php dedicado o mantener el fallback de index.php.
 - QA-042: 🔵 mejora futura.
 
-**Resultado operativo:** 10 hallazgos ya corregidos; el resto permanece pendiente, sujeto a priorización y aprobación para el Sprint 8.
+**Resultado operativo (actualizado, Sprint 8 Entregable 8.2):** 15 hallazgos corregidos o cerrados (10 históricos + QA-010/011/014/017/030 nuevos + QA-013 parcial + QA-015 verificado como no reproducible); el resto permanece pendiente, sujeto a priorización y aprobación para los siguientes Entregables del Sprint 8 (ver `DECISIONS.md` D-043 para la planificación vigente de 8.3 a 8.7).
 
 ---
 
@@ -90,16 +95,16 @@ La auditoría integral (`QA_REPORT_2.md`) declaró como alcance el estado del pr
 ## 🟡 MEDIO
 
 ### QA-010 — Filtro `script_loader_tag` redundante con `wp_script_add_data('defer')`
-- **Estado:** ⬜ Sin corregir (no incluido en la aprobación del Entregable 7.3 — solo se aprobó QA-018).
+- **Estado:** ✅ **CORREGIDO en Sprint 8, Entregable 8.1** — ver `DECISIONS.md` D-042.
 - **Archivo afectado:** `inc/enqueue.php`
-- **Descripción:** El código usa `wp_script_add_data('defer')` (soporte nativo WP 6.3+) **y además** un filtro manual `ce_construction_add_defer_attribute()` que hace lo mismo vía `str_replace()`. Deuda técnica, no bug activo.
-- **Recomendación:** Eliminar el filtro manual.
+- **Descripción:** El código usaba `wp_script_add_data('defer')` (soporte nativo WP 6.3+) **y además** un filtro manual `ce_construction_add_defer_attribute()` que hacía lo mismo vía `str_replace()`. Deuda técnica, no bug activo.
+- **Corrección aplicada:** Se eliminó el filtro manual (`ce_construction_add_defer_attribute()` y su `add_filter`). `wp_script_add_data( 'ce-construction-main', 'defer', true )` queda intacto y sigue siendo el único mecanismo responsable de añadir `defer` al script principal.
 
 ### QA-011 — `transport: postMessage` en 3 colores del Customizer sin script de preview
-- **Estado:** ⬜ Sin corregir.
+- **Estado:** ✅ **CORREGIDO en Sprint 8, Entregable 8.1** — ver `DECISIONS.md` D-042.
 - **Archivo afectado:** `inc/customizer.php`
-- **Descripción:** 3 ajustes de color declaran `postMessage` pero no hay script en `customize_preview_init` que aplique el cambio en vivo — la vista previa no se actualiza hasta publicar.
-- **Recomendación:** Quitar `transport: postMessage` (dejar el default `refresh`).
+- **Descripción:** 3 ajustes de color declaraban `postMessage` pero no había script en `customize_preview_init` que aplicara el cambio en vivo — la vista previa no se actualizaba hasta publicar (el comportamiento real ya era un refresh silencioso).
+- **Corrección aplicada:** Se eliminó la clave `'transport' => 'postMessage'` de los 3 `add_setting()` de color; quedan en el default `refresh`, que es honesto con el comportamiento real. No se implementó el script de preview en vivo alternativo (mayor alcance, no solicitado).
 
 ### QA-012 — Consultas de "relacionados" sin caché (hasta 4 `WP_Query` extra por página)
 - **Estado:** ⬜ Sin corregir.
@@ -108,21 +113,21 @@ La auditoría integral (`QA_REPORT_2.md`) declaró como alcance el estado del pr
 - **Recomendación:** Transient de corta duración o caché estática por request.
 
 ### QA-013 — Duplicación de variables CSS/reset entre `style.css` y `main.css`
-- **Estado:** ⬜ Sin corregir.
+- **Estado:** 🟡 **Parcialmente corregido en Sprint 8, Entregable 8.1** — ver `DECISIONS.md` D-042.
 - **Archivo afectado:** `style.css`, `assets/css/main.css`
-- **Descripción:** Ambos declaran el mismo bloque `:root`/reset; el comentario de `style.css` afirma un `@import` inexistente.
-- **Recomendación:** Corregir el comentario y evaluar unificar.
+- **Descripción:** Ambos archivos declaran el mismo bloque `:root`/reset; el comentario de `style.css` afirmaba un `@import` inexistente.
+- **Corrección aplicada (parcial):** Se corrigió el comentario de `style.css` para reflejar el comportamiento real (ambos archivos se encolan por separado, `main.css` no importa `style.css`; la duplicación de tokens es deliberada como fallback, no un error). **La unificación real de los dos bloques `:root`** sigue sin corregir — requiere decidir cuál de los dos bloques es la fuente única de verdad, una decisión arquitectónica que toca el archivo raíz obligatorio del tema y que no se ejecuta sin aprobación explícita previa (queda en backlog).
 
 ### QA-014 — JSON-LD sin endurecimiento contra `</script>`
-- **Estado:** ⬜ Sin corregir.
+- **Estado:** ✅ **CORREGIDO en Sprint 8, Entregable 8.1** — ver `DECISIONS.md` D-042.
 - **Archivo afectado:** `inc/seo.php`
-- **Descripción:** El contenido editorial se inyecta en bloques `<script type="application/ld+json">` sin escapar `</script>` literal.
-- **Recomendación:** `JSON_UNESCAPED_SLASHES` o `str_replace('</script>', '<\/script>', $json)`.
+- **Descripción:** El contenido editorial se inyectaba en 8 bloques `<script type="application/ld+json">` sin escapar una secuencia `</script>` literal que ese contenido pudiera contener.
+- **Corrección aplicada:** Nueva función auxiliar `ce_construction_output_json_ld( $data )` que aplica `JSON_UNESCAPED_SLASHES` y un `str_replace( '</script', '<\/script', $json )` defensivo antes de imprimir. Los 8 puntos de salida existentes (Organización, Servicio + su BreadcrumbList, Proyecto + su BreadcrumbList, Persona, Cliente/Organization, BlogPosting) ahora llaman a esta función en vez de hacer `echo` directo — mismo schema, misma estructura de datos, sin cambios de contenido.
 
 ### QA-015 — Variable `$attachment_name` calculada pero nunca usada
-- **Estado:** ⬜ Sin corregir.
+- **Estado:** ✅ **Verificado en Sprint 8, Entregable 8.1 — el hallazgo ya no se reproduce, sin cambio de código.**
 - **Archivo afectado:** `inc/quote-form.php`
-- **Descripción:** Código muerto, sin impacto funcional.
+- **Descripción:** Se inspeccionó línea por línea el código actual: `$attachment_name` **sí se usa**, en `$attachment_data['post_title']` al construir el array pasado a `wp_insert_attachment()` (dentro del bloque de registro del adjunto como Media Library attachment, ver QA-002). No es código muerto en el estado actual del repositorio — el hallazgo, tal como está descrito, no se reproduce. No se realizó ningún cambio de código para este ítem; se cierra únicamente a nivel de este reporte.
 
 ### QA-016 — `<script>` inline en metabox sin `wp_enqueue_script`/dependencia declarada
 - **Estado:** ⬜ Sin corregir.
@@ -131,10 +136,10 @@ La auditoría integral (`QA_REPORT_2.md`) declaró como alcance el estado del pr
 - **Recomendación:** Mover a `assets/js/admin-gallery.js` con `wp_add_inline_script()`.
 
 ### QA-017 — Skip-link sin `tabindex="-1"` en `<main>`
-- **Estado:** ⬜ Sin corregir.
+- **Estado:** ✅ **CORREGIDO en Sprint 8, Entregable 8.1** — ver `DECISIONS.md` D-042.
 - **Archivo afectado:** `header.php`
-- **Descripción:** El skip-link apunta a `#ce-main-content`, que no tiene `tabindex="-1"` — el foco de teclado no se mueve al activarlo en varios navegadores.
-- **Recomendación:** Añadir `tabindex="-1"` a `<main id="ce-main-content">`.
+- **Descripción:** El skip-link apuntaba a `#ce-main-content`, que no tenía `tabindex="-1"` — el foco de teclado no se movía al activarlo en varios navegadores.
+- **Corrección aplicada:** Se añadió `tabindex="-1"` a `<main id="ce-main-content">`. Cambio de un solo atributo, sin impacto visual ni en el resto del documento.
 
 ### QA-018 — Barra superior del header sin adaptación responsive explícita
 - **Estado:** ✅ **CORREGIDO en v0.7.2** (Sprint 7, Entregable 7.3, con aprobación explícita del usuario) — ver `DECISIONS.md` D-039 y `CHANGELOG.md`.
@@ -157,7 +162,7 @@ La auditoría integral (`QA_REPORT_2.md`) declaró como alcance el estado del pr
 
 ## Código muerto detectado (resumen)
 - QA-006 (sidebar `footer-1` registrado, nunca usado) — ✅ Corregido en v0.4.1.
-- QA-015 (`$attachment_name` calculado, nunca usado) — ⬜ Sin corregir.
+- QA-015 (`$attachment_name` calculado, nunca usado) — ✅ Verificado en Sprint 8, Entregable 8.1: no es código muerto, la variable sí se usa. Ver detalle en la sección MEDIO.
 
 ---
 
@@ -167,7 +172,7 @@ La auditoría integral (`QA_REPORT_2.md`) declaró como alcance el estado del pr
 
 **Actualización (Sprint 7, Entregable 7.3, v0.7.2):** de los 9 hallazgos Medios (QA-010 a QA-018), se corrigió únicamente **QA-018**, con autorización explícita puntual del usuario para ese hallazgo específico (no para el resto de Medios). Corrección documentada en `CHANGELOG.md` (v0.7.2) y `DECISIONS.md` (D-039).
 
-Los 19 hallazgos restantes (8 Medios: QA-010 a QA-017; 5 Bajos; 6 Mejoras futuras) permanecen exactamente como en la auditoría original — no fueron tocados, conforme a la instrucción explícita de limitar el alcance de esta corrección únicamente a QA-018.
+**Actualización (Sprint 8, Entregable 8.1):** re-evaluados contra el código real del repositorio los 8 hallazgos Medios restantes de la auditoría histórica (QA-010 a QA-017). Corregidos: QA-010, QA-011, QA-014, QA-017 (completos) y QA-013 (parcial, solo el comentario). Verificado como ya no reproducible: QA-015 (sin cambio de código). Pendientes: QA-012 y QA-016. Ver `DECISIONS.md` D-042 para el detalle completo de la re-evaluación y de por qué la agrupación de D-041 quedó superseded. Los hallazgos de la auditoría integral (QA-030 a QA-042) permanecen sin tocar — esta actualización se limitó al Entregable 8.1, que no los incluyó.
 
 ---
 
@@ -178,13 +183,13 @@ Los 19 hallazgos restantes (8 Medios: QA-010 a QA-017; 5 Bajos; 6 Mejoras futura
 ### QA-030 — `CE_THEME_VERSION` / `style.css` congelados en 0.4.1 — cache-busting roto
 
 - **Severidad:** ALTO.
-- **Estado:** 🆕 Abierto.
-- **Archivo(s) afectado(s):** `style.css` y el mecanismo de versionado usado por `inc/enqueue.php`.
-- **Descripción:** La versión usada para cache-busting de CSS/JS quedó congelada en `0.4.1` pese a que el proyecto avanzó posteriormente hasta v0.7.3. Esto provoca que las URLs versionadas de los assets no cambien entre despliegues y puede hacer que navegadores o CDN con caché agresivo conserven CSS/JS antiguos.
-- **Riesgo:** Integridad de despliegue y rendimiento. Los usuarios recurrentes pueden recibir CSS/JS desactualizados hasta que expire o se purgue el caché.
-- **Recomendación:** Automatizar o centralizar la fuente de versión para que el versionado de assets no dependa de una actualización manual olvidada.
-- **Cambio arquitectónico recomendado:** ver R-1 en la sección de recomendaciones de arquitectura del reporte fuente.
-- **No implementado durante la auditoría.**
+- **Estado:** ✅ **CORREGIDO en v0.8.1** (Sprint 8, Entregable 8.2) — ver `DECISIONS.md` D-044.
+- **Archivo(s) afectado(s):** `style.css`, `functions.php`, `inc/enqueue.php`.
+- **Descripción:** La versión usada para cache-busting de CSS/JS quedó congelada en `0.4.1` pese a que el proyecto avanzó posteriormente hasta v0.8.0. Esto provocaba que las URLs versionadas de los assets no cambiaran entre despliegues y podía hacer que navegadores o CDN con caché agresivo conservaran CSS/JS antiguos.
+- **Riesgo:** Integridad de despliegue y rendimiento. Los usuarios recurrentes podían recibir CSS/JS desactualizados hasta que expirara o se purgara el caché.
+- **Recomendación aplicada:** implementada la Recomendación R-1 (ver sección de recomendaciones arquitectónicas): nueva función `ce_construction_asset_version()` en `inc/enqueue.php`, que usa `filemtime()` real de cada archivo en disco como versión de cache-busting para `style.css`, `assets/css/main.css` y `assets/js/main.js` — se actualiza automáticamente en cada cambio, sin depender de que nadie recuerde subir un número a mano. `CE_THEME_VERSION` (uso informativo general, ya no de cache-busting) pasa a derivarse de `wp_get_theme()->get('Version')`, unificándose con la cabecera de `style.css` (que también se sincronizó a `0.8.1`) para que ambos valores no puedan volver a desincronizarse entre sí.
+- **Cambio arquitectónico:** documentado en `ARCHITECTURE.md` sección 9 (cambio real de mecanismo de cache-busting, no solo de valor).
+- **Impacto de la corrección:** cambio acotado a 3 archivos (`functions.php`, `inc/enqueue.php`, `style.css`), sin tocar `assets/css/main.css` ni `assets/js/main.js`. Resuelve la causa raíz de forma permanente — el problema no puede volver a producirse por olvido humano.
 
 ## 4.2 QA-031 a QA-034 — Seguridad, formularios y concurrencia
 
@@ -264,11 +269,12 @@ El problema de versión de assets congelada (QA-030) tiene una faceta de perform
 ### QA-041 — `page.php` no verificable en la auditoría integral
 
 - **Severidad:** Nota metodológica / no es un defecto confirmado.
-- **Estado:** ⚠️ No verificable en la sesión de auditoría de QA_REPORT_2.
-- **Archivo:** `page.php`.
-- **Descripción:** `TREE.md` marcaba `page.php` como existente y aprobado, pero el archivo no estuvo disponible en el contexto de aquella auditoría. Por tanto, no se pudo verificar directamente su contenido.
-- **Importante:** Esto **no debe tratarse como un bug confirmado** ni como una corrección automática. Requiere únicamente verificación cuando el archivo esté disponible.
-- **Impacto:** Limitación de cobertura de la auditoría integral.
+- **Estado:** ✅ **Verificado en la re-planificación del Sprint 8: `page.php` NO existe en el repositorio actual.**
+- **Archivo:** `page.php` (ausente).
+- **Descripción:** `TREE.md` marcaba `page.php` como existente y aprobado (✅), pero al verificar directamente el repositorio/ZIP no se encontró ningún archivo `page.php` en la raíz del tema. La discrepancia de `QA-041` (archivo no disponible en la sesión de la auditoría integral) se confirma ahora como una discrepancia real de `TREE.md`, no solo una limitación de aquella sesión: el archivo simplemente no existe.
+- **Impacto funcional real:** Ninguno crítico. Sin `page.php`, WordPress recurre a `index.php` para renderizar páginas estáticas (`is_page()`), y `index.php` sí contempla explícitamente la rama `is_singular() && have_posts()` que cubre páginas — el sitio no se rompe, pero las páginas no tienen una plantilla dedicada (sin las secciones/estilos específicos que sí tienen `single.php`, `single-servicio.php`, etc.).
+- **Importante:** Esto **no se corrige como código en esta sesión** (regla explícita: QA-041 solo requiere verificación, no corrección automática sin decisión previa). Se corrige únicamente la documentación (`TREE.md`, que afirmaba incorrectamente que el archivo existía) — ver Sprint 8, sección de hallazgos fuera de Entregable.
+- **Decisión pendiente para el usuario:** si `page.php` debe crearse como plantilla dedicada (mejora futura, no un bug) o si se acepta permanentemente el fallback de `index.php` para páginas estáticas. No se incluye en ningún Entregable del Sprint 8 sin tu instrucción explícita.
 
 ---
 
@@ -292,21 +298,21 @@ El problema de versión de assets congelada (QA-030) tiene una faceta de perform
 | QA-007 | `save_post` sin guardia de revisión | ✅ Corregido |
 | QA-008 | `CE_THEME_VERSION` hardcodeada | ✅ Corregido históricamente |
 | QA-009 | CPT Servicio sin `page-attributes` | ✅ Corregido |
-| QA-030 | Cache-busting congelado en 0.4.1 | ⬜ Abierto |
+| QA-030 | Cache-busting congelado en 0.4.1 | ✅ Corregido (v0.8.1, Entregable 8.2) |
 | QA-031 | Adjuntos potencialmente accesibles por URL directa | ⬜ Abierto |
 
 ## 🟡 MEDIO
 
 | ID | Hallazgo | Estado |
 |---|---|---|
-| QA-010 | Filtro `defer` redundante | ⬜ Abierto |
-| QA-011 | `postMessage` sin preview JS | ⬜ Abierto |
-| QA-012 | Consultas relacionadas sin caché | ⬜ Abierto |
-| QA-013 | Duplicación CSS/reset | ⬜ Abierto |
-| QA-014 | JSON-LD sin endurecimiento contra `</script>` | ⬜ Abierto |
-| QA-015 | `$attachment_name` sin uso | ⬜ Abierto |
-| QA-016 | Script inline de metabox sin dependencia formal | ⬜ Abierto |
-| QA-017 | Skip-link sin `tabindex="-1"` | ⬜ Abierto |
+| QA-010 | Filtro `defer` redundante | ✅ Corregido (Entregable 8.1) |
+| QA-011 | `postMessage` sin preview JS | ✅ Corregido (Entregable 8.1) |
+| QA-012 | Consultas relacionadas sin caché | ⬜ Abierto (propuesto: Entregable 8.3) |
+| QA-013 | Duplicación CSS/reset | 🟡 Parcial (Entregable 8.1 — solo comentario) |
+| QA-014 | JSON-LD sin endurecimiento contra `</script>` | ✅ Corregido (Entregable 8.1) |
+| QA-015 | `$attachment_name` sin uso | ✅ Verificado — ya no se reproduce (Entregable 8.1) |
+| QA-016 | Script inline de metabox sin dependencia formal | ⬜ Abierto (propuesto: Entregable 8.2) |
+| QA-017 | Skip-link sin `tabindex="-1"` | ✅ Corregido (Entregable 8.1) |
 | QA-018 | Header top sin adaptación responsive | ✅ Corregido |
 | QA-032 | Race condition del rate-limit | ⬜ Abierto |
 | QA-033 | Archivo huérfano si falla `wp_insert_post()` | ⬜ Abierto |
@@ -327,7 +333,7 @@ El problema de versión de assets congelada (QA-030) tiene una faceta de perform
 | QA-037 | `aria-label` estático del menú móvil | ⬜ Abierto |
 | QA-039 | Twitter Card incompleto | ⬜ Abierto |
 | QA-040 | `BreadcrumbList` JSON-LD inconsistente | ⬜ Abierto |
-| QA-041 | `page.php` no verificable | ⚠️ Nota metodológica, no bug |
+| QA-041 | `page.php` no existe en el repositorio (verificado) | ✅ Verificado, no bug — decisión pendiente sobre crear plantilla dedicada |
 
 ## 🔵 MEJORAS FUTURAS
 
@@ -398,7 +404,7 @@ No se reportó una nueva vulnerabilidad crítica de SQL injection, bypass de non
 Hallazgos relevantes:
 
 - QA-005: contraste histórico corregido.
-- QA-017: skip-link pendiente.
+- QA-017: skip-link corregido (Sprint 8, Entregable 8.1).
 - QA-018: header responsive corregido.
 - QA-035: autoplay de testimonios sin pausa accesible.
 - QA-036: gestión de foco de overlays pendiente.
@@ -410,7 +416,7 @@ Hallazgos relevantes:
 
 Hallazgos relevantes:
 
-- QA-014: endurecimiento de JSON-LD pendiente.
+- QA-014: endurecimiento de JSON-LD corregido (Sprint 8, Entregable 8.1).
 - QA-038: canonical pendiente.
 - QA-039: Twitter Card incompleto.
 - QA-040: BreadcrumbList JSON-LD inconsistente.
@@ -457,7 +463,7 @@ El QA maestro consolida los dos reportes entregados y mantiene la trazabilidad d
 
 **Correcciones históricas confirmadas:** QA-001 a QA-009 y QA-018.
 
-**Nuevos hallazgos abiertos de prioridad ALTA:** QA-030 y QA-031.
+**Nuevos hallazgos abiertos de prioridad ALTA:** QA-031 (QA-030 corregido en Sprint 8, Entregable 8.2 — ver `DECISIONS.md` D-044).
 
 **Nuevos hallazgos MEDIOS:** QA-032 a QA-036 y QA-038.
 

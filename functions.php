@@ -14,13 +14,30 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Seguridad: evita acceso directo al archivo.
 }
 
-// QA-008 (Sprint 5, Fase 1 — corrección alta): esta constante estaba
-// fijada en '1.0.0' desde el Sprint 1 y nunca se sincronizó con las
-// versiones reales del proyecto documentadas en CHANGELOG.md, lo cual
-// rompía el cache-busting de assets/css/main.css y assets/js/main.js
-// entre despliegues. A partir de ahora debe actualizarse en cada
-// versión que modifique CSS/JS (ver CHANGELOG.md para el historial).
-define( 'CE_THEME_VERSION', '0.4.1' );
+// QA-008 (Sprint 5, Fase 1) fijó esta constante a mano por primera vez,
+// con la instrucción de "actualizarla en cada versión que modifique
+// CSS/JS". Ese enfoque manual volvió a fallar exactamente como cabía
+// esperar: la constante quedó congelada en '0.4.1' desde el Sprint 5
+// pese a que el proyecto avanzó hasta v0.8.0 (ver CHANGELOG.md) — ver
+// QA-030 (Sprint 8, Entregable 8.2 — corrección alta).
+//
+// Solución: se elimina el valor hardcodeado. Ahora se deriva de
+// wp_get_theme()->get('Version'), que lee directamente la cabecera
+// "Version:" de style.css — la misma cabecera que WordPress ya usa
+// de forma nativa para mostrar la versión del tema en Apariencia →
+// Temas. Esto unifica en una sola fuente lo que antes eran DOS
+// valores independientes que podían desincronizarse entre sí (esta
+// constante y la cabecera de style.css, ver QA-022 histórico).
+//
+// Importante: esta constante ya NO es el mecanismo de cache-busting
+// de los assets del tema. Ese cache-busting ahora usa filemtime() de
+// cada archivo real en disco vía ce_construction_asset_version() en
+// inc/enqueue.php, que se actualiza automáticamente en cada cambio
+// sin depender de que nadie recuerde subir ningún número — ver ese
+// archivo para el detalle. CE_THEME_VERSION se conserva únicamente
+// como valor informativo/de compatibilidad general.
+// Ver DECISIONS.md D-044.
+define( 'CE_THEME_VERSION', wp_get_theme()->get( 'Version' ) );
 define( 'CE_THEME_DIR', get_template_directory() );
 define( 'CE_THEME_URI', get_template_directory_uri() );
 

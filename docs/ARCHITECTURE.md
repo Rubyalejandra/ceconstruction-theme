@@ -325,11 +325,24 @@ request de frontend, antes de que header.php imprima <head>):
 
 1. wp_enqueue_style('ce-google-fonts', ... , null)          [CDN externo, sin dependencia]
 2. wp_enqueue_style('font-awesome', ..., '6.5.1')            [CDN externo, sin dependencia]
-3. wp_enqueue_style('ce-construction-style', style.css, [], CE_THEME_VERSION)
+3. wp_enqueue_style('ce-construction-style', style.css, [],
+                     ce_construction_asset_version('style.css'))
 4. wp_enqueue_style('ce-construction-main', main.css,
-                     ['ce-construction-style'], CE_THEME_VERSION)  [depende de #3]
-5. wp_enqueue_script('ce-construction-main', main.js, [], CE_THEME_VERSION, true)
+                     ['ce-construction-style'],
+                     ce_construction_asset_version('assets/css/main.css'))  [depende de #3]
+5. wp_enqueue_script('ce-construction-main', main.js, [],
+                     ce_construction_asset_version('assets/js/main.js'), true)
    wp_script_add_data('ce-construction-main', 'defer', true)  [soporte nativo WP 6.3+]
+
+   NOTA (QA-030, Sprint 8, Entregable 8.2): la versión de estos 3 assets
+   ya no viene de CE_THEME_VERSION, sino de ce_construction_asset_version()
+   (inc/enqueue.php), que devuelve filemtime() del archivo real en disco.
+   El cache-busting es ahora automático: cambia solo en cuanto el archivo
+   cambia, sin depender de que nadie actualice ninguna constante a mano.
+   CE_THEME_VERSION sigue existiendo (ahora derivada de
+   wp_get_theme()->get('Version'), que lee la cabecera de style.css) pero
+   es puramente informativa, ya no interviene en el cache-busting. Ver
+   DECISIONS.md D-044.
 6. wp_localize_script(...) → inyecta window.ceConstructionData ANTES del <script>
    (ajaxUrl, quoteNonce, whatsapp, i18n)
 
@@ -381,3 +394,4 @@ si su marcado existe en el DOM antes de operar.
 - **v0.6.0 (Entregable 6A):** `index.php` añadido como fallback obligatorio de WordPress (ver sección 3, nueva fila de la tabla). No cambia ningún flujo descrito en las secciones 4-9 — `index.php` reutiliza exclusivamente lo ya documentado (helpers, clases CSS, paginación, breadcrumbs globales). Se corrigió, de paso, un bug preexistente no arquitectónico en `main.css` (utilidades `.ce-mt-6`/`.ce-mb-6` faltantes desde el Sprint 3) — ver `DECISIONS.md` D-029.
 - **v0.6.0 (post Entregable 6A):** se incorporó a la sección 10 la convención de "Gestión de Sprints por Entregables" como nueva regla permanente de proceso (no de código) — ver `HANDOFF.md` sección 16 y `DECISIONS.md` D-030 para el detalle completo.
 - **v0.6.2 (post Entregable 6B.2):** se refinó la convención de proceso de la sección 10 con la política de actualización incremental de documentación y la creación de `CURRENT_SPRINT.md` — ver `DECISIONS.md` D-034.
+- **v0.8.1 (Sprint 8, Entregable 8.2):** corrección de QA-030. Cambio real de mecanismo (no solo de valor): el flujo de carga de CSS/JS descrito en la sección 9 ya no usa `CE_THEME_VERSION` como parámetro `$ver` de los 3 assets propios del tema — usa `ce_construction_asset_version()` (nueva función en `inc/enqueue.php`), basada en `filemtime()` real de cada archivo. `CE_THEME_VERSION` (sección 3, tabla de `functions.php`) pasa de ser un valor hardcodeado a derivarse de `wp_get_theme()->get('Version')`, y su rol pasa de "versión de cache-busting" a "versión informativa general del tema". Ver `DECISIONS.md` D-044.

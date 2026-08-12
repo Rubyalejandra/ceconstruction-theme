@@ -4,7 +4,7 @@ Theme URI: https://ceconstruction.com
 Author: CE Construction Dev Team
 Author URI: https://ceconstruction.com
 Description: Tema profesional a medida para CE Construction. Desarrollado 100% con PHP, HTML5, CSS3 y JavaScript moderno, sin builders visuales. Incluye Custom Post Types para Servicios, Proyectos, Testimonios, Equipo, Clientes y Preguntas Frecuentes, Theme Customizer completo, formulario de cotización seguro con Nonces, y arquitectura modular por componentes.
-Version: 0.4.1
+Version: 0.8.1
 Requires at least: 6.0
 Requires PHP: 7.4
 Text Domain: ce-construction
@@ -15,11 +15,37 @@ CE Construction Theme is distributed under the terms of the GNU GPL v2 or later.
 
 /* =========================================================
    NOTA: Los estilos reales del tema viven en
-   assets/css/main.css (se cargan vía wp_enqueue_style en
-   inc/enqueue.php). Este archivo debe existir para que
-   WordPress reconozca el tema, y aquí definimos solo un
-   reset mínimo + las variables de diseño (design tokens)
-   que también reutiliza main.css mediante @import.
+   assets/css/main.css, encolado por separado (no vía @import)
+   en inc/enqueue.php con este archivo como dependencia
+   ('ce-construction-style'). Este archivo debe existir para
+   que WordPress reconozca el tema (cabecera obligatoria), y
+   aquí definimos además un reset mínimo + variables de diseño
+   (design tokens) de respaldo — deliberadamente duplicadas
+   (no importadas) en assets/css/main.css, que redeclara su
+   propio bloque :root equivalente como fallback de seguridad
+   si este archivo no llegara a cargar. Esta duplicación de
+   tokens entre ambos archivos es un hallazgo conocido y
+   documentado (ver docs/QA_REPORT.md QA-013); unificarla en
+   una sola fuente es una decisión arquitectónica pendiente de
+   aprobación explícita, fuera del alcance de esta corrección
+   puntual del comentario.
+   ========================================================= */
+
+/* =========================================================
+   QA-030 (Sprint 8, Entregable 8.2 — corrección alta).
+   La cabecera "Version:" de arriba pasa a ser la ÚNICA fuente
+   de la versión general del tema: functions.php ya no la
+   duplica como constante hardcodeada, sino que la lee de aquí
+   vía wp_get_theme()->get('Version') (ver CE_THEME_VERSION en
+   functions.php). Esto evita que ambos valores se desincronicen
+   entre sí como ocurría antes (ver QA-022 histórico).
+   Importante: esta cabecera es informativa (versión general del
+   tema, visible en Apariencia → Temas) y NO es el mecanismo real
+   de cache-busting de assets/css/main.css ni assets/js/main.js
+   — ese cache-busting usa filemtime() de cada archivo real en
+   disco (ver ce_construction_asset_version() en inc/enqueue.php),
+   que se actualiza automáticamente en cada cambio sin depender
+   de que nadie recuerde subir este número. Ver DECISIONS.md D-044.
    ========================================================= */
 
 :root{

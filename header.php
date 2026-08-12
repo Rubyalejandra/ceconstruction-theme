@@ -102,7 +102,7 @@
 	</a>
 </nav>
 
-<main id="ce-main-content">
+<main id="ce-main-content" tabindex="-1">
 <?php
 if ( ! is_front_page() ) :
 	?>
