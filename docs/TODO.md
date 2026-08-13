@@ -26,3 +26,10 @@
 - ⬜ Reemplazo de `screenshot.png` por fotografías reales del cliente cuando estén disponibles (sin cambio de código requerido)
 
 *(Secciones 1 a 21 — Sprints 1 a 7 — sin cambios respecto a versiones previas.)*
+
+## 26. Backlog — Fase "Optimización UX / Conversión", Sprint UX-1 (paralela al Sprint 8 pausado — ver `CURRENT_UX_SPRINT.md`)
+- ✅ UX-1.1 — `inc/home-builder.php` (registro central de secciones del Home) + refactor de `front-page.php` a loop data-driven — **entregado, pendiente de tu aprobación**
+- ⬜ UX-1.2 — Panel de administración (Customizer): activar/desactivar y reordenar secciones — **no iniciado, requiere tu aprobación de UX-1.1**
+- ⬜ Sprint UX-2 (Team/Clients/FAQ como secciones de Home), Sprint UX-3 (CTA centralizado + modos de cotización), Sprint UX-4 (Hero configurable), Sprint UX-5 (múltiples estrategias de CTA), Sprint UX-6 (registro documental de Responsive) — ver `docs/UX_CONVERSION_ANALISIS_Y_PLAN.md` para el detalle completo de alcance de cada Entregable.
+
+*(La sección 23, Backlog — Sprint 8, permanece sin cambios: el Sprint 8 está pausado, no cerrado, y se retoma en el Entregable 8.3 una vez apruebes el 8.2 y esta fase paralela lo permita.)*

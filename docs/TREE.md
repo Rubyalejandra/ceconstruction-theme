@@ -10,7 +10,7 @@ ce-construction-theme/
 ├── functions.php                      ✅
 ├── header.php                         ✅
 ├── footer.php                         ✅
-├── front-page.php                     ✅
+├── front-page.php                     ✅ 🔧 Sprint UX-1, Entregable UX-1.1 — deja de tener orden fijo, ahora itera el registro de inc/home-builder.php (comportamiento visual idéntico, ver DECISIONS.md D-045)
 ├── index.php                          ✅
 ├── page.php                           ⬜ NO EXISTE (verificado en Sprint 8, ver QA_REPORT.md QA-041 — TREE.md lo marcaba erróneamente como ✅; WordPress usa index.php como fallback para páginas estáticas, sin plantilla dedicada)
 ├── single.php                         ✅
@@ -45,7 +45,8 @@ ce-construction-theme/
 │   ├── meta-boxes.php                 ✅
 │   ├── quote-form.php                 ✅
 │   ├── seo.php                        ✅
-│   └── widgets.php                    ✅ Sprint 7, Entregable 7.1
+│   ├── widgets.php                    ✅ Sprint 7, Entregable 7.1
+│   └── home-builder.php               ✅ 🆕 Sprint UX-1, Entregable UX-1.1 — registro central de secciones del Home
 │
 ├── template-parts/                    ✅ (20 archivos, sin cambios en Sprint 7 salvo reutilización por archive.php)
 │

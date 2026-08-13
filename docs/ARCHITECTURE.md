@@ -75,6 +75,7 @@ Todo lo que se sirve tal cual al navegador vía `wp_enqueue_style()`/`wp_enqueue
 | `enqueue.php` | Encola Google Fonts, Font Awesome, `style.css`, `assets/css/main.css`, `assets/js/main.js` (con `defer`), y `wp_localize_script()` de `ceConstructionData` (nonce del formulario, número de WhatsApp, i18n). |
 | `customizer.php` | Registra las 7 secciones del Theme Customizer y `ce_construction_customizer_css()`, que inyecta `<style>` en `wp_head` sobreescribiendo las variables CSS con los valores guardados. |
 | `helpers.php` | Funciones puras reutilizables sin efectos secundarios de registro (redes sociales, WhatsApp, galería, iconos, excerpt corto, `ce_cpt_has_posts()`, y las 3 funciones de relación heurística entre Servicios/Proyectos). |
+| `home-builder.php` | 🆕 Sprint UX-1, Entregable UX-1.1. Registro central de secciones del Home (`ce_construction_home_sections()`), orden por defecto (`ce_construction_default_home_order()`) y orden activo filtrable (`ce_construction_get_active_home_order()`, filtro `ce_home_active_order`). Sin hooks propios; consumido por `front-page.php` en tiempo de render. Ver sección 6 y `DECISIONS.md` D-045. |
 | `cpt-servicios.php`, `cpt-proyectos.php`, `cpt-testimonios.php`, `cpt-equipo.php`, `cpt-clientes.php`, `cpt-faq.php` | Un `register_post_type()` (y taxonomías cuando aplica) por archivo. |
 | `meta-boxes.php` | `add_meta_box()` + funciones `ce_render_*_fields()` de renderizado + `ce_construction_save_meta_boxes()`, el único punto de guardado para los 5 CPTs de contenido (con nonce, sanitización, `current_user_can`, guardas de autosave/revisión). |
 | `quote-form.php` | CPT interno `cotizacion` + handler AJAX `ce_construction_handle_quote_form()` (nonce, rate-limiting, honeypot, validación, subida de adjunto como attachment real, `wp_mail()`) + cron de purga por retención. |
@@ -116,7 +117,9 @@ functions.php se ejecuta primero (siempre, en cada request)
                 ├── inc/quote-form.php   (hooks: init [CPT cotizacion], wp_ajax_*, after_switch_theme, switch_theme)
                 ├── inc/seo.php          (hook: wp_head, múltiples callbacks)
                 ├── inc/helpers.php      (sin hooks propios — solo funciones puras invocadas por otros archivos)
-                └── inc/widgets.php      (⬜ aún no existe)
+                ├── inc/widgets.php      (hook: widgets_init)
+                └── inc/home-builder.php (🆕 Sprint UX-1 — sin hooks propios; registro de secciones
+                                           del Home, consumido por front-page.php en tiempo de render)
         │
         ▼
 WordPress resuelve la Template Hierarchy según la URL solicitada
@@ -189,6 +192,8 @@ assets/js/main.js (ModuleQuoteForm) ──> inc/quote-form.php (mismo contrato: 
 
 ## 6. Flujo de renderizado del Front Page
 
+> **Actualizado en Sprint UX-1, Entregable UX-1.1** (fase "Optimización UX / Conversión", paralela al Sprint 8 pausado — ver `DECISIONS.md` D-045 y `docs/CURRENT_UX_SPRINT.md`). El Home dejó de tener una lista fija de secciones: ahora es **data-driven** a través del registro central de `inc/home-builder.php`. El diagrama de abajo refleja el mecanismo real vigente; el resultado visual (qué secciones aparecen y en qué orden) es, en este Entregable, idéntico al que existía antes.
+
 ```
 Visitante solicita "/"
         │
@@ -205,16 +210,22 @@ get_header()
    → <main id="ce-main-content"> (sin breadcrumbs: is_front_page() es true)
         │
         ▼
-get_template_part('template-parts/hero')        → Hero con imagen de Customizer
-get_template_part('template-parts/about')       → Página "quienes-somos" o defaults
-get_template_part('template-parts/services')    → WP_Query CPT servicio (se auto-oculta si vacío)
-get_template_part('template-parts/projects')    → WP_Query CPT proyecto (se auto-oculta si vacío)
-get_template_part('template-parts/stats')       → Contadores estáticos (filtrable vía ce_stats_items)
-get_template_part('template-parts/why-us')      → Cards estáticas (filtrable vía ce_why_us_items)
-get_template_part('template-parts/testimonials')→ WP_Query CPT testimonio (se auto-oculta si vacío)
-get_template_part('template-parts/gallery')     → Recolecta galerías de proyectos (se auto-oculta si vacío)
-get_template_part('template-parts/cta')         → CTA con theme mods
-get_template_part('template-parts/quote-form')  → Formulario (ver flujo dedicado en sección 8)
+$ce_home_sections = ce_construction_home_sections()
+   → registro central (inc/home-builder.php): 13 claves → { label, template }
+        │
+        ▼
+foreach ( ce_construction_get_active_home_order() as $key )
+   → hoy (UX-1.1, sin panel de administración todavía):
+     ce_construction_default_home_order() = orden fijo por defecto,
+     idéntico al que front-page.php tenía codificado antes de este
+     Entregable: hero → about → services → projects → stats → why_us
+     → testimonials → gallery → cta → quote_form (10 secciones).
+   → futuro (Entregable UX-1.2): un filtro enganchado a
+     'ce_home_active_order' devolverá el orden guardado por el
+     administrador en el Customizer, incluyendo activar/desactivar
+     y reordenar — sin que este archivo ni el registro central
+     necesiten volver a modificarse.
+   → get_template_part( $ce_home_sections[ $key ]['template'] )
         │
         ▼
 get_footer()
@@ -223,7 +234,9 @@ get_footer()
    → wp_footer() → main.js se ejecuta (defer)
 ```
 
-Cada sección usa `ce_cpt_has_posts( $post_type )` (con caché estática por request) como guardia de entrada — si el CPT correspondiente no tiene contenido publicado, la sección hace `return;` inmediato sin imprimir HTML ni ejecutar consultas adicionales innecesarias.
+Cada sección sigue usando `ce_cpt_has_posts( $post_type )` (con caché estática por request) como guardia de entrada interna — si el CPT correspondiente no tiene contenido publicado, la sección hace `return;` inmediato sin imprimir HTML ni ejecutar consultas adicionales innecesarias. **Esto no cambia con el Home Builder:** la guarda de "¿el CPT tiene contenido?" vive dentro de cada template-part (como siempre), mientras que la guarda nueva de "¿la sección está activa/en qué posición?" vive un nivel por encima, en `front-page.php` + `inc/home-builder.php`. Son dos responsabilidades independientes que se combinan, no se sustituyen entre sí.
+
+Team, Clients y FAQ están registrados en `ce_construction_home_sections()` desde este Entregable, pero **no forman parte todavía de `ce_construction_default_home_order()`**: sus template-parts (`template-parts/team.php`, `clients.php`, `faq.php`) se crean en el Sprint UX-2.
 
 ---
 
@@ -395,3 +408,4 @@ si su marcado existe en el DOM antes de operar.
 - **v0.6.0 (post Entregable 6A):** se incorporó a la sección 10 la convención de "Gestión de Sprints por Entregables" como nueva regla permanente de proceso (no de código) — ver `HANDOFF.md` sección 16 y `DECISIONS.md` D-030 para el detalle completo.
 - **v0.6.2 (post Entregable 6B.2):** se refinó la convención de proceso de la sección 10 con la política de actualización incremental de documentación y la creación de `CURRENT_SPRINT.md` — ver `DECISIONS.md` D-034.
 - **v0.8.1 (Sprint 8, Entregable 8.2):** corrección de QA-030. Cambio real de mecanismo (no solo de valor): el flujo de carga de CSS/JS descrito en la sección 9 ya no usa `CE_THEME_VERSION` como parámetro `$ver` de los 3 assets propios del tema — usa `ce_construction_asset_version()` (nueva función en `inc/enqueue.php`), basada en `filemtime()` real de cada archivo. `CE_THEME_VERSION` (sección 3, tabla de `functions.php`) pasa de ser un valor hardcodeado a derivarse de `wp_get_theme()->get('Version')`, y su rol pasa de "versión de cache-busting" a "versión informativa general del tema". Ver `DECISIONS.md` D-044.
+- **v0.8.2 (Sprint UX-1, Entregable UX-1.1 — fase "Optimización UX / Conversión", paralela al Sprint 8 pausado en su Entregable 8.2):** Home Builder, base arquitectónica. Nuevo archivo `inc/home-builder.php` (sección 3, tabla de `inc/`); `front-page.php` deja de tener una lista fija de `get_template_part()` y pasa a iterar el registro central de secciones (sección 6, reescrita para reflejar el mecanismo data-driven). Sin cambios de comportamiento visible: el orden por defecto reproduce exactamente el orden anterior. Ver `DECISIONS.md` D-045 y `docs/CURRENT_UX_SPRINT.md` para el seguimiento dedicado de esta fase.

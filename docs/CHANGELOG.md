@@ -197,3 +197,44 @@ Reemplazo de `screenshot.png` por fotografías reales del cliente, cuando estén
 - **Sintaxis PHP:** balance de llaves/paréntesis verificado (Python) en `functions.php` (4/4 llaves, 25/25 paréntesis) e `inc/enqueue.php` (5/5 llaves, 62/62 paréntesis) — ambos con balance 0. PHP no disponible en el entorno de desarrollo para `php -l` (limitación metodológica ya documentada).
 - **Dependencias e includes:** confirmado que `ce_construction_asset_version()` está definida en `inc/enqueue.php` antes de sus 3 usos, y que estos solo se ejecutan dentro de `ce_construction_enqueue_assets()` (enganchada a `wp_enqueue_scripts`, mucho después de que `functions.php`/`CE_THEME_DIR` ya estén disponibles) — sin problema de orden de carga. Confirmado que no quedó ningún uso residual de `CE_THEME_VERSION` fuera de su definición, su fallback defensivo, y comentarios explicativos.
 - **JavaScript:** no aplica — ningún archivo JS modificado en este Entregable.
+
+---
+
+# FASE PARALELA: Optimización UX / Conversión
+
+> A partir de aquí, las entradas corresponden a la nueva fase de trabajo "Optimización UX / Conversión", ejecutada en paralelo al Sprint 8 ("Cierre de Hallazgos QA"), que se **pausa sin cerrarse** en su Entregable 8.2 (QA-030), entregado y pendiente de aprobación (ver `CURRENT_SPRINT.md`, sin modificar). Ver `docs/CURRENT_UX_SPRINT.md` para el seguimiento dedicado de esta fase y `docs/UX_CONVERSION_ANALISIS_Y_PLAN.md` para el análisis y plan completo aprobado.
+
+## v0.8.2 — Sprint UX-1, Entregable UX-1.1: Home Builder — registro central de secciones del Home
+
+**Módulo:** Home Builder — base arquitectónica (sin panel de administración todavía)
+**Estado:** Entregado — pendiente de aprobación explícita del usuario (ver `DECISIONS.md` D-038, aplicado también a esta nueva fase)
+
+### Añadido
+- **`inc/home-builder.php`** (nuevo): registro central de las 13 secciones de Home previstas en el brief de UX/Conversión (`ce_construction_home_sections()`), orden por defecto que reproduce exactamente el orden anterior de `front-page.php` (`ce_construction_default_home_order()`), y punto de extensión filtrable para la configuración futura (`ce_construction_get_active_home_order()`, filtro `ce_home_active_order`).
+
+### Cambiado
+- **`front-page.php`:** la lista fija de 10 `get_template_part()` se reemplaza por un `foreach` sobre el registro de `inc/home-builder.php`. Resultado visual idéntico al anterior (verificado: mismo orden, mismas 10 secciones activas).
+- **`functions.php`:** `inc/home-builder.php` añadido a `ce_construction_require_modules()`.
+- **`style.css`:** cabecera `Version:` sincronizada de `0.8.1` a `0.8.2`, siguiendo la convención ya vigente del proyecto (ver `DECISIONS.md` D-044) de mantener esta cabecera sincronizada con cada cambio de código. Sin relación con el mecanismo de cache-busting de QA-030 (que usa `filemtime()`, no esta cabecera, y permanece intacto).
+
+### Sin cambios
+- Ningún archivo del Sprint 8 (`inc/enqueue.php`, `inc/customizer.php`, `inc/seo.php`, `header.php`, `docs/QA_REPORT.md`, `docs/CURRENT_SPRINT.md`). QA-030/Entregable 8.2 permanece exactamente en el estado en que se pausó.
+- Ningún template-part existente. `template-parts/team.php`, `clients.php`, `faq.php` (Sprint UX-2) todavía no existen — quedan registrados en `inc/home-builder.php` para uso futuro, pero fuera del orden activo por defecto.
+- Ninguna funcionalidad de configuración/administración: no hay todavía ninguna forma de reordenar o desactivar secciones desde WordPress (llega en UX-1.2).
+
+### Decisiones clave
+- Ver `DECISIONS.md`: D-045.
+
+### Documentación actualizada
+- `docs/ARCHITECTURE.md` (nueva sección de Home Builder, actualización del flujo de renderizado del Front Page y de la tabla de módulos de `inc/`).
+- `docs/TREE.md` (`inc/home-builder.php` añadido; `front-page.php` anotado como data-driven).
+- `docs/TODO.md` (nueva sección de backlog para la fase UX/Conversión).
+- `docs/PROJECT_STATUS.md` (nota aditiva de la fase paralela, sin alterar el estado documentado del Sprint 8).
+- `docs/CURRENT_UX_SPRINT.md` (nuevo — referencia oficial de esta fase, análoga a `CURRENT_SPRINT.md` pero para el track UX).
+
+### Verificaciones ejecutadas
+- **Sintaxis PHP:** balance de llaves/paréntesis verificado (Python) en `inc/home-builder.php` (5/5 llaves, 65/65 paréntesis), `front-page.php` (3/3 llaves, 19/19 paréntesis) y `functions.php` (4/4 llaves, 26/26 paréntesis) — los 3 balanceados. `php -l` no disponible en el entorno de desarrollo (limitación metodológica ya documentada en `ARCHITECTURE.md`).
+- **Regresión visual del Home:** confirmado por inspección de código que `ce_construction_default_home_order()` reproduce, en el mismo orden, exactamente las 10 llamadas a `get_template_part()` que `front-page.php` tenía antes de este Entregable.
+- **Colisión de nombres:** verificado (grep) que ninguna de las funciones nuevas (`ce_construction_home_sections`, `ce_construction_default_home_order`, `ce_construction_get_active_home_order`) ni el filtro `ce_home_sections`/`ce_home_active_order` existían previamente en el proyecto.
+- **Dependencias e includes:** `inc/home-builder.php` no depende de que ningún otro módulo se cargue antes que él (no usa ninguna función de otro archivo de `inc/` en tiempo de carga, solo define funciones); se registra en `functions.php` después de `inc/helpers.php`, consistente con la nota ya existente en `ARCHITECTURE.md` sobre que el orden de `helpers.php` en el array no es crítico por la misma razón.
+- **Regresión sobre Sprint 8:** confirmado (diff) que ningún archivo tocado por el Entregable 8.2 (`functions.php` en la parte de `CE_THEME_VERSION`, `inc/enqueue.php`, `style.css` en la parte del mecanismo QA-030) cambió su lógica; `style.css` solo recibió el bump de número de versión, sin tocar el comentario ni la lógica de QA-030 documentada en `DECISIONS.md` D-044.

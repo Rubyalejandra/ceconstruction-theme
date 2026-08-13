@@ -5,7 +5,9 @@
 
 **Última actualización:** Sprint 7 COMPLETADO (4/4 Entregables). **Sprint 8 ("Cierre de Hallazgos QA") en curso: Entregable 8.1 desarrollado, pendiente de tu aprobación final.** El resto del Sprint 8 se reorganizó por prioridad (seguridad/privacidad/integridad primero), dependencias y riesgo en 6 Entregables adicionales (8.2 a 8.7) — ver `DECISIONS.md` D-043. Se verificó además QA-041: `page.php` no existe en el repositorio (`TREE.md` corregido).
 
-**Versión de proyecto correspondiente:** v0.8.0 (ver `CHANGELOG.md`).
+**Versión de proyecto correspondiente:** v0.8.2 (ver `CHANGELOG.md`).
+
+**Nota (Fase "Optimización UX / Conversión"):** en paralelo al Sprint 8 (que permanece pausado, sin cerrarse, exactamente en el punto descrito arriba), se inició el **Sprint UX-1** con el Entregable **UX-1.1** (Home Builder — registro central de secciones, `inc/home-builder.php`), entregado y pendiente de aprobación. Ver `docs/CURRENT_UX_SPRINT.md` para el seguimiento dedicado de esta fase y `docs/UX_CONVERSION_ANALISIS_Y_PLAN.md` para el análisis y plan completo. Ningún dato de esta nota reemplaza ni reinterpreta el estado del Sprint 8 descrito en el resto de este documento.
 
 ---
 

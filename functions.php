@@ -60,6 +60,7 @@ function ce_construction_require_modules() {
 		'inc/seo.php',              // Meta tags, Open Graph, Schema, breadcrumbs.
 		'inc/helpers.php',          // Funciones auxiliares reutilizables.
 		'inc/widgets.php',          // Widgets / sidebars del footer.
+		'inc/home-builder.php',     // Home Builder: registro/orden de secciones del Home (Sprint UX-1).
 	);
 
 	foreach ( $modules as $module ) {
