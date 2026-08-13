@@ -274,3 +274,39 @@ Reemplazo de `screenshot.png` por fotografías reales del cliente, cuando estén
   - Al reordenar por drag&drop: `serialize()` reconstruye el array en el orden real del DOM tras el `sortable.update` → se conserva ese orden a través de `sanitize`/`decode` (ambos preservan el orden de aparición) → `front-page.php` renderiza en ese orden.
   - Sección sin template-part (p. ej. `team`): checkbox forzado a no-marcado en el render (`$available` en `false`) independientemente del valor guardado; si un JSON manual forzara `enabled: true` de todas formas, `get_template_part()` sobre un archivo inexistente no genera error ni contenido (comportamiento nativo ya documentado en `inc/home-builder.php`).
 - **Regresión sobre Sprint 8:** confirmado (diff) que `header.php`, `inc/seo.php`, `docs/QA_REPORT.md`, `docs/CURRENT_SPRINT.md` y `docs/HANDOFF.md` no fueron tocados; el único archivo compartido con el Sprint 8 (`inc/enqueue.php`) solo recibió una adición aditiva no relacionada, sin alterar ninguna línea de la corrección QA-030/QA-010 ya existente.
+
+---
+
+## v0.8.4 — Sprint UX-2, Entregable UX-2.1: secciones de Home — Equipo y Clientes
+
+**Módulo:** Home Builder — nuevas secciones (Team, Clients)
+**Estado:** Entregado — pendiente de aprobación explícita del usuario (ver `DECISIONS.md` D-038)
+
+### Añadido
+- **`template-parts/team.php`** (nuevo): sección de Home para el CPT `miembro_equipo`. `WP_Query` acotado (`posts_per_page => 8`, `post_status => 'publish'`), auto-ocultamiento vía `ce_cpt_has_posts( 'miembro_equipo' )`, reutiliza `content-equipo.php` como partial de card dentro de `.ce-grid.ce-grid--4` (mismo wrapper que ya usa `archive-equipo.php`). Enlace final a `get_post_type_archive_link( 'miembro_equipo' )`.
+- **`template-parts/clients.php`** (nuevo): sección de Home para el CPT `cliente`. `WP_Query` acotado (`posts_per_page => 10`, `post_status => 'publish'`), auto-ocultamiento vía `ce_cpt_has_posts( 'cliente' )`, reutiliza `content-cliente.php` como partial de card dentro de `.ce-clients-grid` (mismo wrapper que ya usa `archive-clientes.php` — NO el `.ce-grid` genérico, ver `DECISIONS.md` D-047 punto 3). Enlace final a `get_post_type_archive_link( 'cliente' )`.
+
+### Modificado
+- **`inc/home-builder.php`:** actualización **exclusivamente de comentarios** en las entradas `team`/`clients` de `ce_construction_home_sections()` y en el docblock de `ce_construction_default_home_order()`, para reflejar que sus template-parts ya existen. **Ninguna de las 3 funciones del archivo cambió de lógica ni de valor de retorno** — verificado por diff.
+
+### Sin cambios
+- **`inc/customizer.php`: NO se modificó.** El `file_exists()` ya implementado en `CE_Customize_Home_Sections_Control::render_content()` (UX-1.2) resuelve la disponibilidad de cada sección de forma genérica sobre el registro — al existir ya `template-parts/team.php`/`clients.php`, sus casillas en el panel "CE: Home Builder" dejan de forzarse deshabilitadas y de mostrar "(próximamente)" automáticamente, sin ningún cambio de código en este archivo. Ver `DECISIONS.md` D-047 punto 6.
+- `front-page.php`, `functions.php`, `assets/css/main.css`, `assets/js/main.js`: sin cambios (ninguna clase CSS ni módulo JS nuevo requerido — ambas secciones reutilizan estilos ya existentes desde el Sprint 5).
+- Ningún archivo del Sprint 8 (Sprint 8 sigue pausado, sin tocar en este Entregable).
+
+### Comportamiento
+- **Sin activar en el panel del Home Builder:** ninguna de las dos secciones aparece en el Home (comportamiento por defecto, `ce_construction_default_home_order()` no las incluye — sin cambios respecto a UX-1.1/UX-1.2).
+- **Activadas en el panel, con contenido publicado en su CPT:** la sección se renderiza en la posición configurada.
+- **Activadas en el panel, sin contenido publicado en su CPT (`miembro_equipo`/`cliente` vacíos):** la sección se auto-oculta (`ce_cpt_has_posts()` hace `return;` antes de imprimir cualquier HTML) — mismo comportamiento que `projects.php`/`testimonials.php`/`services.php`/`gallery.php`, sin necesidad de que el administrador la desactive manualmente si más adelante carga contenido.
+
+### Decisiones clave
+- Ver `DECISIONS.md`: D-047.
+
+### Verificaciones ejecutadas
+- **Sintaxis PHP:** balance de llaves/paréntesis verificado (Python) en `template-parts/team.php` (2/2 llaves, 26/26 paréntesis), `template-parts/clients.php` (2/2 llaves, 25/25 paréntesis) e `inc/home-builder.php` tras la edición de comentarios (5/5 llaves, 69/69 paréntesis, mismas 3 funciones que antes del cambio). `php -l` no disponible en el entorno de desarrollo (limitación metodológica ya documentada en `ARCHITECTURE.md` §10).
+- **Verificación de `inc/customizer.php` sin tocar:** simulación manual de `file_exists()` sobre las 3 rutas de `team`/`clients`/`faq` con el árbol de archivos real post-Entregable: `template-parts/team.php` y `template-parts/clients.php` resuelven `true`; `template-parts/faq.php` resuelve `false` (confirma que la casilla de FAQ debe seguir mostrando "(próximamente)" hasta UX-2.2, sin intervención de este Entregable).
+- **Reutilización de partials sin duplicación de markup:** confirmado (lectura) que `team.php`/`clients.php` no reimplementan ningún `<article>`/`<div>` de tarjeta — delegan 100% en `content-equipo.php`/`content-cliente.php` ya existentes desde el Sprint 5.
+- **Wrapper de grid correcto por componente:** confirmado (lectura de `content-cliente.php` y `main.css` sección 22) que `.ce-clients-grid__item` requiere el contenedor `.ce-clients-grid`, no `.ce-grid`; `clients.php` usa el wrapper correcto. Confirmado (lectura de `content-equipo.php` y `archive-equipo.php`) que `team.php` usa el mismo `.ce-grid.ce-grid--4` que ya usa el archivo de Equipo.
+- **Auto-ocultamiento:** verificado por lectura que ambos archivos nuevos hacen `return;` inmediato tras `! ce_cpt_has_posts( ... )`, antes de instanciar el `WP_Query` y antes de imprimir cualquier `<section>` — mismo patrón que `projects.php`, `services.php`, `testimonials.php`, `gallery.php`.
+- **Colisión de nombres:** verificado (grep) que ninguna variable nueva (`$equipo_home_query`, `$clientes_home_query`) colisiona con variables ya usadas en otros template-parts del Home (`$proyectos_query`, `$servicios_query`, `$testimonios_query` ya usan otros nombres).
+- **Regresión sobre Sprint 8:** confirmado (diff) que ningún archivo del Sprint 8 fue tocado; `inc/customizer.php` (compartido con UX-1.2, no con el Sprint 8) tampoco recibió cambios en este Entregable.

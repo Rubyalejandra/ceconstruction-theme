@@ -128,3 +128,36 @@ add_action( 'wp_enqueue_scripts', 'ce_construction_enqueue_assets' );
  * añade `defer` al <script src="main.js">.
  * Ver DECISIONS.md D-042.
  * ========================================================= */
+
+/* =========================================================
+ * SPRINT UX-1, ENTREGABLE UX-1.2 — Home Builder: script del
+ * control custom del Customizer (activar/desactivar + reordenar
+ * secciones del Home, ver inc/customizer.php).
+ *
+ * Se encola aquí y no en inc/customizer.php porque este archivo
+ * es "el único archivo válido de encolado de assets" del proyecto
+ * (ver docs/TREE.md) — inc/customizer.php define el control, este
+ * archivo se limita a encolar su JS, igual que ya hace con los 3
+ * assets propios del tema para el frontend.
+ *
+ * Encolado exclusivamente en `customize_controls_enqueue_scripts`
+ * (admin del Customizer): nunca se carga en el frontend público.
+ * Dependencias: 'jquery-ui-sortable' ya viene incluido en el core
+ * de WordPress (mismo mecanismo que usa la pantalla nativa de
+ * Widgets) — no se añade ninguna librería nueva al proyecto.
+ * Versión vía ce_construction_asset_version() (arriba, QA-030):
+ * el nuevo asset admin queda cubierto por el mismo mecanismo de
+ * cache-busting automático que ya protege a los assets del tema.
+ *
+ * Ver DECISIONS.md D-046.
+ * ========================================================= */
+function ce_construction_enqueue_home_builder_control_script() {
+	wp_enqueue_script(
+		'ce-admin-home-builder',
+		CE_THEME_URI . '/assets/js/admin-home-builder.js',
+		array( 'jquery', 'jquery-ui-sortable', 'customize-controls' ),
+		ce_construction_asset_version( 'assets/js/admin-home-builder.js' ),
+		true
+	);
+}
+add_action( 'customize_controls_enqueue_scripts', 'ce_construction_enqueue_home_builder_control_script' );

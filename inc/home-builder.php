@@ -93,10 +93,19 @@ function ce_construction_home_sections() {
 			'template' => 'template-parts/gallery',
 		),
 		// Registradas para el catálogo completo del brief de UX/Conversión.
-		// Sus template-parts se crean en el Sprint UX-2 (Entregable UX-2.1/UX-2.2).
-		// Hasta entonces, get_template_part() simplemente no imprime nada si
-		// se invocan (comportamiento nativo de WordPress), y no forman parte
-		// del orden activo por defecto (ver ce_construction_default_home_order()).
+		// 🆕 Sprint UX-2, Entregable UX-2.1: template-parts/team.php y
+		// template-parts/clients.php YA EXISTEN (dejaron de apuntar a
+		// rutas inexistentes) — reutilizan content-equipo.php/
+		// content-cliente.php como partial de card, mismo patrón que
+		// template-parts/projects.php. `faq` sigue pendiente del
+		// Entregable UX-2.2; hasta entonces, get_template_part() sobre
+		// 'template-parts/faq' simplemente no imprime nada si se invoca
+		// (comportamiento nativo de WordPress). Ninguna de las tres
+		// (team/clients/faq) forma parte del orden activo por defecto
+		// (ver ce_construction_default_home_order()): quedan disponibles
+		// mas no auto-activadas, a la espera de que el administrador las
+		// active explícitamente desde el panel "CE: Home Builder" del
+		// Customizer (Entregable UX-1.2) — ver DECISIONS.md D-047.
 		'team'         => array(
 			'label'    => __( 'Equipo', 'ce-construction' ),
 			'template' => 'template-parts/team',
@@ -128,7 +137,14 @@ function ce_construction_home_sections() {
  * Reproduce EXACTAMENTE el orden que front-page.php tenía codificado
  * antes de este Entregable — es una condición de aceptación explícita
  * de UX-1.1 (cero regresión visual). Team/Clients/FAQ quedan fuera de
- * este array a propósito: sus template-parts no existen todavía.
+ * este array a propósito, y siguen fuera tras el Sprint UX-2: aunque
+ * team/clients ya tienen template-part real desde el Entregable UX-2.1
+ * (`template-parts/team.php`, `template-parts/clients.php` — faq
+ * sigue sin el suyo, pendiente de UX-2.2), activarlas en el Home es
+ * una decisión del administrador, no algo que deba ocurrir en
+ * silencio con solo crear el archivo — se activan explícitamente
+ * desde el panel "CE: Home Builder" del Customizer (ver DECISIONS.md
+ * D-047).
  *
  * @return string[] Claves de ce_construction_home_sections(), en orden.
  */
