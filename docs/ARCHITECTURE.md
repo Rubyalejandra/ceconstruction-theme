@@ -72,8 +72,8 @@ Todo lo que se sirve tal cual al navegador vía `wp_enqueue_style()`/`wp_enqueue
 | Archivo | Responsabilidad |
 |---|---|
 | `setup.php` | `add_theme_support()`, `register_nav_menus()`, `register_sidebar()` (footer-1, footer-2), tamaños de imagen custom, filtros de excerpt. |
-| `enqueue.php` | Encola Google Fonts, Font Awesome, `style.css`, `assets/css/main.css`, `assets/js/main.js` (con `defer`), y `wp_localize_script()` de `ceConstructionData` (nonce del formulario, número de WhatsApp, i18n). |
-| `customizer.php` | Registra las 7 secciones del Theme Customizer y `ce_construction_customizer_css()`, que inyecta `<style>` en `wp_head` sobreescribiendo las variables CSS con los valores guardados. |
+| `enqueue.php` | Encola Google Fonts, Font Awesome, `style.css`, `assets/css/main.css`, `assets/js/main.js` (con `defer`), y `wp_localize_script()` de `ceConstructionData` (nonce del formulario, número de WhatsApp, i18n). 🆕 Sprint UX-1, Entregable UX-1.2: también encola `assets/js/admin-home-builder.js`, exclusivamente en `customize_controls_enqueue_scripts` (admin del Customizer, nunca frontend) — mantiene la convención de ser el único archivo válido de encolado de assets del proyecto (ver sección 10). |
+| `customizer.php` | Registra las secciones del Theme Customizer y `ce_construction_customizer_css()`, que inyecta `<style>` en `wp_head` sobreescribiendo las variables CSS con los valores guardados. 🆕 Sprint UX-1, Entregable UX-1.2: suma la sección `ce_section_home_builder` (8 secciones en total) — persistencia del orden/activo-inactivo de las secciones del Home (`theme_mod` `ce_home_sections_order`) mediante el control custom `CE_Customize_Home_Sections_Control`, enganchado al filtro `ce_home_active_order` expuesto por `inc/home-builder.php`. Ver sección 6 y `DECISIONS.md` D-046. |
 | `helpers.php` | Funciones puras reutilizables sin efectos secundarios de registro (redes sociales, WhatsApp, galería, iconos, excerpt corto, `ce_cpt_has_posts()`, y las 3 funciones de relación heurística entre Servicios/Proyectos). |
 | `home-builder.php` | 🆕 Sprint UX-1, Entregable UX-1.1. Registro central de secciones del Home (`ce_construction_home_sections()`), orden por defecto (`ce_construction_default_home_order()`) y orden activo filtrable (`ce_construction_get_active_home_order()`, filtro `ce_home_active_order`). Sin hooks propios; consumido por `front-page.php` en tiempo de render. Ver sección 6 y `DECISIONS.md` D-045. |
 | `cpt-servicios.php`, `cpt-proyectos.php`, `cpt-testimonios.php`, `cpt-equipo.php`, `cpt-clientes.php`, `cpt-faq.php` | Un `register_post_type()` (y taxonomías cuando aplica) por archivo. |
@@ -192,7 +192,7 @@ assets/js/main.js (ModuleQuoteForm) ──> inc/quote-form.php (mismo contrato: 
 
 ## 6. Flujo de renderizado del Front Page
 
-> **Actualizado en Sprint UX-1, Entregable UX-1.1** (fase "Optimización UX / Conversión", paralela al Sprint 8 pausado — ver `DECISIONS.md` D-045 y `docs/CURRENT_UX_SPRINT.md`). El Home dejó de tener una lista fija de secciones: ahora es **data-driven** a través del registro central de `inc/home-builder.php`. El diagrama de abajo refleja el mecanismo real vigente; el resultado visual (qué secciones aparecen y en qué orden) es, en este Entregable, idéntico al que existía antes.
+> **Actualizado en Sprint UX-1** (fase "Optimización UX / Conversión", paralela al Sprint 8 pausado — ver `docs/CURRENT_UX_SPRINT.md`). El Home dejó de tener una lista fija de secciones: ahora es **data-driven** a través del registro central de `inc/home-builder.php` (Entregable UX-1.1, `DECISIONS.md` D-045) **y configurable desde WordPress** a través del panel "CE: Home Builder" del Customizer (Entregable UX-1.2, `DECISIONS.md` D-046). El diagrama de abajo refleja el mecanismo real vigente, incluida la persistencia ya implementada.
 
 ```
 Visitante solicita "/"
@@ -215,16 +215,21 @@ $ce_home_sections = ce_construction_home_sections()
         │
         ▼
 foreach ( ce_construction_get_active_home_order() as $key )
-   → hoy (UX-1.1, sin panel de administración todavía):
-     ce_construction_default_home_order() = orden fijo por defecto,
-     idéntico al que front-page.php tenía codificado antes de este
-     Entregable: hero → about → services → projects → stats → why_us
-     → testimonials → gallery → cta → quote_form (10 secciones).
-   → futuro (Entregable UX-1.2): un filtro enganchado a
-     'ce_home_active_order' devolverá el orden guardado por el
-     administrador en el Customizer, incluyendo activar/desactivar
-     y reordenar — sin que este archivo ni el registro central
-     necesiten volver a modificarse.
+   → ce_construction_get_active_home_order() (inc/home-builder.php)
+     aplica apply_filters( 'ce_home_active_order', $default_order )
+        │
+        ├── Sin theme_mod 'ce_home_sections_order' guardado
+        │   (instalación nueva, o panel nunca abierto):
+        │   ce_construction_filter_home_active_order() (inc/customizer.php,
+        │   Entregable UX-1.2) devuelve $default_order sin modificar
+        │   → hero → about → services → projects → stats → why_us
+        │   → testimonials → gallery → cta → quote_form (10 secciones,
+        │   idéntico al comportamiento de UX-1.1, cero regresión).
+        │
+        └── Con theme_mod guardado (administrador usó el panel
+            "CE: Home Builder" del Customizer): se decodifica el
+            JSON [{key, enabled}] guardado y se devuelven, en ese
+            orden, únicamente las claves con enabled=true.
    → get_template_part( $ce_home_sections[ $key ]['template'] )
         │
         ▼
@@ -409,3 +414,4 @@ si su marcado existe en el DOM antes de operar.
 - **v0.6.2 (post Entregable 6B.2):** se refinó la convención de proceso de la sección 10 con la política de actualización incremental de documentación y la creación de `CURRENT_SPRINT.md` — ver `DECISIONS.md` D-034.
 - **v0.8.1 (Sprint 8, Entregable 8.2):** corrección de QA-030. Cambio real de mecanismo (no solo de valor): el flujo de carga de CSS/JS descrito en la sección 9 ya no usa `CE_THEME_VERSION` como parámetro `$ver` de los 3 assets propios del tema — usa `ce_construction_asset_version()` (nueva función en `inc/enqueue.php`), basada en `filemtime()` real de cada archivo. `CE_THEME_VERSION` (sección 3, tabla de `functions.php`) pasa de ser un valor hardcodeado a derivarse de `wp_get_theme()->get('Version')`, y su rol pasa de "versión de cache-busting" a "versión informativa general del tema". Ver `DECISIONS.md` D-044.
 - **v0.8.2 (Sprint UX-1, Entregable UX-1.1 — fase "Optimización UX / Conversión", paralela al Sprint 8 pausado en su Entregable 8.2):** Home Builder, base arquitectónica. Nuevo archivo `inc/home-builder.php` (sección 3, tabla de `inc/`); `front-page.php` deja de tener una lista fija de `get_template_part()` y pasa a iterar el registro central de secciones (sección 6, reescrita para reflejar el mecanismo data-driven). Sin cambios de comportamiento visible: el orden por defecto reproduce exactamente el orden anterior. Ver `DECISIONS.md` D-045 y `docs/CURRENT_UX_SPRINT.md` para el seguimiento dedicado de esta fase.
+- **v0.8.3 (Sprint UX-1, Entregable UX-1.2 — fase "Optimización UX / Conversión", paralela al Sprint 8 pausado):** Home Builder, persistencia real. Nueva sección `ce_section_home_builder` en `inc/customizer.php` (sección 3, tabla de `inc/`; sección 4, diagrama de módulos) con el control custom `CE_Customize_Home_Sections_Control`, enganchada al filtro `ce_home_active_order` ya expuesto por UX-1.1 — sin modificar `inc/home-builder.php` ni `front-page.php` (sección 6, reescrita para reflejar la persistencia ya activa). `inc/enqueue.php` gana el encolado admin-only de `assets/js/admin-home-builder.js` (jQuery UI Sortable, ya incluido en WordPress core). Ver `DECISIONS.md` D-046 y `docs/CURRENT_UX_SPRINT.md`.

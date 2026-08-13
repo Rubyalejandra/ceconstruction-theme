@@ -22,28 +22,31 @@ Ver `CURRENT_SPRINT.md` para el detalle completo (sin cambios). El Sprint 8 se r
 
 | Entregable | Objetivo | Estado |
 |---|---|---|
-| UX-1.1 | Registro central de secciones del Home (`inc/home-builder.php`) + refactor de `front-page.php` a loop data-driven | 🟡 **Entregado — pendiente de tu aprobación** |
-| UX-1.2 | Panel de administración (Customizer): activar/desactivar y reordenar secciones | ⬜ No iniciado — no comienza sin tu aprobación explícita de UX-1.1 (misma regla D-038 ya vigente para el Sprint 8) |
+| UX-1.1 | Registro central de secciones del Home (`inc/home-builder.php`) + refactor de `front-page.php` a loop data-driven | ✅ Entregado (Sprint UX-1 sigue en curso: aprobación conjunta pendiente con UX-1.2, ver nota abajo) |
+| UX-1.2 | Panel de administración (Customizer): activar/desactivar y reordenar secciones | 🟡 **Entregado — pendiente de tu aprobación** |
 
 Plan completo de Sprints UX-1 a UX-6: ver `docs/UX_CONVERSION_ANALISIS_Y_PLAN.md`.
 
-## Trabajo realizado (Entregable UX-1.1)
+> **Nota:** UX-1.1 se ejecutó y entregó en una sesión previa siguiendo la misma regla D-038 (no se inició UX-1.2 sin confirmar antes coherencia del ZIP con el estado real de UX-1.1). Ambos Entregables completan el Sprint UX-1 tal como estaba planificado; el Sprint se da por completado formalmente cuando se apruebe también UX-1.2.
 
-Nuevo archivo `inc/home-builder.php`: registro central de las 13 secciones de Home previstas en el brief (`ce_construction_home_sections()`), orden por defecto que reproduce exactamente el orden anterior de `front-page.php` (`ce_construction_default_home_order()`), y punto de extensión filtrable para la configuración futura (`ce_construction_get_active_home_order()`). `front-page.php` refactorizado de una lista fija de 10 `get_template_part()` a un loop sobre ese registro. Ver `CHANGELOG.md` v0.8.2 y `DECISIONS.md` D-045 para el detalle completo.
+## Trabajo realizado (Entregable UX-1.2)
 
-**Resultado visual:** idéntico al estado anterior — cero regresión. Team, Clients y FAQ quedan registrados para uso futuro pero no forman parte del orden activo por defecto (sus template-parts no existen todavía).
+Persistencia real del Home Builder desde WordPress: nueva sección "CE: Home Builder" en el Customizer (`inc/customizer.php`), con un control custom (`CE_Customize_Home_Sections_Control`) que permite activar/desactivar cada sección (casilla) y reordenarlas (drag&drop, jQuery UI Sortable — ya incluido en WordPress core, sin librerías nuevas). El orden y estado se guardan en un único `theme_mod` (`ce_home_sections_order`, JSON `[{key, enabled}]`) y se aplican al Home mediante el filtro `ce_home_active_order` que UX-1.1 ya había dejado expuesto — **`inc/home-builder.php` y `front-page.php` no se tocaron en este Entregable**, tal como estaba previsto. Ver `CHANGELOG.md` v0.8.3 y `DECISIONS.md` D-046 para el detalle completo.
 
-## Archivos creados / modificados (Sprint UX-1, Entregable UX-1.1)
-- Creados: `inc/home-builder.php`.
-- Modificados: `front-page.php`, `functions.php`, `style.css` (bump de versión `0.8.1` → `0.8.2`).
+**Team, Clients y FAQ:** visibles en el panel con la casilla deshabilitada y la nota "(próximamente)" — no se pueden activar hasta que sus template-parts existan (Sprint UX-2).
+
+## Archivos creados / modificados (Sprint UX-1, Entregable UX-1.2)
+- Creados: `assets/js/admin-home-builder.js`.
+- Modificados: `inc/customizer.php`, `inc/enqueue.php` (adición aditiva y no relacionada al final del archivo — ver `DECISIONS.md` D-046 para la nota explícita sobre por qué se tocó un archivo asociado al Sprint 8).
+- Sin cambios: `inc/home-builder.php`, `front-page.php`, `functions.php` (por diseño, tal como exigía el alcance del Entregable).
 
 ## Documentación actualizada (en este cierre)
-`DECISIONS.md` (D-045), `CHANGELOG.md` (v0.8.2), `ARCHITECTURE.md` (sección 3, sección 4, sección 6 reescrita, historial de cambios), `TREE.md` (`inc/home-builder.php`, anotación en `front-page.php`), `TODO.md` (nueva sección 26), `PROJECT_STATUS.md` (nota aditiva, sin alterar el estado del Sprint 8), y este mismo archivo (nuevo). Sin cambios en `CURRENT_SPRINT.md` ni en `QA_REPORT.md` (pertenecen exclusivamente al Sprint 8, que no fue tocado). `HANDOFF.md` no se actualizó en este Entregable — se evaluará su actualización en el cierre de un Entregable que constituya un punto de continuidad de sesión más significativo, conforme al criterio ya vigente en el proyecto (D-034); esto queda señalado como pendiente abierto, no como omisión silenciosa.
+`DECISIONS.md` (D-046), `CHANGELOG.md` (v0.8.3), `ARCHITECTURE.md` (sección 3, sección 4, sección 6 actualizada, historial de cambios), y este mismo archivo. `TODO.md` no requirió cambios adicionales (la sección 26, añadida en UX-1.1, ya cubre el backlog de ambos Entregables de este Sprint). Sin cambios en `CURRENT_SPRINT.md`, `QA_REPORT.md` ni `HANDOFF.md` (Sprint 8, sin tocar).
 
 ## Próximo Entregable
-**UX-1.2** — Panel de administración en el Customizer para activar/desactivar y reordenar las secciones registradas en `inc/home-builder.php`. No inicia sin tu aprobación explícita de UX-1.1. Ver el prompt de continuación entregado junto con este Entregable para el detalle exacto de alcance.
+**Sprint UX-2, Entregable UX-2.1** — `template-parts/team.php` y `template-parts/clients.php` (secciones de Home para Equipo y Clientes, reutilizando `content-equipo.php`/`content-cliente.php` como partial de card, mismo patrón que `template-parts/projects.php`). No inicia sin tu aprobación explícita de UX-1.2. Ver el prompt de continuación entregado junto con este Entregable para el detalle exacto de alcance.
 
 ## Riesgos y pendientes abiertos
-- El control "sortable" del Customizer para UX-1.2 no tiene precedente exacto en el código actual del proyecto (`inc/customizer.php` solo usa controles nativos simples) — riesgo medio, ya señalado como R-2 en `docs/UX_CONVERSION_ANALISIS_Y_PLAN.md`, con una alternativa de bajo riesgo identificada (lista de `<select>` numéricos) si el drag&drop no resultara viable dentro del Entregable.
-- `HANDOFF.md` queda pendiente de actualización (ver nota arriba).
-- Ningún riesgo detectado que afecte al Sprint 8 pausado.
+- ~~El control "sortable" del Customizer no tiene precedente exacto en el proyecto~~ — resuelto en UX-1.2 reutilizando `jquery-ui-sortable` (ya incluido en WordPress core); riesgo R-2 del plan cerrado sin necesidad de la alternativa de bajo riesgo (`<select>` numéricos).
+- `HANDOFF.md` sigue pendiente de actualización — se evaluará en un punto de cierre de sesión/Sprint más significativo (criterio D-034 ya vigente en el proyecto).
+- Ningún riesgo detectado que afecte al Sprint 8 pausado; ver nota explícita en `DECISIONS.md` D-046 sobre la adición aditiva en `inc/enqueue.php`.

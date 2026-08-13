@@ -238,3 +238,39 @@ Reemplazo de `screenshot.png` por fotografías reales del cliente, cuando estén
 - **Colisión de nombres:** verificado (grep) que ninguna de las funciones nuevas (`ce_construction_home_sections`, `ce_construction_default_home_order`, `ce_construction_get_active_home_order`) ni el filtro `ce_home_sections`/`ce_home_active_order` existían previamente en el proyecto.
 - **Dependencias e includes:** `inc/home-builder.php` no depende de que ningún otro módulo se cargue antes que él (no usa ninguna función de otro archivo de `inc/` en tiempo de carga, solo define funciones); se registra en `functions.php` después de `inc/helpers.php`, consistente con la nota ya existente en `ARCHITECTURE.md` sobre que el orden de `helpers.php` en el array no es crítico por la misma razón.
 - **Regresión sobre Sprint 8:** confirmado (diff) que ningún archivo tocado por el Entregable 8.2 (`functions.php` en la parte de `CE_THEME_VERSION`, `inc/enqueue.php`, `style.css` en la parte del mecanismo QA-030) cambió su lógica; `style.css` solo recibió el bump de número de versión, sin tocar el comentario ni la lógica de QA-030 documentada en `DECISIONS.md` D-044.
+
+---
+
+## v0.8.3 — Sprint UX-1, Entregable UX-1.2: Home Builder — panel de administración (activar/desactivar y reordenar)
+
+**Módulo:** Home Builder — persistencia real desde WordPress (Customizer)
+**Estado:** Entregado — pendiente de aprobación explícita del usuario (ver `DECISIONS.md` D-038)
+
+### Añadido
+- **`assets/js/admin-home-builder.js`** (nuevo): inicializa jQuery UI Sortable (ya incluido en WordPress core, sin librerías nuevas) y las casillas de activar/desactivar del control custom del Home Builder; serializa el resultado a JSON en el `theme_mod` correspondiente.
+- **`inc/customizer.php`:** nueva sección `ce_section_home_builder` ("CE: Home Builder"), nuevo setting `ce_home_sections_order` (JSON `[{key, enabled}]`, persistencia del orden y estado de las 13 secciones), y nuevo control custom `CE_Customize_Home_Sections_Control`. Funciones de apoyo: `ce_construction_decode_home_sections_order()`, `ce_construction_sanitize_home_sections_order()`, `ce_construction_default_home_sections_order_json()`, y `ce_construction_filter_home_active_order()` (enganchada al filtro `ce_home_active_order` ya expuesto por UX-1.1).
+- **`inc/enqueue.php`:** nueva función `ce_construction_enqueue_home_builder_control_script()`, encolada solo en `customize_controls_enqueue_scripts` (admin del Customizer, nunca en frontend), reutilizando `ce_construction_asset_version()` (QA-030) para el cache-busting del nuevo asset.
+
+### Sin cambios
+- **`inc/home-builder.php` y `front-page.php`: NO se tocaron**, tal como exigía el alcance de este Entregable — la integración se hizo enteramente a través del filtro `ce_home_active_order` que UX-1.1 ya dejó expuesto.
+- `functions.php` (ambos archivos modificados ya estaban registrados en `ce_construction_require_modules()` desde antes de UX-1).
+- Ningún archivo del Sprint 8 más allá de la adición aditiva en `inc/enqueue.php` señalada explícitamente en `DECISIONS.md` D-046 (ver esa entrada para el detalle; ningún cambio de lógica en QA-030/QA-010).
+
+### Comportamiento
+- **Sin `theme_mod` guardado (instalación nueva o panel nunca abierto):** el Home se comporta exactamente igual que en UX-1.1 (orden por defecto, sin regresión).
+- **Con `theme_mod` guardado:** el orden y el activo/inactivo de cada sección se leen del valor guardado; una sección desactivada no se renderiza; el orden de renderizado sigue el orden guardado por el administrador.
+- **Team / Clients / FAQ:** visibles en el panel con la casilla deshabilitada y la nota "(próximamente)" (sus template-parts llegan en el Sprint UX-2); no pueden activarse desde el panel hasta entonces.
+
+### Decisiones clave
+- Ver `DECISIONS.md`: D-046.
+
+### Verificaciones ejecutadas
+- **Sintaxis PHP:** balance de llaves/paréntesis verificado (Python) en `inc/customizer.php` (40/40 llaves, 257/257 paréntesis) e `inc/enqueue.php` (6/6 llaves, 73/73 paréntesis) — ambos balanceados. `php -l` no disponible en el entorno de desarrollo (limitación metodológica ya documentada).
+- **JavaScript:** `node --check assets/js/admin-home-builder.js` — sin errores de sintaxis.
+- **Colisión de nombres:** verificado (grep) que ninguna de las funciones/clase nuevas (`ce_construction_decode_home_sections_order`, `ce_construction_sanitize_home_sections_order`, `ce_construction_default_home_sections_order_json`, `ce_construction_filter_home_active_order`, `CE_Customize_Home_Sections_Control`, `ce_construction_enqueue_home_builder_control_script`, `ce_construction_home_builder_control_styles`) ni el setting `ce_home_sections_order` existían previamente en el proyecto.
+- **Trazado lógico manual (sin entorno WordPress real, misma limitación metodológica documentada en `ARCHITECTURE.md`):**
+  - Sin `theme_mod` guardado: `get_theme_mod( 'ce_home_sections_order', '' )` devuelve `''` → `ce_construction_filter_home_active_order()` devuelve el `$default_order` recibido sin modificar → idéntico a UX-1.1.
+  - Al desactivar una sección desde el panel: su `enabled` pasa a `false` en el JSON serializado por `admin-home-builder.js` → `ce_construction_filter_home_active_order()` la excluye de `$active` → `front-page.php` no la renderiza (guarda `isset()` ya existente desde UX-1.1 ni siquiera es necesaria en este caso: la clave simplemente no aparece en el array de orden activo).
+  - Al reordenar por drag&drop: `serialize()` reconstruye el array en el orden real del DOM tras el `sortable.update` → se conserva ese orden a través de `sanitize`/`decode` (ambos preservan el orden de aparición) → `front-page.php` renderiza en ese orden.
+  - Sección sin template-part (p. ej. `team`): checkbox forzado a no-marcado en el render (`$available` en `false`) independientemente del valor guardado; si un JSON manual forzara `enabled: true` de todas formas, `get_template_part()` sobre un archivo inexistente no genera error ni contenido (comportamiento nativo ya documentado en `inc/home-builder.php`).
+- **Regresión sobre Sprint 8:** confirmado (diff) que `header.php`, `inc/seo.php`, `docs/QA_REPORT.md`, `docs/CURRENT_SPRINT.md` y `docs/HANDOFF.md` no fueron tocados; el único archivo compartido con el Sprint 8 (`inc/enqueue.php`) solo recibió una adición aditiva no relacionada, sin alterar ninguna línea de la corrección QA-030/QA-010 ya existente.
