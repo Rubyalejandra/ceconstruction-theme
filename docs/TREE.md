@@ -18,7 +18,7 @@ ce-construction-theme/
 ├── 404.php                            ✅
 ├── archive.php                        ✅ Sprint 7, Entregable 7.2
 ├── archive-servicio.php               ✅
-├── single-servicio.php                ✅
+├── single-servicio.php                ✅ 🔧 Sprint UX-2, Entregable UX-2.2: único bloque tocado — el accordion FAQ ahora invoca template-parts/content-faq-accordion.php (partial compartido), resto del archivo sin cambios
 ├── archive-proyecto.php               ✅
 ├── archive-equipo.php                 ✅
 ├── single-equipo.php                  ✅
@@ -46,9 +46,9 @@ ce-construction-theme/
 │   ├── quote-form.php                 ✅
 │   ├── seo.php                        ✅
 │   ├── widgets.php                    ✅ Sprint 7, Entregable 7.1
-│   └── home-builder.php               ✅ 🆕 Sprint UX-1, Entregable UX-1.1 — registro central de secciones del Home. 🔧 Sprint UX-2, Entregable UX-2.1: solo comentarios actualizados (team/clients ya tienen template-part), sin cambio de lógica
+│   └── home-builder.php               ✅ 🆕 Sprint UX-1, Entregable UX-1.1 — registro central de secciones del Home. 🔧 Sprint UX-2 (UX-2.1 y UX-2.2): solo comentarios actualizados (team/clients/faq ya tienen template-part), sin cambio de lógica en ningún Entregable
 │
-├── template-parts/                    ✅ (22 archivos — 🆕 Sprint UX-2, Entregable UX-2.1: team.php, clients.php, secciones de Home para Equipo/Clientes, ver DECISIONS.md D-047. Sin cambios en Sprint 7 salvo reutilización por archive.php)
+├── template-parts/                    ✅ (24 archivos — 🆕 Sprint UX-2 COMPLETADO: UX-2.1 team.php/clients.php (D-047); UX-2.2 faq.php/content-faq-accordion.php (D-048), partial de ítem compartido con single-servicio.php. Sin cambios en Sprint 7 salvo reutilización por archive.php)
 │
 └── assets/
     ├── css/main.css                   ✅ 24 secciones — 🔧 Sprint 7, Entregable 7.3: sección 24 (QA-018, responsive de .ce-header__top)

@@ -310,3 +310,49 @@ Reemplazo de `screenshot.png` por fotografías reales del cliente, cuando estén
 - **Auto-ocultamiento:** verificado por lectura que ambos archivos nuevos hacen `return;` inmediato tras `! ce_cpt_has_posts( ... )`, antes de instanciar el `WP_Query` y antes de imprimir cualquier `<section>` — mismo patrón que `projects.php`, `services.php`, `testimonials.php`, `gallery.php`.
 - **Colisión de nombres:** verificado (grep) que ninguna variable nueva (`$equipo_home_query`, `$clientes_home_query`) colisiona con variables ya usadas en otros template-parts del Home (`$proyectos_query`, `$servicios_query`, `$testimonios_query` ya usan otros nombres).
 - **Regresión sobre Sprint 8:** confirmado (diff) que ningún archivo del Sprint 8 fue tocado; `inc/customizer.php` (compartido con UX-1.2, no con el Sprint 8) tampoco recibió cambios en este Entregable.
+
+---
+
+## v0.8.5 — Sprint UX-2, Entregable UX-2.2: sección de Home — Preguntas Frecuentes (Sprint UX-2 COMPLETADO)
+
+**Módulo:** Home Builder — sección faltante (FAQ) + extracción de partial compartido
+**Estado:** Entregado — pendiente de aprobación explícita del usuario (ver `DECISIONS.md` D-038)
+
+### Añadido
+- **`template-parts/content-faq-accordion.php`** (nuevo): partial de ítem individual de accordion FAQ, extraído del bloque "FAQ relacionadas" de `single-servicio.php` (existente desde el Sprint 3). Debe invocarse dentro de un loop estándar y dentro de un `.ce-accordion` ya abierto por el llamador — mismo patrón que `content-servicio.php`/`content-proyecto.php`/`content-equipo.php`/`content-cliente.php`. Usa `get_the_ID()` para el `id`/`aria-controls` del panel (unicidad intrínseca, sin depender de un contador pasado por el llamador — ver `DECISIONS.md` D-048 punto 3).
+- **`template-parts/faq.php`** (nuevo): sección de Home para el CPT `ce_faq`. `WP_Query` acotado (`posts_per_page => 8`, `post_status => 'publish'`, `no_found_rows => true`), auto-ocultamiento vía `ce_cpt_has_posts( 'ce_faq' )`, reutiliza `content-faq-accordion.php` dentro de `.ce-accordion.ce-max-w-content` (utilidad ya existente, sin CSS nuevo). Sin enlace "Ver todas": `ce_faq` no tiene archivo público (`has_archive => false`, sin cambios).
+
+### Modificado
+- **`single-servicio.php`:** sustituido únicamente el bloque interno del `while` del accordion FAQ (el `<div class="ce-accordion__item">` completo + cálculo de `$faq_index`/`$panel_id`) por `get_template_part( 'template-parts/content-faq-accordion' )`. **Único bloque tocado del archivo** — verificado por diff línea a línea contra el ZIP de UX-2.1: el resto del archivo (metadatos, navegación prev/next, relacionados, sidebar) es idéntico.
+- **`inc/home-builder.php`:** actualización **exclusivamente de comentarios** en la entrada `faq` de `ce_construction_home_sections()` y en el docblock de `ce_construction_default_home_order()`, reflejando que las 3 secciones (`team`/`clients`/`faq`) ya tienen template-part real y que el Sprint UX-2 queda completado. **Ninguna de las 3 funciones del archivo cambió de lógica ni de valor de retorno** — verificado por diff.
+
+### Sin cambios
+- **`inc/customizer.php`: NO se modificó.** Igual que en UX-2.1, el `file_exists()` genérico de `CE_Customize_Home_Sections_Control` detecta automáticamente que `template-parts/faq.php` ya existe y habilita su casilla en el panel "CE: Home Builder" sin intervención de código. Ver `DECISIONS.md` D-048 punto 7. Con esto, las 3 secciones que dependían de este mecanismo (team, clients, faq) quedan validadas.
+- `inc/cpt-faq.php`, `front-page.php`, `functions.php`, `assets/css/main.css`, `assets/js/main.js` (incluido `ModuleAccordion`, confirmado ya genérico — ver `DECISIONS.md` D-048 punto 4): sin cambios.
+- Ningún archivo del Sprint 8 (Sprint 8 sigue pausado, sin tocar en este Entregable).
+
+### Comportamiento
+- **Sin activar en el panel del Home Builder:** la sección FAQ no aparece en el Home (comportamiento por defecto, sin cambios).
+- **Activada en el panel, con preguntas publicadas en `ce_faq`:** la sección se renderiza en la posición configurada, con el mismo comportamiento de accordion (un solo ítem abierto a la vez) que ya tenía `single-servicio.php`.
+- **Activada en el panel, sin preguntas publicadas:** la sección se auto-oculta (`ce_cpt_has_posts()` hace `return;` antes de imprimir cualquier HTML) — mismo comportamiento que `team.php`/`clients.php`/`projects.php`.
+- **`single-servicio.php`:** el bloque "FAQ relacionadas" sigue funcionando exactamente igual que antes (misma consulta, mismo wrapper, mismo comportamiento visual) — el único cambio observable es el sufijo interno del atributo `id`/`aria-controls` (de un índice secuencial a `get_the_ID()`), sin efecto visible ni funcional para el usuario final.
+
+### Decisiones clave
+- Ver `DECISIONS.md`: D-048.
+
+### Verificaciones ejecutadas
+- **Sintaxis PHP:** balance de llaves/paréntesis verificado (Python) en `template-parts/faq.php`, `template-parts/content-faq-accordion.php`, `single-servicio.php` e `inc/home-builder.php` tras las ediciones: los 4 archivos balanceados (0 de diferencia en llaves y paréntesis). `php -l` no disponible en el entorno de desarrollo (limitación metodológica ya documentada en `ARCHITECTURE.md` §10).
+- **`inc/home-builder.php`:** confirmado por `grep` que las 3 funciones (`ce_construction_home_sections()`, `ce_construction_default_home_order()`, `ce_construction_get_active_home_order()`) siguen presentes sin cambios de firma; diff contra el ZIP de UX-2.1 confirma que solo cambiaron comentarios.
+- **`single-servicio.php`:** diff línea a línea contra el ZIP de UX-2.1 confirma que el único cambio es el bloque interno del `while` del accordion FAQ — el resto del archivo (204 líneas originales) es idéntico.
+- **`inc/customizer.php`, `front-page.php`, `functions.php`: sin cambios**, confirmado por diff contra el ZIP de UX-2.1 (0 diferencias en los 3 archivos).
+- **`file_exists()` para `faq`:** simulación manual sobre el árbol de archivos real post-Entregable confirma que `template-parts/faq.php` ahora resuelve `true` — la casilla de FAQ en el panel del Home Builder debe habilitarse automáticamente, sin código adicional.
+- **`ModuleAccordion` sin colisión entre contextos:** confirmado por lectura de `assets/js/main.js` que el comportamiento "un solo ítem abierto" está acotado vía `item.closest('.ce-accordion')` (no es un estado global compartido entre todas las instancias de `.ce-accordion` de la página) — soporta múltiples accordions independientes sin cambios. Los IDs de panel (`ce-faq-panel-{ID de post}`) son únicos por diseño (IDs de WordPress ya son únicos globalmente), eliminando cualquier posibilidad de colisión de `id`/`aria-controls` entre el accordion de Home y el de `single-servicio.php`, incluso en el hipotético caso de coexistir en el mismo documento.
+- **Auto-ocultamiento de `faq.php`:** verificado por lectura que hace `return;` inmediato tras `! ce_cpt_has_posts( 'ce_faq' )`, antes de instanciar el `WP_Query` y antes de imprimir cualquier `<section>` — mismo patrón que `team.php`/`clients.php`/`projects.php`.
+- **Reutilización sin duplicación de markup:** confirmado (lectura) que `faq.php` y el bloque modificado de `single-servicio.php` no reimplementan ningún `<div class="ce-accordion__item">` — ambos delegan 100% en `content-faq-accordion.php`.
+- **Regresión sobre Sprint 8:** confirmado (diff) que ningún archivo del Sprint 8 fue tocado.
+
+---
+
+## 🎉 SPRINT UX-2 COMPLETADO
+
+Las 13 secciones previstas en el brief de UX/Conversión ya tienen template-part real y están disponibles en el catálogo del Home Builder (`ce_construction_home_sections()`): Hero, Quiénes Somos, Servicios, Proyectos, Estadísticas, Por Qué Elegirnos, Testimonios, Galería, **Equipo, Clientes, Preguntas Frecuentes** (las 3 últimas, completadas en el Sprint UX-2), CTA y Formulario de Cotización. Ninguna de las 3 nuevas (team/clients/faq) se activa automáticamente: quedan disponibles para que el administrador las active y ordene explícitamente desde el panel "CE: Home Builder" del Customizer (UX-1.2). Sprint UX-2 formalmente completado a la espera de tu aprobación de UX-2.2 (regla D-038).

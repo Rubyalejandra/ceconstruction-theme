@@ -29,9 +29,9 @@
 
 ## 26. Backlog — Fase "Optimización UX / Conversión" (paralela al Sprint 8 pausado — ver `CURRENT_UX_SPRINT.md`)
 - ✅ Sprint UX-1 "Home Builder: base arquitectónica" — **COMPLETADO** (UX-1.1: registro central de secciones + refactor de `front-page.php`; UX-1.2: panel de administración en el Customizer con activar/desactivar y reordenar).
-- 🟡 Sprint UX-2 "Secciones de Home faltantes: Team, Clients, FAQ" — **en curso**:
-  - ✅ UX-2.1 — `template-parts/team.php`, `template-parts/clients.php` — **entregado, pendiente de tu aprobación**
-  - ⬜ UX-2.2 — `template-parts/faq.php` — **no iniciado, requiere tu aprobación de UX-2.1**
+- ✅ Sprint UX-2 "Secciones de Home faltantes: Team, Clients, FAQ" — **COMPLETADO** (13/13 secciones del catálogo con template-part real):
+  - ✅ UX-2.1 — `template-parts/team.php`, `template-parts/clients.php` — completado
+  - ✅ UX-2.2 — `template-parts/faq.php`, `template-parts/content-faq-accordion.php` — **entregado, pendiente de tu aprobación**
 - ⬜ Sprint UX-3 (CTA centralizado + modos de cotización), Sprint UX-4 (Hero configurable), Sprint UX-5 (múltiples estrategias de CTA), Sprint UX-6 (registro documental de Responsive) — ver `docs/UX_CONVERSION_ANALISIS_Y_PLAN.md` para el detalle completo de alcance de cada Entregable.
 
 *(La sección 23, Backlog — Sprint 8, permanece sin cambios: el Sprint 8 está pausado, no cerrado, y se retoma en el Entregable 8.3 una vez apruebes el 8.2 y esta fase paralela lo permita.)*
