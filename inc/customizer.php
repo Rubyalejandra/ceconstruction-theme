@@ -453,8 +453,50 @@ function ce_construction_customize_register( $wp_customize ) {
 		'section' => 'ce_section_footer',
 		'type'    => 'text',
 	) );
+
+	/* -----------------------------------------------------------
+	 * 8. FORMULARIO DE COTIZACIÓN (Sprint UX-3, Entregable UX-3.1)
+	 * Define el modo de todos los CTA "Solicitar Cotización" del
+	 * tema (6 puntos, centralizados vía ce_get_quote_cta_url() en
+	 * inc/helpers.php). Ver DECISIONS.md D-049.
+	 * --------------------------------------------------------- */
+	$wp_customize->add_section( 'ce_section_quote_form', array(
+		'title'       => __( 'CE: Formulario de Cotización', 'ce-construction' ),
+		'description' => __( 'Define cómo se comportan todos los botones "Solicitar Cotización" del tema. El cambio se aplica automáticamente a los 6 puntos del sitio que enlazan a la cotización, sin tocar código.', 'ce-construction' ),
+		'priority'    => 37,
+	) );
+
+	$wp_customize->add_setting( 'ce_quote_form_mode', array(
+		'default'           => 'integrated',
+		'sanitize_callback' => 'ce_construction_sanitize_quote_form_mode',
+		'transport'         => 'refresh',
+	) );
+
+	$wp_customize->add_control( 'ce_quote_form_mode', array(
+		'label'   => __( 'Modo del formulario de cotización', 'ce-construction' ),
+		'section' => 'ce_section_quote_form',
+		'type'    => 'radio',
+		'choices' => array(
+			'integrated' => __( 'Integrado en el Home (sección normal)', 'ce-construction' ),
+			'modal'      => __( 'Popup / Modal (próximamente — Entregable UX-3.2)', 'ce-construction' ),
+			'disabled'   => __( 'Desactivado (oculta todos los botones de cotización del sitio)', 'ce-construction' ),
+		),
+	) );
 }
 add_action( 'customize_register', 'ce_construction_customize_register' );
+
+/* =========================================================
+ * SPRINT UX-3, ENTREGABLE UX-3.1 (continuación) — sanitize_callback
+ * del theme_mod `ce_quote_form_mode`. Definida fuera de la función
+ * de registro (igual que el resto de sanitize_callbacks nombrados
+ * del proyecto), para poder referenciarla por nombre desde
+ * add_setting() sin depender del orden de ejecución dentro de la
+ * propia función.
+ * ========================================================= */
+function ce_construction_sanitize_quote_form_mode( $value ) {
+	$allowed = array( 'integrated', 'modal', 'disabled' );
+	return in_array( $value, $allowed, true ) ? $value : 'integrated';
+}
 
 /**
  * Inyecta las variables CSS del Customizer (colores/tipografía)

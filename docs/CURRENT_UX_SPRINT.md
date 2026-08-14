@@ -27,34 +27,43 @@ Plan completo de Sprints UX-1 a UX-6: ver `docs/UX_CONVERSION_ANALISIS_Y_PLAN.md
 
 ## Sprint actual de esta fase
 
-**Sprint UX-2 — "Secciones de Home faltantes: Team, Clients, FAQ"** — Estado: ✅ **Completado** (pendiente de tu aprobación de UX-2.2 para cierre formal, ver nota abajo).
+## Sprint UX-2 — "Secciones de Home faltantes: Team, Clients, FAQ" — Estado: ✅ **Completado.**
 
 | Entregable | Objetivo | Estado |
 |---|---|---|
 | UX-2.1 | `template-parts/team.php` y `template-parts/clients.php` (secciones de Home para Equipo y Clientes) | ✅ Completado |
-| UX-2.2 | `template-parts/faq.php` (sección de Home para Preguntas Frecuentes) + extracción de `content-faq-accordion.php` compartido con `single-servicio.php` | 🟡 **Entregado — pendiente de tu aprobación** |
+| UX-2.2 | `template-parts/faq.php` (sección de Home para Preguntas Frecuentes) + extracción de `content-faq-accordion.php` compartido con `single-servicio.php` | ✅ Completado |
 
-> **Nota:** igual que en el cierre del Sprint UX-1, ambos Entregables completan el Sprint UX-2 tal como estaba planificado; el Sprint se da por completado formalmente cuando también apruebes UX-2.2.
+## Sprint actual de esta fase
 
-## Trabajo realizado (Entregable UX-2.2)
+**Sprint UX-3 — "CTA centralizado + Modo del formulario de cotización"** — Estado: **En curso.**
 
-Última sección de Home pendiente: **las 13 secciones del catálogo del brief ya tienen template-part real.** `template-parts/faq.php` sigue el mismo patrón que `team.php`/`clients.php` (UX-2.1): `WP_Query` acotado sobre el CPT `ce_faq`, auto-ocultamiento vía `ce_cpt_has_posts()`. Reutiliza el mismo `.ce-accordion` que ya usaba `single-servicio.php` desde el Sprint 3, a través de un nuevo partial compartido, `template-parts/content-faq-accordion.php` (ítem individual de accordion, extraído del bloque "FAQ relacionadas" existente) — evaluado y confirmado que sí convenía la extracción, en vez de duplicar el markup. `single-servicio.php` recibió un único cambio quirúrgico: el bloque interno del `while` ahora invoca ese partial en vez de imprimir el `<div class="ce-accordion__item">` inline; el resto del archivo es idéntico (verificado por diff). El identificador del panel (`id`/`aria-controls`) pasó de un contador secuencial local a `get_the_ID()`, con unicidad intrínseca entre ambos contextos. `inc/home-builder.php` solo recibió actualización de comentarios (misma disciplina que UX-2.1). `inc/customizer.php` **no requirió ningún cambio** — se confirmó, no se asumió, releyendo `CE_Customize_Home_Sections_Control` antes de proceder. Ver `CHANGELOG.md` v0.8.5 y `DECISIONS.md` D-048 para el detalle completo.
+| Entregable | Objetivo | Estado |
+|---|---|---|
+| UX-3.1 | CTA de cotización centralizado (`ce_get_quote_cta_url()`) + modo configurable (`ce_quote_form_mode`: integrado/popup/desactivado) | 🟡 **Entregado, con 1 corrección post-revisión aplicada (ver nota) — pendiente de tu aprobación** |
+| UX-3.2 | Modal de cotización (popup real) | ⬜ No iniciado — no comienza sin tu aprobación explícita de UX-3.1 |
 
-**Con esto, ninguna de las 13 secciones del catálogo queda con la casilla forzada a "(próximamente)" en el panel del Home Builder.**
+> **Nota:** entre el cierre de UX-1.2 y este Entregable se detectó y corrigió un desfase de versión en `style.css` (se había quedado en `0.8.2` mientras `CHANGELOG.md` ya documentaba hasta `v0.8.5`). Por decisión explícita del usuario, la corrección se aplicó dentro de este Entregable sin incrementar más allá de `0.8.5` — ver `DECISIONS.md` D-049.
 
-## Archivos creados / modificados (Sprint UX-2, Entregable UX-2.2)
-- Creados: `template-parts/faq.php`, `template-parts/content-faq-accordion.php`.
-- Modificados: `inc/home-builder.php` (solo comentarios en la entrada `faq` y en el docblock de `ce_construction_default_home_order()` — ninguna función cambió de lógica), `single-servicio.php` (solo el bloque interno del accordion FAQ — verificado por diff como el único cambio del archivo).
-- Sin cambios: `inc/customizer.php`, `inc/cpt-faq.php`, `front-page.php`, `functions.php`, `assets/css/main.css`, `assets/js/main.js` (por diseño, tal como exigía el alcance del Entregable).
+## Trabajo realizado (Entregable UX-3.1)
+
+Se centralizó en una única función (`ce_get_quote_cta_url()`, `inc/helpers.php`) el destino de los 7 puntos de CTA de cotización del tema (6 archivos: `header.php` aporta 2), que hasta ahora tenían la ancla `#ce-quote-form` hardcodeada de forma independiente. El comportamiento se controla desde una nueva sección del Customizer, "CE: Formulario de Cotización" (`ce_quote_form_mode`: integrado/popup/desactivado). En modo desactivado, los 7 puntos se ocultan automáticamente — para lograrlo fue necesario añadir una guarda nueva en `template-parts/cta.php` y `template-parts/hero.php`, que antes imprimían su botón de forma incondicional. El modo "popup" deja preparada la ancla `#ce-quote-modal`, pero el modal real (overlay + JS) es responsabilidad del Entregable UX-3.2, explícitamente fuera de este alcance. Ver `CHANGELOG.md` (entrada bajo v0.8.5) y `DECISIONS.md` D-049 para el detalle completo, incluida la nota sobre la interacción con el Home Builder y el caso límite de personalización previa de `ce_cta_btn_url`/`ce_hero_btn1_url`.
+
+> **Corrección aplicada tras revisión del usuario (antes de aprobar el Entregable):** el modo "Integrado" no mostraba el botón CTA de `cta.php`/`hero.php` por un uso incorrecto del *fallback* de `get_theme_mod()` (dejaba de aplicarse en cuanto el theme_mod quedaba guardado como `''` tras cualquier publicación previa del Customizer). Corregido en ambos archivos con una comprobación explícita de cadena vacía. Ver `DECISIONS.md` D-050.
+
+## Archivos creados / modificados (Sprint UX-3, Entregable UX-3.1)
+- Creados: ninguno.
+- Modificados: `inc/helpers.php`, `inc/customizer.php`, `header.php`, `footer.php`, `template-parts/cta.php`, `template-parts/hero.php`, `template-parts/sidebar-servicios.php`, `template-parts/sidebar-proyectos.php`, `style.css` (bump de versión `0.8.2` → `0.8.5`).
+- Sin cambios: `inc/home-builder.php`, `front-page.php`, `functions.php`, `inc/enqueue.php`, `template-parts/quote-form.php` (por diseño, tal como exigía el alcance del Entregable).
 
 ## Documentación actualizada (en este cierre)
-`DECISIONS.md` (D-048), `CHANGELOG.md` (v0.8.5), `ARCHITECTURE.md` (sección 3: dos nuevas filas de `template-parts/`; sección 6: nota actualizada, Sprint UX-2 completo; historial de cambios), `TREE.md` (filas de `template-parts/`, `home-builder.php` y `single-servicio.php` actualizadas), `TODO.md` (sección 26 actualizada), y este mismo archivo. Sin cambios en `CURRENT_SPRINT.md`, `QA_REPORT.md` ni `HANDOFF.md` (Sprint 8, sin tocar).
+`DECISIONS.md` (D-049), `CHANGELOG.md` (entrada de UX-3.1, declarada bajo v0.8.5), y este mismo archivo. No se actualizaron `ARCHITECTURE.md`, `TREE.md` ni `TODO.md` en este Entregable — ninguno de los tres documenta contenido que haya cambiado como consecuencia directa de UX-3.1 (no hay archivos nuevos que añadir al árbol, y la arquitectura de CTA centralizado no altera ningún diagrama de flujo ya documentado en `ARCHITECTURE.md` de forma que requiera reescritura). Sin cambios en `CURRENT_SPRINT.md`, `QA_REPORT.md` ni `HANDOFF.md` (Sprint 8, sin tocar).
 
 ## Próximo Entregable
-**Sprint UX-3, Entregable UX-3.1** — CTA centralizado y modos de cotización (ver `docs/UX_CONVERSION_ANALISIS_Y_PLAN.md` §5 para el alcance exacto). No inicia sin tu aprobación explícita de UX-2.2. Ver el prompt de continuación entregado junto con este Entregable para el detalle exacto de alcance.
+**Sprint UX-3, Entregable UX-3.2** — Modal de cotización (popup real). No inicia sin tu aprobación explícita de UX-3.1. Ver el prompt de continuación entregado junto con este Entregable para el detalle exacto de alcance.
 
 ## Riesgos y pendientes abiertos
-- ~~El control "sortable" del Customizer no tiene precedente exacto en el proyecto~~ — resuelto en UX-1.2 reutilizando `jquery-ui-sortable` (ya incluido en WordPress core); riesgo R-2 del plan cerrado sin necesidad de la alternativa de bajo riesgo (`<select>` numéricos).
-- ~~R-3 (Team/Clients/FAQ como secciones de Home son archivos nuevos, no solo configuración)~~ — resuelto en UX-2.1/UX-2.2: riesgo confirmado como bajo en los 3 casos, sin sorpresas (reutilización completa de CPT/helpers/partials ya existentes).
-- `HANDOFF.md` sigue pendiente de actualización — se evaluará en un punto de cierre de sesión/Sprint más significativo (criterio D-034 ya vigente en el proyecto). El cierre formal del Sprint UX-2 (una vez apruebes UX-2.2) es un candidato razonable para ese punto de actualización.
+- **Nuevo (documentado, no bloqueante):** interacción entre el modo `ce_quote_form_mode = 'integrated'` y la activación/desactivación de la sección `quote_form` en el Home Builder — si el administrador desactiva la sección pero deja el modo en "integrado", los CTA seguirán apuntando a una ancla que no existe en el DOM. Ver `DECISIONS.md` D-049.
+- **Nuevo (documentado, no bloqueante):** en modo `disabled`, un botón con `ce_cta_btn_url`/`ce_hero_btn1_url` personalizado explícitamente por el administrador no se oculta (comportamiento intencional, ver `DECISIONS.md` D-049).
+- `HANDOFF.md` sigue pendiente de actualización — se evaluará en un punto de cierre de sesión/Sprint más significativo (criterio D-034 ya vigente en el proyecto).
 - Ningún riesgo detectado que afecte al Sprint 8 pausado; ningún archivo compartido con el Sprint 8 fue tocado en este Entregable.

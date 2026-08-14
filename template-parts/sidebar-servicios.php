@@ -49,9 +49,11 @@ $otros_servicios = get_posts( array(
 			</div>
 			<h4><?php esc_html_e( '¿Necesitas asesoría?', 'ce-construction' ); ?></h4>
 			<p class="ce-card__text"><?php esc_html_e( 'Escríbenos y te ayudamos a definir el alcance de tu proyecto.', 'ce-construction' ); ?></p>
-			<a href="#ce-quote-form" class="ce-btn ce-btn--primary ce-btn--block ce-mb-2">
-				<?php esc_html_e( 'Cotizar ahora', 'ce-construction' ); ?>
-			</a>
+			<?php if ( ce_get_quote_cta_url() ) : ?>
+				<a href="<?php echo esc_url( ce_get_quote_cta_url() ); ?>" class="ce-btn ce-btn--primary ce-btn--block ce-mb-2">
+					<?php esc_html_e( 'Cotizar ahora', 'ce-construction' ); ?>
+				</a>
+			<?php endif; ?>
 			<?php if ( get_theme_mod( 'ce_phone' ) ) : ?>
 				<a href="tel:<?php echo esc_attr( ce_get_phone_href() ); ?>" class="ce-btn ce-btn--outline ce-btn--block" style="color:var(--ce-color-primary); border-color: var(--ce-color-neutral-300);">
 					<i class="fa-solid fa-phone" aria-hidden="true"></i>

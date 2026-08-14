@@ -356,3 +356,47 @@ Reemplazo de `screenshot.png` por fotografías reales del cliente, cuando estén
 ## 🎉 SPRINT UX-2 COMPLETADO
 
 Las 13 secciones previstas en el brief de UX/Conversión ya tienen template-part real y están disponibles en el catálogo del Home Builder (`ce_construction_home_sections()`): Hero, Quiénes Somos, Servicios, Proyectos, Estadísticas, Por Qué Elegirnos, Testimonios, Galería, **Equipo, Clientes, Preguntas Frecuentes** (las 3 últimas, completadas en el Sprint UX-2), CTA y Formulario de Cotización. Ninguna de las 3 nuevas (team/clients/faq) se activa automáticamente: quedan disponibles para que el administrador las active y ordene explícitamente desde el panel "CE: Home Builder" del Customizer (UX-1.2). Sprint UX-2 formalmente completado a la espera de tu aprobación de UX-2.2 (regla D-038).
+
+---
+
+## Sprint UX-3, Entregable UX-3.1: CTA de cotización centralizado + modo configurable (declarado bajo v0.8.5 — sin bump adicional)
+
+**Módulo:** CTA centralizado (`ce_get_quote_cta_url()`) + modos del formulario de cotización
+**Estado:** Entregado — pendiente de aprobación explícita del usuario (ver `DECISIONS.md` D-038)
+
+> **Nota de versionado (por decisión explícita del usuario):** `style.css` traía un desfase acumulado desde UX-1.2 (se quedó en `0.8.2` mientras `CHANGELOG.md` ya documentaba hasta `v0.8.5`). Ese desfase se corrigió como parte de este Entregable, pero **sin aplicar un segundo incremento a `0.8.6`** — tanto la corrección de versión como el trabajo funcional de UX-3.1 quedan declarados bajo `v0.8.5`. Ver `DECISIONS.md` D-049.
+
+### Añadido
+- **`ce_get_quote_cta_url()`** (nueva, en `inc/helpers.php`): fuente única de verdad de la URL/ancla de cualquier CTA de cotización del tema, según el `theme_mod` `ce_quote_form_mode`.
+- **`inc/customizer.php`:** nueva sección "CE: Formulario de Cotización" (`ce_section_quote_form`), setting `ce_quote_form_mode` (`integrated` | `modal` | `disabled`, control `radio`), y `ce_construction_sanitize_quote_form_mode()`.
+
+### Cambiado
+- **`header.php`:** botón "Cotizar" (escritorio) y botón "Cotización Gratuita" (menú móvil) migrados a `ce_get_quote_cta_url()`; ambos se omiten automáticamente en modo `disabled`.
+- **`footer.php`:** enlace "Cotización" del menú de respaldo del footer migrado; se omite en modo `disabled`.
+- **`template-parts/cta.php`:** `ce_cta_btn_url` usa `ce_get_quote_cta_url()` como *default* (preserva cualquier URL personalizada ya guardada por el administrador); botón envuelto en guarda nueva para ocultarse cuando el valor efectivo resulta vacío.
+- **`template-parts/hero.php`:** mismo tratamiento que `cta.php` sobre `ce_hero_btn1_url`.
+- **`template-parts/sidebar-servicios.php` y `template-parts/sidebar-proyectos.php`:** botón "Cotizar ahora" migrado; se omite en modo `disabled`.
+- **`style.css`:** `Version: 0.8.2` → `Version: 0.8.5` (corrección de desfase, ver nota de versionado arriba).
+
+### Sin cambios
+- **`inc/home-builder.php`, `front-page.php`, `functions.php`, `inc/enqueue.php`: sin cambios en este Entregable.**
+- **`template-parts/quote-form.php`:** sin cambios — el modal (Entregable UX-3.2) es quien tocará este archivo (parámetro de contexto), no UX-3.1.
+- Ningún archivo del Sprint 8 (`header.php` se tocó, pero únicamente para la migración del CTA descrita arriba — verificado por diff que la corrección QA-017 (`tabindex="-1"` en `<main>`) y el resto del Sprint 8 permanecen intactos).
+
+### Comportamiento
+- **Modo `integrated` (por defecto):** idéntico al comportamiento histórico del tema — los 7 puntos (6 archivos) apuntan a `#ce-quote-form`. Cero regresión visual para instalaciones que no toquen esta configuración.
+- **Modo `disabled`:** los 7 puntos se ocultan automáticamente, sin editar ningún archivo. Excepción documentada: si el administrador ya había personalizado explícitamente `ce_cta_btn_url`/`ce_hero_btn1_url` con una URL propia no relacionada con la cotización, ese botón específico no se oculta (ver `DECISIONS.md` D-049).
+- **Modo `modal`:** los 7 puntos apuntan a `#ce-quote-modal`, ancla todavía sin destino real en el DOM (comportamiento inerte, no roto) hasta el Entregable UX-3.2.
+
+### Decisiones clave
+- Ver `DECISIONS.md`: D-049.
+
+### Verificaciones ejecutadas
+- **Sintaxis PHP:** balance de llaves/paréntesis verificado (Python) en los 8 archivos tocados — todos balanceados: `inc/helpers.php` (33/33, 141/141), `inc/customizer.php` (41/41, 282/282), `header.php` (0/0, 58/58), `footer.php` (2/2, 87/87), `template-parts/cta.php` (1/1, 21/21), `template-parts/hero.php` (1/1, 29/29), `template-parts/sidebar-servicios.php` (1/1, 36/36), `template-parts/sidebar-proyectos.php` (1/1, 36/36). `php -l` no disponible en el entorno de desarrollo (limitación metodológica ya documentada).
+- **Cero anclas hardcodeadas restantes:** confirmado (`grep -rn "#ce-quote-form"` sobre todo el árbol PHP, excluyendo la propia definición en `inc/helpers.php`) que no queda ningún punto sin migrar.
+- **Colisión de nombres:** verificado que `ce_get_quote_cta_url`, `ce_construction_sanitize_quote_form_mode`, `ce_quote_form_mode` y `ce_section_quote_form` no existían previamente en el proyecto.
+- **Regresión sobre Sprint 8:** confirmado (diff) que `inc/seo.php`, `inc/enqueue.php`, `docs/QA_REPORT.md`, `docs/CURRENT_SPRINT.md` y `docs/HANDOFF.md` no fueron tocados; `header.php` cambió únicamente en los 2 puntos de CTA descritos, sin afectar la corrección QA-017 ya presente.
+- **Regresión sobre UX-1/UX-2:** confirmado (diff) que `inc/home-builder.php` y `front-page.php` no fueron tocados; el registro de secciones y el orden activo del Home Builder no se ven afectados por este Entregable.
+
+### Corrección aplicada tras revisión del usuario (antes de la aprobación del Entregable)
+El usuario detectó que, en modo "Integrado" (el modo por defecto), el botón CTA de `template-parts/cta.php` no aparecía — contradiciendo el criterio de aceptación de este mismo Entregable. Causa: `get_theme_mod( 'ce_cta_btn_url', ce_get_quote_cta_url() )` y su equivalente en `template-parts/hero.php` solo aplican el segundo argumento como *fallback* mientras el theme_mod nunca se haya guardado — ambos campos carecen de `'default'` propio desde su registro original, así que quedan persistidos como `''` en cuanto el administrador publica cualquier cambio del Customizer, y a partir de ahí el *fallback* deja de aplicarse. **Corregido** en ambos archivos: se sustituyó por una comprobación explícita de cadena vacía antes de aplicar `ce_get_quote_cta_url()`, sin afectar a los otros 5 puntos de CTA (que llaman a la función directamente, sin pasar por `get_theme_mod()`). Ver `DECISIONS.md` D-050 para el detalle completo, incluida la causa por la que el trazado lógico manual original no lo detectó.

@@ -299,3 +299,51 @@ function ce_get_related_services_for_project( $project_id, $limit = 3 ) {
 
 	return $query;
 }
+
+/* =========================================================
+ * Añadido en Sprint UX-3, Entregable UX-3.1 (fase "Optimización
+ * UX / Conversión"). No modifica ninguna función anterior de este
+ * archivo. Ver DECISIONS.md D-049.
+ * ========================================================= */
+
+/**
+ * URL/ancla de destino centralizada para todos los CTA "Solicitar
+ * Cotización" del tema, según el modo configurado en el Customizer
+ * (sección "CE: Formulario de Cotización", theme_mod
+ * `ce_quote_form_mode`, registrada en inc/customizer.php).
+ *
+ * Antes de este Entregable, 6 archivos distintos tenían la ancla
+ * "#ce-quote-form" hardcodeada; cambiar el comportamiento exigía
+ * editarlos uno por uno. Ahora todos consultan esta única función.
+ *
+ * Modos soportados:
+ *   - 'integrated' (por defecto): ancla a la sección de cotización
+ *     integrada en el Home ('#ce-quote-form') — comportamiento
+ *     histórico del tema, sin cambios de UX para instalaciones que
+ *     no toquen esta nueva configuración.
+ *   - 'modal': ancla reservada para el popup/modal de cotización.
+ *     El modal en sí (markup del overlay + JS de apertura) se
+ *     implementa en el Entregable UX-3.2. Hasta entonces, esta
+ *     ancla no tiene destino real en el DOM: un enlace a un ancla
+ *     inexistente no produce ningún error, simplemente no hace
+ *     nada al pulsarlo (comportamiento inerte, no roto).
+ *   - 'disabled': devuelve cadena vacía. Cada punto de llamada debe
+ *     omitir el botón/enlace por completo cuando el valor es vacío
+ *     (mismo patrón ya usado en todo el tema para theme_mods
+ *     opcionales — ver p. ej. ce_get_whatsapp_number()).
+ *
+ * @return string URL/ancla de destino, o cadena vacía si el modo es 'disabled'.
+ */
+function ce_get_quote_cta_url() {
+	$mode = get_theme_mod( 'ce_quote_form_mode', 'integrated' );
+
+	if ( 'disabled' === $mode ) {
+		return '';
+	}
+
+	if ( 'modal' === $mode ) {
+		return '#ce-quote-modal';
+	}
+
+	return '#ce-quote-form';
+}

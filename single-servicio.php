@@ -160,22 +160,14 @@ while ( have_posts() ) :
 								<h2 class="ce-mb-4"><?php esc_html_e( 'Preguntas Frecuentes', 'ce-construction' ); ?></h2>
 								<div class="ce-accordion">
 									<?php
-									$faq_index = 0;
+									// 🆕 Sprint UX-2, Entregable UX-2.2: el ítem individual del
+									// accordion se extrajo a template-parts/content-faq-accordion.php
+									// para reutilizarlo también en template-parts/faq.php (Home),
+									// sin duplicar este markup — ver DECISIONS.md D-048. El wrapper
+									// .ce-accordion y la consulta $faqs de este bloque no cambiaron.
 									while ( $faqs->have_posts() ) :
 										$faqs->the_post();
-										$faq_index++;
-										$panel_id = 'ce-faq-panel-' . $faq_index;
-										?>
-										<div class="ce-accordion__item">
-											<button type="button" class="ce-accordion__question" aria-expanded="false" aria-controls="<?php echo esc_attr( $panel_id ); ?>">
-												<span><?php the_title(); ?></span>
-												<i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
-											</button>
-											<div class="ce-accordion__answer" id="<?php echo esc_attr( $panel_id ); ?>" role="region">
-												<div class="ce-accordion__answer-inner"><?php the_content(); ?></div>
-											</div>
-										</div>
-										<?php
+										get_template_part( 'template-parts/content-faq-accordion' );
 									endwhile;
 									wp_reset_postdata();
 									?>

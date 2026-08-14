@@ -11,6 +11,20 @@
 
 <a class="ce-sr-only" href="#ce-main-content"><?php esc_html_e( 'Saltar al contenido principal', 'ce-construction' ); ?></a>
 
+<?php
+/**
+ * Sprint UX-3, Entregable UX-3.1 (fase "Optimización UX / Conversión").
+ * Calculado una sola vez: URL/ancla de destino de los 2 CTA de
+ * cotización de este archivo (botón de escritorio + botón del menú
+ * móvil), según el modo configurado en el Customizer ("CE: Formulario
+ * de Cotización"). Ver inc/helpers.php -> ce_get_quote_cta_url() y
+ * DECISIONS.md D-049. Cadena vacía = modo "Desactivado": ambos
+ * botones se omiten automáticamente (misma convención ya usada en
+ * todo el tema para theme_mods opcionales, ver ce_phone/ce_email
+ * un poco más abajo).
+ */
+$ce_quote_cta_url = ce_get_quote_cta_url();
+?>
 <header class="ce-header" id="ce-header">
 
 	<!-- Barra superior: contacto rápido -->
@@ -69,9 +83,11 @@
 					</a>
 				<?php endif; ?>
 
-				<a href="#ce-quote-form" class="ce-btn ce-btn--primary ce-btn--sm">
-					<?php esc_html_e( 'Cotizar', 'ce-construction' ); ?>
-				</a>
+				<?php if ( $ce_quote_cta_url ) : ?>
+					<a href="<?php echo esc_url( $ce_quote_cta_url ); ?>" class="ce-btn ce-btn--primary ce-btn--sm">
+						<?php esc_html_e( 'Cotizar', 'ce-construction' ); ?>
+					</a>
+				<?php endif; ?>
 
 				<button class="ce-nav-toggle" aria-label="<?php esc_attr_e( 'Abrir menú', 'ce-construction' ); ?>" aria-expanded="false" aria-controls="ce-nav-mobile">
 					<span></span><span></span><span></span>
@@ -97,9 +113,11 @@
 		'depth'          => 2,
 	) );
 	?>
-	<a href="#ce-quote-form" class="ce-btn ce-btn--primary ce-btn--block ce-mt-5">
-		<?php esc_html_e( 'Cotización Gratuita', 'ce-construction' ); ?>
-	</a>
+	<?php if ( $ce_quote_cta_url ) : ?>
+		<a href="<?php echo esc_url( $ce_quote_cta_url ); ?>" class="ce-btn ce-btn--primary ce-btn--block ce-mt-5">
+			<?php esc_html_e( 'Cotización Gratuita', 'ce-construction' ); ?>
+		</a>
+	<?php endif; ?>
 </nav>
 
 <main id="ce-main-content" tabindex="-1">

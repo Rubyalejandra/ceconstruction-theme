@@ -44,7 +44,9 @@
 								<?php if ( post_type_exists( 'proyecto' ) ) : ?>
 									<li><a href="<?php echo esc_url( get_post_type_archive_link( 'proyecto' ) ); ?>"><?php esc_html_e( 'Proyectos', 'ce-construction' ); ?></a></li>
 								<?php endif; ?>
-								<li><a href="#ce-quote-form"><?php esc_html_e( 'Cotización', 'ce-construction' ); ?></a></li>
+								<?php if ( ce_get_quote_cta_url() ) : ?>
+									<li><a href="<?php echo esc_url( ce_get_quote_cta_url() ); ?>"><?php esc_html_e( 'Cotización', 'ce-construction' ); ?></a></li>
+								<?php endif; ?>
 							</ul>
 							<?php
 						}
