@@ -316,17 +316,21 @@ function ce_get_related_services_for_project( $project_id, $limit = 3 ) {
  * "#ce-quote-form" hardcodeada; cambiar el comportamiento exigía
  * editarlos uno por uno. Ahora todos consultan esta única función.
  *
- * Modos soportados:
- *   - 'integrated' (por defecto): ancla a la sección de cotización
- *     integrada en el Home ('#ce-quote-form') — comportamiento
- *     histórico del tema, sin cambios de UX para instalaciones que
- *     no toquen esta nueva configuración.
- *   - 'modal': ancla reservada para el popup/modal de cotización.
- *     El modal en sí (markup del overlay + JS de apertura) se
- *     implementa en el Entregable UX-3.2. Hasta entonces, esta
- *     ancla no tiene destino real en el DOM: un enlace a un ancla
- *     inexistente no produce ningún error, simplemente no hace
- *     nada al pulsarlo (comportamiento inerte, no roto).
+ * Modos soportados (semántica actualizada en Sprint UX-3, Entregable
+ * UX-3.2 — ver DECISIONS.md D-053, que reemplaza en este punto el
+ * diseño original de D-049):
+ *   - 'integrated' (por defecto): los 7 CTA abren el popup de
+ *     cotización (`#ce-quote-modal`, footer.php) — igual que en modo
+ *     'modal'. La diferencia de este modo respecto a 'modal' ya NO
+ *     está en el destino de los CTA, sino en que TAMBIÉN se muestra
+ *     la instancia integrada del formulario allí donde ya existía
+ *     (sección "Formulario de Cotización" del Home Builder, y la
+ *     invocación incondicional de single-servicio.php/single-proyecto.php)
+ *     — ver template-parts/quote-form.php.
+ *   - 'modal': los 7 CTA abren el popup. La instancia integrada NO
+ *     se imprime en ningún punto (guarda ya existente en
+ *     template-parts/quote-form.php, sin cambios) — solo existe el
+ *     popup.
  *   - 'disabled': devuelve cadena vacía. Cada punto de llamada debe
  *     omitir el botón/enlace por completo cuando el valor es vacío
  *     (mismo patrón ya usado en todo el tema para theme_mods
@@ -341,9 +345,85 @@ function ce_get_quote_cta_url() {
 		return '';
 	}
 
-	if ( 'modal' === $mode ) {
-		return '#ce-quote-modal';
-	}
+	// 'integrated' y 'modal' comparten destino desde UX-3.2: el popup
+	// de cotización queda disponible en TODAS las páginas (footer.php
+	// lo imprime siempre que el modo no sea 'disabled', ver D-053),
+	// así que los 7 puntos de CTA del tema pueden abrirlo sin
+	// depender de si la página actual tiene o no una instancia
+	// integrada del formulario en su propio flujo (p. ej.
+	// archive-servicio.php nunca la tuvo).
+	return '#ce-quote-modal';
+}
 
-	return '#ce-quote-form';
+/* =========================================================
+ * Corrección dentro de Sprint UX-3, Entregable UX-3.2 (fase
+ * "Optimización UX / Conversión", paralela al Sprint 8 pausado).
+ * No modifica ninguna función anterior de este archivo.
+ * ========================================================= */
+
+/**
+ * Marca, para la petición HTTP actual, que la instancia INTEGRADA
+ * del formulario de cotización (`id="ce-quote-form"`, presentación
+ * completa con `<section>`) ya se imprimió en la página en curso.
+ *
+ * Par con ce_construction_quote_form_rendered_inline(). Existe para
+ * separar dos conceptos que `ce_quote_form_mode` conflacionaba:
+ * (a) si la instancia integrada se imprime — lo sigue decidiendo,
+ * de forma independiente, cada punto de invocación de
+ * `template-parts/quote-form.php` (la sección `quote_form` del Home
+ * Builder, o la llamada incondicional de `single-servicio.php`/
+ * `single-proyecto.php`) — y (b) si el modal (`footer.php`) también
+ * debe imprimir su propia copia del `<form id="ce-quote-form">`.
+ * Sin esta señal, `footer.php` (que se ejecuta siempre al final de
+ * cada plantilla, después de que el contenido principal ya decidió
+ * si mostraba o no la instancia integrada) no tendría forma de saber
+ * si ya existe un `id="ce-quote-form"` en el documento — ver
+ * DECISIONS.md D-052.
+ *
+ * Implementación mínima con variable estática de función (mismo
+ * patrón de caché ya usado por ce_cpt_has_posts() en este archivo):
+ * no es un sistema general de estado, es una única bandera de solo
+ * lectura/escritura para esta necesidad puntual. La variable
+ * estática real vive en ce_construction_quote_form_rendered_inline_get()
+ * — esta función es un wrapper delgado que delega ahí, para
+ * garantizar que "marcar" y "leer" comparten exactamente el mismo
+ * valor (dos `static` declaradas en cuerpos de función distintos NO
+ * comparten memoria entre sí en PHP).
+ */
+function ce_construction_mark_quote_form_rendered_inline() {
+	return ce_construction_quote_form_rendered_inline_get( true );
+}
+
+/**
+ * Devuelve true si, en la petición HTTP actual, ya se imprimió la
+ * instancia integrada del formulario de cotización — false en
+ * cualquier otro caso, incluida cualquier página donde
+ * `template-parts/quote-form.php` nunca llegó a invocarse en su
+ * variante integrada (p. ej. `archive-servicio.php`,
+ * `archive-proyecto.php`, o el Home con la sección "Formulario de
+ * Cotización" desactivada en el Home Builder). Wrapper delgado de
+ * solo lectura sobre ce_construction_quote_form_rendered_inline_get().
+ */
+function ce_construction_quote_form_rendered_inline() {
+	return ce_construction_quote_form_rendered_inline_get();
+}
+
+/**
+ * Almacén real (única variable `static` de todo este mecanismo) de
+ * la bandera "¿ya se imprimió la instancia integrada del formulario
+ * de cotización en esta petición?". Las 2 funciones públicas de
+ * arriba delegan aquí para garantizar que leen/escriben exactamente
+ * el mismo valor.
+ *
+ * @param bool|null $set Si es `true`, marca la bandera como activa.
+ *                       Si es `null` (uso normal de lectura), no
+ *                       modifica nada, solo consulta el valor actual.
+ * @return bool Valor almacenado tras la operación.
+ */
+function ce_construction_quote_form_rendered_inline_get( $set = null ) {
+	static $rendered = false;
+	if ( true === $set ) {
+		$rendered = true;
+	}
+	return $rendered;
 }

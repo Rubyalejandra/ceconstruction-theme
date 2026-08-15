@@ -336,6 +336,64 @@ Cron diario 'ce_construction_quote_cleanup_event' (programado en after_switch_th
             (365 días por defecto, filtrable) — QA-003
 ```
 
+**🆕 Punto de entrada al formulario (Sprint UX-3, Entregables UX-3.1 y UX-3.2):** el diagrama anterior describe el flujo *a partir de* que el visitante ya tiene el formulario visible en pantalla — ese punto de entrada es configurable desde el Customizer ("CE: Formulario de Cotización", `ce_quote_form_mode`), sin afectar nada de lo ya documentado arriba (nonce, AJAX, validación server-side, cron de purga: sin cambios):
+
+```
+ce_quote_form_mode (Customizer)
+        │
+        ├── 'integrated' (por defecto, cero regresión — D-049)
+        │      → template-parts/quote-form.php se comporta exactamente
+        │        como antes de UX-3: <section id="ce-quote-form-section">
+        │        completa, en cada punto donde ya se invocaba
+        │        (front-page.php vía Home Builder, single-servicio.php,
+        │        single-proyecto.php). Los 7 CTA del sitio (D-049) apuntan
+        │        a la ancla #ce-quote-form (el <form> dentro de esa sección).
+        │
+        ├── 'modal' (Entregable UX-3.2)
+        │      ├── footer.php imprime, en TODA página (global, no solo
+        │      │   Home), un único #ce-quote-modal (.ce-modal-overlay >
+        │      │   .ce-modal--form[role=dialog]) que invoca
+        │      │   template-parts/quote-form.php con
+        │      │   $args['context']='modal' — mismo <form id="ce-quote-form">,
+        │      │   sin el <section>/tarjeta de la presentación integrada.
+        │      ├── Los 7 CTA del sitio (misma función centralizada,
+        │      │   ce_get_quote_cta_url(), CERO cambios en los 7 puntos)
+        │      │   pasan a apuntar a #ce-quote-modal en vez de
+        │      │   #ce-quote-form — incluidos los de sidebar-servicios.php/
+        │      │   sidebar-proyectos.php, que ahora abren el modal global
+        │      │   aunque la página de Servicio/Proyecto actual no
+        │      │   contenga ningún formulario propio.
+        │      └── GUARDA (dentro de template-parts/quote-form.php, ver
+        │          DECISIONS.md D-051): toda invocación SIN
+        │          $args['context']='modal' —la de front-page.php vía
+        │          Home Builder, la de single-servicio.php, la de
+        │          single-proyecto.php— no imprime nada mientras el modo
+        │          sea 'modal'. Evita id="ce-quote-form" duplicado en el
+        │          documento (el modal global de footer.php ya lo aporta).
+        │
+        └── 'disabled'
+               → ce_get_quote_cta_url() devuelve '' — los 7 CTA se ocultan
+                 (D-049). NO afecta si template-parts/quote-form.php se
+                 imprime o no en su invocación integrada (eso lo sigue
+                 controlando, de forma independiente, la sección
+                 "Formulario de Cotización" del panel Home Builder para
+                 front-page.php, o la presencia incondicional de la
+                 llamada en single-servicio.php/single-proyecto.php) —
+                 comportamiento documentado sin cambios desde D-049.
+
+Apertura del modal (solo aplica cuando ce_quote_form_mode='modal'):
+   Click en cualquier CTA (href="#ce-quote-modal")
+        → ModuleSmoothScroll (assets/js/main.js) detecta que el target
+          tiene la clase .ce-modal-overlay → ModuleModals.open('ce-quote-modal')
+          en vez de hacer scroll — ver DECISIONS.md D-051.
+   Envío exitoso/erróneo dentro del modal:
+        → ModuleQuoteForm.handleSubmit() detecta this.form.closest('.ce-modal-overlay')
+          y lo cierra (ModuleModals.close()) antes de abrir
+          #ce-modal-success/#ce-modal-error — evita dos overlays superpuestos.
+   Ningún mecanismo nuevo de apertura/cierre: ambos puntos reutilizan
+   ModuleModals.open()/close() ya existentes desde antes de este Sprint.
+```
+
 ---
 
 ## 9. Flujo de carga de CSS y JavaScript

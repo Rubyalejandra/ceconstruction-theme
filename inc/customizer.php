@@ -462,7 +462,7 @@ function ce_construction_customize_register( $wp_customize ) {
 	 * --------------------------------------------------------- */
 	$wp_customize->add_section( 'ce_section_quote_form', array(
 		'title'       => __( 'CE: Formulario de Cotización', 'ce-construction' ),
-		'description' => __( 'Define cómo se comportan todos los botones "Solicitar Cotización" del tema. El cambio se aplica automáticamente a los 6 puntos del sitio que enlazan a la cotización, sin tocar código.', 'ce-construction' ),
+		'description' => __( 'Define el comportamiento del formulario de cotización. Desde el Entregable UX-3.2, los botones "Solicitar Cotización" del sitio abren siempre el popup (salvo en modo Desactivado); la diferencia entre modos está en si además se muestra el formulario integrado en el Home/Servicios/Proyectos.', 'ce-construction' ),
 		'priority'    => 37,
 	) );
 
@@ -477,9 +477,14 @@ function ce_construction_customize_register( $wp_customize ) {
 		'section' => 'ce_section_quote_form',
 		'type'    => 'radio',
 		'choices' => array(
-			'integrated' => __( 'Integrado en el Home (sección normal)', 'ce-construction' ),
-			'modal'      => __( 'Popup / Modal (próximamente — Entregable UX-3.2)', 'ce-construction' ),
-			'disabled'   => __( 'Desactivado (oculta todos los botones de cotización del sitio)', 'ce-construction' ),
+			// 🆕 Sprint UX-3, Entregable UX-3.2 (D-053): etiquetas
+			// actualizadas — ambos modos abren el popup desde
+			// cualquier CTA del sitio; la diferencia ya no está en
+			// el destino del CTA, sino en si también se muestra el
+			// formulario integrado allí donde ya existía.
+			'integrated' => __( 'Integrado + Popup (se muestra el formulario en el Home/Servicios/Proyectos, y los botones también abren el popup)', 'ce-construction' ),
+			'modal'      => __( 'Solo Popup (los botones abren el popup; no se muestra el formulario integrado en ninguna página)', 'ce-construction' ),
+			'disabled'   => __( 'Desactivado (oculta todos los botones de cotización y el popup)', 'ce-construction' ),
 		),
 	) );
 }

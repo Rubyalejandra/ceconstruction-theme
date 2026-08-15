@@ -400,3 +400,77 @@ Las 13 secciones previstas en el brief de UX/Conversión ya tienen template-part
 
 ### Corrección aplicada tras revisión del usuario (antes de la aprobación del Entregable)
 El usuario detectó que, en modo "Integrado" (el modo por defecto), el botón CTA de `template-parts/cta.php` no aparecía — contradiciendo el criterio de aceptación de este mismo Entregable. Causa: `get_theme_mod( 'ce_cta_btn_url', ce_get_quote_cta_url() )` y su equivalente en `template-parts/hero.php` solo aplican el segundo argumento como *fallback* mientras el theme_mod nunca se haya guardado — ambos campos carecen de `'default'` propio desde su registro original, así que quedan persistidos como `''` en cuanto el administrador publica cualquier cambio del Customizer, y a partir de ahí el *fallback* deja de aplicarse. **Corregido** en ambos archivos: se sustituyó por una comprobación explícita de cadena vacía antes de aplicar `ce_get_quote_cta_url()`, sin afectar a los otros 5 puntos de CTA (que llaman a la función directamente, sin pasar por `get_theme_mod()`). Ver `DECISIONS.md` D-050 para el detalle completo, incluida la causa por la que el trazado lógico manual original no lo detectó.
+
+---
+
+## Sprint UX-3, Entregable UX-3.2: modal de cotización (declarado bajo v0.8.5 — bump de `style.css` pendiente de tu confirmación)
+
+**Módulo:** Modo Popup del formulario de cotización (`#ce-quote-modal`)
+**Estado:** Entregado — pendiente de aprobación explícita del usuario (ver `DECISIONS.md` D-038)
+
+> **Nota de versionado:** siguiendo la instrucción explícita de este Entregable, **no se aplicó ningún bump a `style.css`** (permanece en `Version: 0.8.5`, tal como quedó tras UX-3.1). Versión propuesta para cuando confirmes: **`0.8.6`** — corresponde a un cambio funcional real (nuevo modo de interacción, 5 archivos tocados) sobre `0.8.5`, siguiendo la misma convención ya usada en Entregables anteriores (un incremento de versión por Entregable con cambios de código). Indícamelo y lo aplico en el próximo Entregable o en una corrección puntual, según prefieras.
+
+### Añadido
+- **`#ce-quote-modal`** (nuevo bloque en `footer.php`): mismo patrón estructural que `#ce-modal-success`/`#ce-modal-error` (`.ce-modal-overlay > .ce-modal[role=dialog][aria-modal][aria-labelledby]`), impreso **únicamente** cuando `ce_quote_form_mode === 'modal'`. Reutiliza `template-parts/quote-form.php` con `$args['context'] = 'modal'` para el contenido — sin duplicar ningún campo del formulario.
+- **`$args['context']` en `template-parts/quote-form.php`:** invocado con `context='modal'` omite el `<section>`/encabezado/tarjeta de la presentación integrada e imprime únicamente el `<form id="ce-quote-form">`. Invocado sin `context` (comportamiento histórico) no cambia.
+- **`.ce-modal--form`** (nuevo modificador CSS, `assets/css/main.css` sección 25, 100% aditiva): amplía `.ce-modal` a `max-width: 620px` + `max-height: 90vh; overflow-y: auto` + `text-align: left`, necesario para alojar el formulario completo (7 campos + adjunto) sin recortarse.
+
+### Modificado
+- **`template-parts/quote-form.php`:** además del soporte de `$args['context']`, se añadió una guarda de auto-ocultamiento — cuando `ce_quote_form_mode === 'modal'`, cualquier invocación **sin** `context='modal'` no imprime nada. Resuelve simultáneamente los 3 puntos de invocación existentes del archivo (`front-page.php` vía Home Builder, `single-servicio.php`, `single-proyecto.php`) sin tocar ninguno de esos 3 archivos — ver `DECISIONS.md` D-051.
+- **`assets/js/main.js`:**
+  - `ModuleSmoothScroll`: si el ancla clickeada apunta a un elemento con clase `.ce-modal-overlay`, llama a `ModuleModals.open()` en vez de hacer scroll — sin esto, ningún CTA con `href="#ce-quote-modal"` habría abierto realmente el modal.
+  - `ModuleQuoteForm`: detecta si el formulario vive dentro de un `.ce-modal-overlay` (`this.parentModalOverlay`) y lo cierra con `ModuleModals.close()` antes de abrir `#ce-modal-success`/`#ce-modal-error`, evitando overlays superpuestos.
+  - Ningún módulo nuevo: ambas adiciones reutilizan `ModuleModals.open()`/`close()`, ya existentes.
+- **`inc/customizer.php`:** actualizado únicamente el *label* de la opción `'modal'` del control `ce_quote_form_mode` (se retira la nota "(próximamente)", ahora incorrecta). Setting, sanitize callback y sección: sin cambios.
+
+### Sin cambios
+- **`inc/home-builder.php`, `front-page.php`, `header.php`, `template-parts/cta.php`, `template-parts/hero.php`, `template-parts/sidebar-servicios.php`, `template-parts/sidebar-proyectos.php`, `inc/helpers.php`, `single-servicio.php`, `single-proyecto.php`, `inc/quote-form.php` (handler AJAX), `inc/enqueue.php`, `style.css`: sin cambios en este Entregable** — verificado por diff contra el ZIP de UX-3.1. La centralización de UX-3.1 (`ce_get_quote_cta_url()`, D-049) hizo innecesario tocar los 7 puntos de CTA: ya apuntaban a la función centralizada, que ahora devuelve `#ce-quote-modal` en modo `modal` sin ningún cambio adicional en esos archivos.
+- Ningún archivo del Sprint 8 (Sprint 8 sigue pausado, sin tocar en este Entregable — verificado por diff).
+
+### Comportamiento
+- **Modo `integrated` (sin cambios respecto a UX-3.1):** los 7 CTA apuntan a `#ce-quote-form`; `#ce-quote-modal` **no se genera** en ninguna página.
+- **Modo `modal`:**
+  - `#ce-quote-modal` existe una sola vez por página (impreso globalmente desde `footer.php`, presente en Home, Servicios y Proyectos por igual).
+  - La sección integrada del formulario **deja de imprimirse** en sus 3 puntos de invocación (Home vía Home Builder, `single-servicio.php`, `single-proyecto.php`) — evita `id="ce-quote-form"` duplicado.
+  - Los 7 CTA (incluidos los de `sidebar-servicios.php`/`sidebar-proyectos.php`) abren el modal, **aunque la página actual no contenga ningún formulario embebido**.
+  - Envío exitoso/erróneo dentro del modal: cierra `#ce-quote-modal` y abre `#ce-modal-success`/`#ce-modal-error` — mismo flujo AJAX/nonce documentado en `ARCHITECTURE.md` §8, sin cambios en el handler server-side.
+- **Modo `disabled` (sin cambios respecto a UX-3.1):** los 7 CTA se ocultan; `#ce-quote-modal` no se genera.
+
+### Decisiones clave
+- Ver `DECISIONS.md`: D-051.
+
+### Verificaciones ejecutadas
+- **Sintaxis PHP:** balance de llaves/paréntesis (Python) en los 3 archivos PHP tocados/reescritos: `template-parts/quote-form.php` (0/0), `footer.php` (0/0), `inc/customizer.php` (0/0) — todos balanceados. `php -l` no disponible en el entorno (limitación metodológica ya documentada).
+- **Sintaxis JS:** `node --check assets/js/main.js` → sin errores.
+- **Sintaxis CSS:** balance de llaves (Python) en `assets/css/main.css` tras la sección 25 nueva → 0 de diferencia.
+- **Alcance del diff:** confirmado (`diff -rq` contra el ZIP de UX-3.1) que únicamente 5 archivos cambiaron: `assets/css/main.css`, `assets/js/main.js`, `footer.php`, `inc/customizer.php`, `template-parts/quote-form.php`. Cero archivos nuevos o eliminados fuera de esos 5 (todos ya existían, ninguno se creó ni se borró). `style.css` confirmado sin cambios.
+- **Archivos explícitamente confirmados sin cambios (diff 1:1):** `inc/home-builder.php`, `front-page.php`, `inc/quote-form.php`, `inc/enqueue.php`, `header.php`, `template-parts/cta.php`, `template-parts/hero.php`, `template-parts/sidebar-servicios.php`, `template-parts/sidebar-proyectos.php`, `inc/helpers.php`.
+- **Puntos de invocación de `quote-form.php` cubiertos por la guarda:** confirmado (`grep`) que existen exactamente 3 invocaciones sin `context='modal'` en todo el árbol (`front-page.php` vía registro de Home Builder, `single-servicio.php`, `single-proyecto.php`) — los 3 quedan cubiertos por la misma guarda, sin tocar ninguno de esos 3 archivos.
+- **`#ce-quote-modal` impreso una sola vez:** confirmado por lectura que el bloque en `footer.php` está dentro de un único `if`, sin repetición.
+- **Regresión sobre Sprint 8:** confirmado (diff) que ningún archivo del Sprint 8 fue tocado.
+
+### Continuación de sesión + corrección arquitectónica (D-053) — coexistencia integrado+popup
+El diseño original de este Entregable (arriba, D-051) hacía que `integrated` y `modal` fueran mutuamente excluyentes. El usuario requería que **ambos coexistieran**: formulario integrado visible donde ya existía, y los 7 CTA del sitio abriendo el popup en cualquier página (incluidas las que nunca tuvieron formulario embebido, como `archive-servicio.php`/`archive-proyecto.php`).
+
+Se retomaron sin descartarlos los cambios parciales de una sesión anterior (`ce_construction_mark_quote_form_rendered_inline()`/`ce_construction_quote_form_rendered_inline()`/`ce_construction_quote_form_rendered_inline_get()` en `inc/helpers.php`, con la corrección ya aplicada del `static` compartido; la llamada a la bandera en `template-parts/quote-form.php`) y se completó la integración:
+
+- **`inc/helpers.php` — `ce_get_quote_cta_url()`:** nueva semántica — `integrated` y `modal` devuelven ambos `#ce-quote-modal`; solo `disabled` devuelve `''`. **Ninguno de los 7 puntos de CTA necesitó tocarse** (ya llamaban a esta función desde UX-3.1).
+- **`footer.php`:** el modal se imprime siempre que el modo no sea `disabled` (antes, solo en `modal`).
+- **`template-parts/quote-form.php`:** el `<form>` del modal recibe `id="ce-quote-form-modal"` (y sus campos internos, sufijo `-modal`; los `name=` nunca se tocan) únicamente cuando ya existe una instancia integrada impresa en la misma petición (bandera de UX-3.1/sesión anterior) — evita IDs duplicados cuando ambas coexisten. Guarda de supresión de la instancia normal extendida para cubrir también `disabled` (gap detectado en esta continuación: sin esto, `single-servicio.php`/`single-proyecto.php` habrían seguido mostrando un formulario funcional con la cotización desactivada).
+- **`assets/js/main.js` — `ModuleQuoteForm`:** refactorizado de singleton (`#ce-quote-form` fijo) a localizador por clase (`.ce-quote-form-instance`), instanciando un controlador independiente por cada formulario encontrado — necesario porque ahora puede haber hasta 2 instancias funcionales simultáneas en la misma página.
+- **`inc/customizer.php`:** etiquetas del control `ce_quote_form_mode` actualizadas a la semántica real ("Integrado + Popup" / "Solo Popup" / "Desactivado").
+
+Ver `DECISIONS.md` D-053 para el detalle completo, incluido el diagnóstico línea por línea de qué parte de la sesión anterior era correcta y qué faltaba.
+
+**Comportamiento final (reemplaza la sección "Comportamiento" de arriba, ya desactualizada tras esta corrección):**
+- **`integrated`:** formulario integrado visible donde ya se mostraba (Home Builder / single-servicio.php / single-proyecto.php) **y** los 7 CTA abren el popup. Si coexisten en la misma página, el popup usa `id="ce-quote-form-modal"` para evitar colisión.
+- **`modal`:** ninguna página muestra el formulario integrado; los 7 CTA abren el popup, siempre con `id="ce-quote-form"` (nunca hay colisión posible).
+- **`disabled`:** ni el formulario integrado ni el popup se imprimen en ningún punto; los 7 CTA se ocultan.
+
+### Verificaciones ejecutadas (continuación)
+- Balance de llaves/paréntesis (Python) en los 4 archivos PHP re-tocados: `inc/helpers.php` (36/36, 165/165), `inc/customizer.php` (41/41, 284/284), `footer.php` (2/2, 97/97), `template-parts/quote-form.php` (4/4, 96/96) — todos balanceados.
+- `node --check assets/js/main.js` → sin errores.
+- Confirmado (`grep`) que no queda ningún `id="ce_..."` sin sufijar condicionalmente en `template-parts/quote-form.php`.
+- Confirmado (diff) que `header.php`, `template-parts/hero.php`, `template-parts/cta.php`, `template-parts/sidebar-servicios.php`, `template-parts/sidebar-proyectos.php`, `style.css`, `inc/enqueue.php`, `inc/home-builder.php`, `front-page.php`, `inc/quote-form.php` **no cambiaron** en esta continuación.
+- Trazado lógico manual (no hay entorno WordPress real disponible) de los 10 escenarios de validación solicitados: integrated+formulario integrado, integrated+CTA→popup, modal+popup, Servicios→popup, Proyectos→popup, página sin formulario integrado→popup, ausencia de IDs duplicados en todas las combinaciones, nonce/AJAX sin cambios, `ModuleQuoteForm` multi-instancia, labels de CTA intactos (verificado por `grep` que ningún texto de botón se tocó) — los 10 confirmados correctos por trazado de código.
+- Ningún archivo del Sprint 8 tocado (verificado por diff).

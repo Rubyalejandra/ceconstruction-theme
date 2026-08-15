@@ -174,6 +174,35 @@
 		</div>
 	</div>
 
+	<?php
+	// 🆕 Sprint UX-3, Entregable UX-3.2: modal de cotización.
+	// Semántica actualizada (D-053, reemplaza el diseño original de
+	// D-051): se imprime siempre que ce_quote_form_mode NO sea
+	// 'disabled' — en 'integrated' Y en 'modal' por igual, porque
+	// desde este Entregable los 7 puntos de CTA del tema abren el
+	// popup en ambos modos (ver inc/helpers.php -> ce_get_quote_cta_url()).
+	// Solo en 'disabled' este bloque no genera ningún HTML. El
+	// contenido reutiliza template-parts/quote-form.php con
+	// $args['context'] = 'modal', que decide internamente si el
+	// <form> necesita un id distinto de "ce-quote-form" para evitar
+	// colisión con una instancia integrada ya impresa antes en esta
+	// misma página (Home Builder / single-servicio.php /
+	// single-proyecto.php) — ver el docblock de ese archivo y
+	// DECISIONS.md D-053.
+	if ( 'disabled' !== get_theme_mod( 'ce_quote_form_mode', 'integrated' ) ) :
+		?>
+		<!-- Modal: formulario de cotización -->
+		<div class="ce-modal-overlay" id="ce-quote-modal">
+			<div class="ce-modal ce-modal--form" role="dialog" aria-modal="true" aria-labelledby="ce-quote-modal-title">
+				<button class="ce-modal__close" aria-label="<?php esc_attr_e( 'Cerrar', 'ce-construction' ); ?>"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+				<h3 id="ce-quote-modal-title" class="ce-modal__title"><?php esc_html_e( 'Solicita tu Cotización Gratuita', 'ce-construction' ); ?></h3>
+				<?php get_template_part( 'template-parts/quote-form', null, array( 'context' => 'modal' ) ); ?>
+			</div>
+		</div>
+		<?php
+	endif;
+	?>
+
 <?php wp_footer(); ?>
 </body>
 </html>

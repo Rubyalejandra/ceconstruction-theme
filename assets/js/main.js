@@ -44,6 +44,22 @@
 				if (!target) return;
 
 				e.preventDefault();
+
+				// 🆕 Sprint UX-3, Entregable UX-3.2: un ancla que apunta a un
+				// modal (p. ej. los CTA de cotización cuando
+				// ce_quote_form_mode = 'modal', href="#ce-quote-modal")
+				// debe ABRIR ese modal vía ModuleModals — no hacer scroll
+				// hacia un elemento `position:fixed` oculto por CSS, que no
+				// tendría ningún efecto visible. Reutiliza el mismo
+				// ModuleModals.open() que ya usa ModuleQuoteForm para
+				// success/error; no se crea ningún mecanismo nuevo de
+				// apertura/cierre — ver DECISIONS.md D-051.
+				if (target.classList.contains('ce-modal-overlay')) {
+					ModuleModals.open(targetId);
+					document.dispatchEvent(new CustomEvent('ce:closeMobileNav'));
+					return;
+				}
+
 				const header = $('.ce-header');
 				const offset = header ? header.offsetHeight : 0;
 				const top = target.getBoundingClientRect().top + window.pageYOffset - offset - 16;
@@ -388,148 +404,179 @@
 	 * y reduce solicitudes inválidas.
 	 * ============================================================ */
 	const ModuleQuoteForm = {
+		// 🆕 Sprint UX-3, Entregable UX-3.2 (D-053): puede existir más
+		// de una instancia del formulario de cotización en la misma
+		// página al mismo tiempo — la integrada (id="ce-quote-form") y
+		// la del modal (id="ce-quote-form-modal" cuando hay colisión,
+		// ver template-parts/quote-form.php). Antes este módulo asumía
+		// un único formulario fijo por ID (#ce-quote-form); ahora
+		// localiza TODAS las instancias por la clase marcadora
+		// `.ce-quote-form-instance` y crea un controlador independiente
+		// por cada una, sin asumir cuántas hay ni sus IDs concretos.
+		// Mismo flujo AJAX/nonce/validación de siempre, sin cambios de
+		// comportamiento para páginas con una sola instancia (el caso
+		// más común) — solo cambia cómo se localizan.
 		init() {
-			this.form = $('#ce-quote-form');
-			if (!this.form) return;
+			$$('.ce-quote-form-instance').forEach((formEl) => this.createInstance(formEl));
+		},
+		createInstance(formEl) {
+			const instance = {
+				form: formEl,
+				submitBtn: $('button[type="submit"]', formEl),
+				statusEl: $('.ce-form-status', formEl),
+				fileInput: $('input[type="file"]', formEl),
+				fileZone: $('.ce-field--file', formEl),
 
-			this.submitBtn = $('button[type="submit"]', this.form);
-			this.statusEl  = $('.ce-form-status', this.form);
-			this.fileInput = $('input[type="file"]', this.form);
-			this.fileZone  = $('.ce-field--file', this.form);
+				// Sprint UX-3, Entregable UX-3.2: cuando el formulario se
+				// reutiliza dentro de #ce-quote-modal (template-parts/quote-form.php
+				// con $args['context']='modal'), .ce-modal__close cierra el
+				// overlay que lo contiene, pero al mostrar el modal de éxito/error
+				// (handleSubmit) ese overlay del formulario debe cerrarse primero
+				// — si no, quedarían dos .ce-modal-overlay.is-open superpuestos.
+				// Reutiliza ModuleModals.close(), ya existente; no se crea
+				// ningún mecanismo nuevo — ver DECISIONS.md D-051/D-053.
+				parentModalOverlay: formEl.closest('.ce-modal-overlay'),
 
-			this.rules = {
-				name:    (v) => v.trim().length >= 2 || 'Ingresa un nombre válido.',
-				email:   (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) || 'Ingresa un correo válido.',
-				phone:   (v) => /^[0-9+\-\s()]{7,20}$/.test(v) || 'Ingresa un teléfono válido.',
-				service: (v) => v.trim().length > 0 || 'Selecciona el servicio requerido.',
-				message: (v) => v.trim().length >= 10 || 'Cuéntanos un poco más (mínimo 10 caracteres).',
+				rules: {
+					name:    (v) => v.trim().length >= 2 || 'Ingresa un nombre válido.',
+					email:   (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) || 'Ingresa un correo válido.',
+					phone:   (v) => /^[0-9+\-\s()]{7,20}$/.test(v) || 'Ingresa un teléfono válido.',
+					service: (v) => v.trim().length > 0 || 'Selecciona el servicio requerido.',
+					message: (v) => v.trim().length >= 10 || 'Cuéntanos un poco más (mínimo 10 caracteres).',
+				},
+
+				bindLiveValidation() {
+					Object.keys(this.rules).forEach((name) => {
+						const field = this.form.elements[name];
+						if (!field) return;
+						on(field, 'blur', () => this.validateField(name));
+					});
+				},
+				validateField(name) {
+					const field = this.form.elements[name];
+					const wrapper = field.closest('.ce-field');
+					const result = this.rules[name](field.value);
+
+					if (result === true) {
+						wrapper.classList.remove('is-invalid');
+						wrapper.classList.add('is-valid');
+						return true;
+					}
+
+					wrapper.classList.add('is-invalid');
+					wrapper.classList.remove('is-valid');
+					const errorEl = $('.ce-field__error', wrapper);
+					if (errorEl) errorEl.textContent = result;
+					return false;
+				},
+				validateAll() {
+					return Object.keys(this.rules)
+						.map((name) => this.validateField(name))
+						.every(Boolean);
+				},
+				bindFileZone() {
+					if (!this.fileZone || !this.fileInput) return;
+
+					on(this.fileZone, 'click', () => this.fileInput.click());
+					on(this.fileInput, 'change', () => this.updateFileLabel());
+
+					['dragover', 'dragenter'].forEach((evName) => {
+						on(this.fileZone, evName, (e) => {
+							e.preventDefault();
+							this.fileZone.classList.add('is-dragover');
+						});
+					});
+					['dragleave', 'drop'].forEach((evName) => {
+						on(this.fileZone, evName, (e) => {
+							e.preventDefault();
+							this.fileZone.classList.remove('is-dragover');
+						});
+					});
+					on(this.fileZone, 'drop', (e) => {
+						const file = e.dataTransfer.files[0];
+						if (file) {
+							this.fileInput.files = e.dataTransfer.files;
+							this.updateFileLabel();
+						}
+					});
+				},
+				updateFileLabel() {
+					const label = $('.ce-field--file__label', this.fileZone);
+					const file = this.fileInput.files[0];
+					if (label && file) {
+						label.textContent = file.name;
+					}
+				},
+				setLoading(isLoading) {
+					this.form.classList.toggle('is-loading', isLoading);
+					if (this.submitBtn) this.submitBtn.disabled = isLoading;
+				},
+				showStatus(message, type) {
+					if (!this.statusEl) return;
+					this.statusEl.textContent = message;
+					this.statusEl.classList.remove('ce-form-status--success', 'ce-form-status--error');
+					this.statusEl.classList.add('is-visible', `ce-form-status--${type}`);
+				},
+				async handleSubmit(e) {
+					e.preventDefault();
+
+					if (!this.validateAll()) {
+						this.showStatus('Revisa los campos marcados en rojo.', 'error');
+						return;
+					}
+
+					this.setLoading(true);
+
+					const formData = new FormData(this.form);
+					formData.append('action', 'ce_submit_quote');
+					formData.append('ce_quote_nonce', CE.quoteNonce);
+
+					try {
+						const response = await fetch(CE.ajaxUrl, {
+							method: 'POST',
+							credentials: 'same-origin',
+							body: formData,
+						});
+						const data = await response.json();
+
+						if (data.success) {
+							this.showStatus(data.data.message, 'success');
+							this.form.reset();
+							$$('.ce-field', this.form).forEach((f) => f.classList.remove('is-valid', 'is-invalid'));
+							if (this.parentModalOverlay) ModuleModals.close(this.parentModalOverlay);
+							ModuleModals.open('ce-modal-success');
+						} else {
+							const msg = (data.data && data.data.message) || CE.i18n.error;
+							this.showStatus(msg, 'error');
+							if (this.parentModalOverlay) ModuleModals.close(this.parentModalOverlay);
+							ModuleModals.open('ce-modal-error');
+
+							if (data.data && data.data.fields) {
+								Object.entries(data.data.fields).forEach(([name, msgField]) => {
+									const field = this.form.elements[name];
+									if (!field) return;
+									const wrapper = field.closest('.ce-field');
+									wrapper.classList.add('is-invalid');
+									const errorEl = $('.ce-field__error', wrapper);
+									if (errorEl) errorEl.textContent = msgField;
+								});
+							}
+						}
+					} catch (err) {
+						this.showStatus(CE.i18n.error, 'error');
+						if (this.parentModalOverlay) ModuleModals.close(this.parentModalOverlay);
+						ModuleModals.open('ce-modal-error');
+					} finally {
+						this.setLoading(false);
+					}
+				},
 			};
 
-			this.bindLiveValidation();
-			this.bindFileZone();
-			on(this.form, 'submit', (e) => this.handleSubmit(e));
-		},
-		bindLiveValidation() {
-			Object.keys(this.rules).forEach((name) => {
-				const field = this.form.elements[name];
-				if (!field) return;
-				on(field, 'blur', () => this.validateField(name));
-			});
-		},
-		validateField(name) {
-			const field = this.form.elements[name];
-			const wrapper = field.closest('.ce-field');
-			const result = this.rules[name](field.value);
+			instance.bindLiveValidation();
+			instance.bindFileZone();
+			on(instance.form, 'submit', (e) => instance.handleSubmit(e));
 
-			if (result === true) {
-				wrapper.classList.remove('is-invalid');
-				wrapper.classList.add('is-valid');
-				return true;
-			}
-
-			wrapper.classList.add('is-invalid');
-			wrapper.classList.remove('is-valid');
-			const errorEl = $('.ce-field__error', wrapper);
-			if (errorEl) errorEl.textContent = result;
-			return false;
-		},
-		validateAll() {
-			return Object.keys(this.rules)
-				.map((name) => this.validateField(name))
-				.every(Boolean);
-		},
-		bindFileZone() {
-			if (!this.fileZone || !this.fileInput) return;
-
-			on(this.fileZone, 'click', () => this.fileInput.click());
-			on(this.fileInput, 'change', () => this.updateFileLabel());
-
-			['dragover', 'dragenter'].forEach((evName) => {
-				on(this.fileZone, evName, (e) => {
-					e.preventDefault();
-					this.fileZone.classList.add('is-dragover');
-				});
-			});
-			['dragleave', 'drop'].forEach((evName) => {
-				on(this.fileZone, evName, (e) => {
-					e.preventDefault();
-					this.fileZone.classList.remove('is-dragover');
-				});
-			});
-			on(this.fileZone, 'drop', (e) => {
-				const file = e.dataTransfer.files[0];
-				if (file) {
-					this.fileInput.files = e.dataTransfer.files;
-					this.updateFileLabel();
-				}
-			});
-		},
-		updateFileLabel() {
-			const label = $('.ce-field--file__label', this.fileZone);
-			const file = this.fileInput.files[0];
-			if (label && file) {
-				label.textContent = file.name;
-			}
-		},
-		setLoading(isLoading) {
-			this.form.classList.toggle('is-loading', isLoading);
-			if (this.submitBtn) this.submitBtn.disabled = isLoading;
-		},
-		showStatus(message, type) {
-			if (!this.statusEl) return;
-			this.statusEl.textContent = message;
-			this.statusEl.classList.remove('ce-form-status--success', 'ce-form-status--error');
-			this.statusEl.classList.add('is-visible', `ce-form-status--${type}`);
-		},
-		async handleSubmit(e) {
-			e.preventDefault();
-
-			if (!this.validateAll()) {
-				this.showStatus('Revisa los campos marcados en rojo.', 'error');
-				return;
-			}
-
-			this.setLoading(true);
-
-			const formData = new FormData(this.form);
-			formData.append('action', 'ce_submit_quote');
-			formData.append('ce_quote_nonce', CE.quoteNonce);
-
-			try {
-				const response = await fetch(CE.ajaxUrl, {
-					method: 'POST',
-					credentials: 'same-origin',
-					body: formData,
-				});
-				const data = await response.json();
-
-				if (data.success) {
-					this.showStatus(data.data.message, 'success');
-					this.form.reset();
-					$$('.ce-field', this.form).forEach((f) => f.classList.remove('is-valid', 'is-invalid'));
-					ModuleModals.open('ce-modal-success');
-				} else {
-					const msg = (data.data && data.data.message) || CE.i18n.error;
-					this.showStatus(msg, 'error');
-					ModuleModals.open('ce-modal-error');
-
-					if (data.data && data.data.fields) {
-						Object.entries(data.data.fields).forEach(([name, msgField]) => {
-							const field = this.form.elements[name];
-							if (!field) return;
-							const wrapper = field.closest('.ce-field');
-							wrapper.classList.add('is-invalid');
-							const errorEl = $('.ce-field__error', wrapper);
-							if (errorEl) errorEl.textContent = msgField;
-						});
-					}
-				}
-			} catch (err) {
-				this.showStatus(CE.i18n.error, 'error');
-				ModuleModals.open('ce-modal-error');
-			} finally {
-				this.setLoading(false);
-			}
+			return instance;
 		},
 	};
 

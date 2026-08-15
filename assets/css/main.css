@@ -1227,3 +1227,27 @@ img[loading="lazy"] {
     justify-content: center;
   }
 }
+
+/* =============================================================
+   25. SPRINT UX-3, ENTREGABLE UX-3.2 — MODAL DE COTIZACIÓN
+   Sección añadida sin modificar ninguna regla anterior.
+
+   `.ce-modal--form` es un modificador BEM sobre el `.ce-modal` ya
+   existente (sección 14, MODALES) — el componente base
+   `.ce-modal-overlay`/`.ce-modal` (usado por #ce-modal-success y
+   #ce-modal-error) no cambia. Necesario porque `.ce-modal` tiene
+   `max-width: 460px` y `text-align: center`, pensado para el
+   contenido corto de un modal de aviso — insuficiente para alojar
+   el formulario completo de cotización (7 campos + adjunto),
+   reutilizado sin cambios desde template-parts/quote-form.php
+   (Sprint UX-3, Entregable UX-3.2, ver DECISIONS.md D-051).
+   ============================================================= */
+.ce-modal--form {
+  max-width: 620px;
+  max-height: 90vh;
+  overflow-y: auto;
+  text-align: left;
+}
+.ce-modal--form .ce-modal__title {
+  text-align: center;
+}
