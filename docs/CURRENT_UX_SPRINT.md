@@ -34,42 +34,46 @@ Plan completo de Sprints UX-1 a UX-6: ver `docs/UX_CONVERSION_ANALISIS_Y_PLAN.md
 | UX-2.1 | `template-parts/team.php` y `template-parts/clients.php` (secciones de Home para Equipo y Clientes) | ✅ Completado |
 | UX-2.2 | `template-parts/faq.php` (sección de Home para Preguntas Frecuentes) + extracción de `content-faq-accordion.php` compartido con `single-servicio.php` | ✅ Completado |
 
-## Sprint actual de esta fase
-
-**Sprint UX-3 — "CTA centralizado + Modo del formulario de cotización"** — Estado: ✅ **Completado** (pendiente de tu aprobación de UX-3.2 para cierre formal, ver nota abajo).
+## Sprint UX-3 — "CTA centralizado + Modo del formulario de cotización" — Estado: ✅ **Completado.**
 
 | Entregable | Objetivo | Estado |
 |---|---|---|
 | UX-3.1 | CTA de cotización centralizado (`ce_get_quote_cta_url()`) + modo configurable (`ce_quote_form_mode`: integrado/popup/desactivado) | ✅ Completado |
-| UX-3.2 | Modal de cotización (popup real), con coexistencia integrado+popup | 🟡 **Entregado (retomado y finalizado tras interrupción de sesión) — pendiente de tu aprobación** |
+| UX-3.2 | Modal de cotización (popup real), con coexistencia integrado+popup | ✅ Completado |
 
-> **Nota:** igual que en el cierre de los Sprints UX-1 y UX-2, ambos Entregables completan el Sprint UX-3 tal como estaba planificado; el Sprint se da por completado formalmente cuando también apruebes UX-3.2.
+> **Nota de versionado (arrastrada de UX-3.1):** `style.css` sigue en `Version: 0.8.5` (corrección de un desfase acumulado desde UX-1.2). Ni UX-3.2 ni UX-4.1 aplicaron bump adicional, por instrucción explícita en ambos Entregables — versión propuesta pendiente de confirmar: `0.8.6`. Ver `CHANGELOG.md`.
 
-> **Nota de versionado (arrastrada de UX-3.1):** `style.css` quedó en `Version: 0.8.5` tras UX-3.1 (corrección de un desfase acumulado desde UX-1.2). **UX-3.2 no aplicó ningún bump adicional** por instrucción explícita del Entregable — versión propuesta para cuando confirmes: `0.8.6`. Ver `CHANGELOG.md`, entrada de UX-3.2.
+> ✅ **Cerrado — investigación de HTTP 400 en el envío del formulario de cotización.** Causa confirmada: en una subida de ZIP anterior a la revisada, `inc/quote-form.php` no se incluyó en el paquete — el usuario confirmó que fue un error propio de carga (no del código), no relacionado con el mecanismo honeypot que se había planteado como hipótesis. En el ZIP efectivamente revisado (`UX_3_2_15082026.zip`), `inc/quote-form.php` ya estaba presente, registrado en `functions.php`, y era hash-idéntico al entregado en UX-3.2 — verificado en su momento (`md5sum`) antes de descartar la hipótesis del honeypot como causa. **No se aplicó ningún cambio de código** a `inc/quote-form.php` ni a `template-parts/quote-form.php` para cerrar este hallazgo — no había ningún bug que corregir en ninguno de los dos.
 
-## Trabajo realizado (Entregable UX-3.2, incluida su continuación/corrección D-053)
+## Sprint actual de esta fase
 
-El diseño inicial de este Entregable (`footer.php` imprimiendo `#ce-quote-modal` solo en modo `modal`, suprimiendo la instancia integrada) resultó insuficiente: el usuario necesitaba que el formulario integrado y el popup **coexistieran** — visible el formulario donde ya se mostraba (Home/Servicios/Proyectos), y los 7 CTA del sitio abriendo el popup en cualquier página, incluidas las que nunca tuvieron formulario embebido (`archive-servicio.php`/`archive-proyecto.php`).
+**Sprint UX-4 — "Hero configurable"** — Estado: **En curso.**
 
-Tras una interrupción de sesión, se retomaron sin descartarlos los cambios parciales ya aplicados a `inc/helpers.php` (mecanismo de bandera `ce_construction_quote_form_rendered_inline()`, con su corrección del `static` compartido ya resuelta) y `template-parts/quote-form.php` (llamada a la bandera), y se completó la integración: `ce_get_quote_cta_url()` ahora devuelve `#ce-quote-modal` tanto en `integrated` como en `modal` (los 7 CTA no necesitaron tocarse, ya centralizados desde UX-3.1); `footer.php` imprime el modal siempre que el modo no sea `disabled`; el `<form>` del modal usa `id="ce-quote-form-modal"` (y sus campos internos, sufijo `-modal`) solo cuando colisionaría con una instancia integrada ya impresa en la misma página; `ModuleQuoteForm` (`assets/js/main.js`) se refactorizó de singleton a localizador multi-instancia por clase (`.ce-quote-form-instance`). También se detectó y corrigió un gap adicional: la guarda de supresión de la instancia normal no cubría `disabled`, lo que habría dejado un formulario funcional en `single-servicio.php`/`single-proyecto.php` incluso con la cotización desactivada.
+| Entregable | Objetivo | Estado |
+|---|---|---|
+| UX-4.1 | Hero configurable: tipo imagen/video + overlay ajustable | 🟡 **Entregado — pendiente de tu aprobación** |
+| UX-4.2 | Modo slider del Hero | ⬜ No iniciado — no comienza sin tu aprobación explícita de UX-4.1 |
 
-Ver `CHANGELOG.md` (entrada de UX-3.2, con su subsección de continuación) y `DECISIONS.md` D-053 (que documenta también el diagnóstico completo de qué parte de la sesión interrumpida era correcta y qué faltaba) para el detalle completo.
+## Trabajo realizado (Entregable UX-4.1)
 
-**Decisiones señaladas explícitamente durante la implementación (no ampliaron el alcance por iniciativa propia sin documentarlo):** las 2 adiciones a `assets/js/main.js` y la nueva clase CSS de la entrega original no estaban nombradas literalmente en el encargo, pero se determinó que eran directamente necesarias para que el modal abriera/cerrara correctamente y pudiera alojar el formulario — quedaron documentadas en `DECISIONS.md` D-051. El gap de `disabled` sin cubrir por la guarda de supresión, detectado durante la continuación de esta sesión, también se documentó explícitamente (D-053) antes de corregirlo, en vez de aplicarse en silencio.
+3 controles nuevos en la sección ya existente "CE: Sección Hero" del Customizer (`ce_hero_type`, `ce_hero_video`, `ce_hero_overlay_opacity`), consumidos por una rama condicional en `template-parts/hero.php` que decide entre imagen de fondo (comportamiento histórico, con fallback automático si el tipo es "video" pero no hay ningún video subido) o un `<video>` de fondo, más una nueva regla CSS aditiva para la opacidad del overlay vía custom property. El bloque de cálculo de los botones del Hero (incluido el fix de D-050) se verificó intacto, línea por línea, antes y después del cambio. Ver `CHANGELOG.md` (entrada de UX-4.1) y `DECISIONS.md` D-054 para el detalle completo.
 
-## Archivos creados / modificados (Sprint UX-3, Entregable UX-3.2, estado final tras D-053)
+**Este Entregable no tocó nada del sistema de cotización** (`inc/quote-form.php`, `template-parts/quote-form.php`, `inc/helpers.php`, `footer.php`, `assets/js/main.js`) — la investigación del HTTP 400 (nota de arriba) sigue exactamente donde estaba.
+
+## Archivos creados / modificados (Sprint UX-4, Entregable UX-4.1)
 - Creados: ninguno.
-- Modificados: `inc/helpers.php` (`ce_get_quote_cta_url()` + mecanismo de bandera de instancia), `template-parts/quote-form.php`, `footer.php`, `assets/js/main.js`, `assets/css/main.css`, `inc/customizer.php` (labels del control `ce_quote_form_mode`).
-- Sin cambios: `inc/home-builder.php`, `front-page.php`, `header.php`, `template-parts/cta.php`, `template-parts/hero.php`, `template-parts/sidebar-servicios.php`, `template-parts/sidebar-proyectos.php`, `single-servicio.php`, `single-proyecto.php`, `inc/quote-form.php` (handler AJAX), `inc/enqueue.php`, `style.css`.
+- Modificados: `inc/customizer.php` (3 controles + 2 sanitize callbacks, dentro/después de la sección Hero ya existente), `template-parts/hero.php` (rama condicional de tipo de fondo + overlay), `assets/css/main.css` (sección 26, aditiva).
+- Sin cambios: todo lo demás — en particular, todo el sistema de cotización (Sprint UX-3) y el Home Builder (Sprint UX-1/UX-2) quedan exactamente como estaban.
 - Eliminados: ninguno.
 
 ## Documentación actualizada (en este cierre)
-`DECISIONS.md` (D-051 original + D-053, continuación/corrección), `CHANGELOG.md` (entrada de UX-3.2, con subsección de continuación), `ARCHITECTURE.md` (sección 8: nota aditiva sobre el punto de entrada configurable al formulario, sin reescribir el diagrama ya documentado), y este mismo archivo. Sin cambios en `TREE.md`/`TODO.md` (sin archivos nuevos ni backlog que actualizar) ni en `CURRENT_SPRINT.md`, `QA_REPORT.md` o `HANDOFF.md` (Sprint 8, sin tocar).
+`DECISIONS.md` (D-054), `CHANGELOG.md` (entrada de UX-4.1), y este mismo archivo. Sin cambios en `ARCHITECTURE.md`/`TREE.md`/`TODO.md` (sin archivos nuevos ni backlog que actualizar) ni en `CURRENT_SPRINT.md`, `QA_REPORT.md` o `HANDOFF.md` (Sprint 8, sin tocar).
 
 ## Próximo Entregable
-**Sprint UX-4, Entregable UX-4.1** — Hero configurable (ver `docs/UX_CONVERSION_ANALISIS_Y_PLAN.md` §5 para el alcance exacto). No inicia sin tu aprobación explícita de UX-3.2. Ver el prompt de continuación entregado junto con este Entregable para el detalle exacto de alcance.
+**Sprint UX-4, Entregable UX-4.2** — Modo slider del Hero (ver `docs/UX_CONVERSION_ANALISIS_Y_PLAN.md` §5 para el alcance exacto — generalización de `ModuleTestimonialSlider`, `ce_hero_slides` como repeater). No inicia sin tu aprobación explícita de UX-4.1. Ver el prompt de continuación entregado junto con este Entregable para el detalle exacto de alcance.
 
 ## Riesgos y pendientes abiertos
+- ~~Investigación del HTTP 400 en el envío del formulario de cotización~~ — **cerrado**: causa confirmada como error de carga del usuario en un ZIP anterior (`inc/quote-form.php` no incluido en ese paquete), no un bug de código. Ver nota completa arriba, en la sección del Sprint UX-3.
 - ~~Interacción entre `ce_quote_form_mode='modal'` y la sección `quote_form` del Home Builder (IDs duplicados)~~ — **resuelto en UX-3.2** mediante la bandera de instancia y el id dinámico en `template-parts/quote-form.php` (ver `DECISIONS.md` D-053).
 - ~~"Nota de interacción con el Home Builder" de D-049 (CTA apuntando a una ancla `#ce-quote-form` inexistente si la sección se desactivaba en el Home Builder dejando el modo en `integrated`)~~ — **resuelta como efecto colateral de D-053**: los CTA ya no apuntan a esa ancla, apuntan siempre al popup (impreso globalmente por `footer.php`), independientemente del estado de esa sección en el Home Builder.
 - **Vigente (documentado, no bloqueante, sin cambios desde UX-3.1):** en modo `disabled`, un botón con `ce_cta_btn_url`/`ce_hero_btn1_url` personalizado explícitamente por el administrador no se oculta (comportamiento intencional, ver `DECISIONS.md` D-049).

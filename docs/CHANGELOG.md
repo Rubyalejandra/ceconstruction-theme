@@ -474,3 +474,40 @@ Ver `DECISIONS.md` D-053 para el detalle completo, incluido el diagnóstico lín
 - Confirmado (diff) que `header.php`, `template-parts/hero.php`, `template-parts/cta.php`, `template-parts/sidebar-servicios.php`, `template-parts/sidebar-proyectos.php`, `style.css`, `inc/enqueue.php`, `inc/home-builder.php`, `front-page.php`, `inc/quote-form.php` **no cambiaron** en esta continuación.
 - Trazado lógico manual (no hay entorno WordPress real disponible) de los 10 escenarios de validación solicitados: integrated+formulario integrado, integrated+CTA→popup, modal+popup, Servicios→popup, Proyectos→popup, página sin formulario integrado→popup, ausencia de IDs duplicados en todas las combinaciones, nonce/AJAX sin cambios, `ModuleQuoteForm` multi-instancia, labels de CTA intactos (verificado por `grep` que ningún texto de botón se tocó) — los 10 confirmados correctos por trazado de código.
 - Ningún archivo del Sprint 8 tocado (verificado por diff).
+
+---
+
+## Sprint UX-4, Entregable UX-4.1: Hero configurable (imagen/video + overlay) — sin bump de `style.css`
+
+**Módulo:** Hero configurable — modos imagen/video, overlay ajustable
+**Estado:** Entregado — pendiente de aprobación explícita del usuario (ver `DECISIONS.md` D-038)
+
+> **Nota de versionado:** siguiendo tu instrucción explícita, **no se aplicó ningún bump a `style.css`** (permanece en `Version: 0.8.5`). Versión propuesta para cuando confirmes: **`0.8.6`** (3 archivos con cambio funcional real). Indícamelo cuando quieras aplicarlo.
+
+### Añadido
+- **`inc/customizer.php`:** 3 controles nuevos dentro de la sección ya existente "CE: Sección Hero" — `ce_hero_type` (select imagen/video), `ce_hero_video` (media control, solo video), `ce_hero_overlay_opacity` (number, 0–1). 2 `sanitize_callback` nuevos: `ce_construction_sanitize_hero_type()`, `ce_construction_sanitize_hero_overlay_opacity()` (esta última acota estrictamente el valor en servidor, no confía en los `input_attrs` del navegador).
+- **`assets/css/main.css`** (sección 26, 100% aditiva): `.ce-hero__video` (capa de fondo alternativa a `background-image`) y la propiedad `opacity` en `.ce-hero__overlay` (consumida vía custom property `--ce-hero-overlay-opacity`, sin tocar el `background`/gradiente original de esa clase).
+
+### Cambiado
+- **`template-parts/hero.php`:** rama condicional que imprime `<video autoplay muted loop playsinline>` cuando `ce_hero_type === 'video'` y hay un video subido; en caso contrario (incluido "tipo video sin video subido"), usa la imagen de fondo tal como siempre. El overlay imprime su opacidad configurada como custom property inline. **El bloque de cálculo de `$btn1_url`/`$btn2_url` (incluido el fix de D-050) no se tocó** — verificado línea por línea.
+
+### Sin cambios
+- **`inc/home-builder.php`, `front-page.php`, `functions.php`, `header.php`, `template-parts/cta.php`, `template-parts/sidebar-servicios.php`, `template-parts/sidebar-proyectos.php`, `footer.php`, `template-parts/quote-form.php`, `inc/quote-form.php`, `inc/helpers.php`, `assets/js/main.js`, `style.css`: sin cambios en este Entregable** — verificado por diff. Este Entregable no toca nada del sistema de cotización (Sprint UX-3) ni del Home Builder (Sprint UX-1/UX-2).
+- Ningún archivo del Sprint 8.
+
+### Comportamiento
+- **Tipo `image` (por defecto):** idéntico al comportamiento anterior a este Entregable — overlay a intensidad completa (`opacity: 1`, mismo valor por defecto de `ce_hero_overlay_opacity`), sin `<video>` en el DOM. Cero regresión visual.
+- **Tipo `video` con video subido:** el `<video>` reemplaza la imagen como fondo; el overlay sigue funcionando igual (encima del video). Título/CTA siguen legibles con el overlay al valor configurado.
+- **Tipo `video` sin video subido:** fallback automático a imagen (o al color sólido de respaldo de `.ce-hero` si tampoco hay imagen) — nunca se imprime un `<video>` sin fuente.
+- **Overlay:** ajustable de `0` (fondo a la vista, sin oscurecer) a `1` (como hasta ahora) desde el Customizer, sin editar CSS.
+
+### Decisiones clave
+- Ver `DECISIONS.md`: D-054.
+
+### Verificaciones ejecutadas
+- **Sintaxis PHP:** balance de llaves/paréntesis (Python) en `inc/customizer.php` (45/45, 326/326) y `template-parts/hero.php` (2/2, 57/57) — ambos balanceados.
+- **Sintaxis CSS:** balance de llaves (Python) en `assets/css/main.css` tras la sección 26 nueva — sin diferencia.
+- **Alcance del diff:** confirmado (`diff -rq`) que únicamente 3 archivos cambiaron: `inc/customizer.php`, `template-parts/hero.php`, `assets/css/main.css`. Cero archivos nuevos o eliminados.
+- **Preservación de D-050:** confirmado por lectura que el bloque `$btn1_url = get_theme_mod( 'ce_hero_btn1_url', '' ); if ( '' === $btn1_url ) { ... }` permanece exactamente igual, sin ninguna línea modificada.
+- **Preservación del sistema de cotización:** confirmado (diff) que `footer.php`, `template-parts/quote-form.php`, `inc/quote-form.php`, `inc/helpers.php` y `assets/js/main.js` no cambiaron — este Entregable no interactúa con la investigación pendiente del HTTP 400 (ver nota en `CURRENT_UX_SPRINT.md`).
+- **Regresión sobre Sprint 8:** confirmado (diff) que ningún archivo del Sprint 8 fue tocado.

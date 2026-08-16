@@ -395,6 +395,57 @@ function ce_construction_customize_register( $wp_customize ) {
 		'mime_type'=> 'image',
 	) ) );
 
+	/* ---------------------------------------------------------
+	 * Sprint UX-4, Entregable UX-4.1: tipo de fondo del Hero
+	 * (imagen/video) + overlay configurable. Aditivo dentro de la
+	 * misma sección 'ce_section_hero' ya existente — el modo
+	 * "slider" (UX-4.2) queda fuera de este Entregable, ver
+	 * DECISIONS.md D-054.
+	 * --------------------------------------------------------- */
+	$wp_customize->add_setting( 'ce_hero_type', array(
+		'default'           => 'image',
+		'sanitize_callback' => 'ce_construction_sanitize_hero_type',
+		'transport'         => 'refresh',
+	) );
+	$wp_customize->add_control( 'ce_hero_type', array(
+		'label'       => __( 'Tipo de fondo del Hero', 'ce-construction' ),
+		'description' => __( 'En modo Video, si no se sube ningún video (o el navegador no puede reproducirlo), el Hero usa automáticamente la imagen de fondo configurada abajo como respaldo.', 'ce-construction' ),
+		'section'     => 'ce_section_hero',
+		'type'        => 'select',
+		'choices'     => array(
+			'image' => __( 'Imagen (por defecto)', 'ce-construction' ),
+			'video' => __( 'Video', 'ce-construction' ),
+		),
+		'priority'    => 5,
+	) );
+
+	$wp_customize->add_setting( 'ce_hero_video', array( 'sanitize_callback' => 'absint' ) );
+	$wp_customize->add_control( new WP_Customize_Media_Control( $wp_customize, 'ce_hero_video', array(
+		'label'       => __( 'Video de fondo del Hero (solo si el tipo es "Video")', 'ce-construction' ),
+		'description' => __( 'Se reproduce en bucle, silenciado y sin controles. Usa un archivo liviano (recomendado: menos de 10MB, MP4 H.264).', 'ce-construction' ),
+		'section'     => 'ce_section_hero',
+		'mime_type'   => 'video',
+		'priority'    => 6,
+	) ) );
+
+	$wp_customize->add_setting( 'ce_hero_overlay_opacity', array(
+		'default'           => '1',
+		'sanitize_callback' => 'ce_construction_sanitize_hero_overlay_opacity',
+		'transport'         => 'refresh',
+	) );
+	$wp_customize->add_control( 'ce_hero_overlay_opacity', array(
+		'label'       => __( 'Intensidad del overlay oscuro', 'ce-construction' ),
+		'description' => __( 'De 0 (sin overlay, fondo a la vista) a 1 (overlay al 100%, como hasta ahora). Por defecto: 1 — mismo aspecto que antes de este Entregable.', 'ce-construction' ),
+		'section'     => 'ce_section_hero',
+		'type'        => 'number',
+		'input_attrs' => array(
+			'min'  => 0,
+			'max'  => 1,
+			'step' => 0.05,
+		),
+		'priority'    => 7,
+	) );
+
 	$hero_text_fields = array(
 		'ce_hero_title'    => __( 'Título principal', 'ce-construction' ),
 		'ce_hero_subtitle' => __( 'Subtítulo', 'ce-construction' ),
@@ -572,3 +623,36 @@ function ce_construction_home_builder_control_styles() {
 	<?php
 }
 add_action( 'customize_controls_print_styles', 'ce_construction_home_builder_control_styles' );
+
+/* =========================================================
+ * SPRINT UX-4, ENTREGABLE UX-4.1 — Hero configurable
+ * (imagen/video + overlay). Ver DECISIONS.md D-054.
+ * ========================================================= */
+
+/**
+ * `sanitize_callback` de `ce_hero_type`. Whitelist estricta —
+ * cualquier valor no reconocido cae a 'image' (comportamiento
+ * histórico del tema, sin regresión).
+ */
+function ce_construction_sanitize_hero_type( $value ) {
+	$allowed = array( 'image', 'video' );
+	return in_array( $value, $allowed, true ) ? $value : 'image';
+}
+
+/**
+ * `sanitize_callback` de `ce_hero_overlay_opacity`. Acepta
+ * cualquier valor numérico y lo acota estrictamente al rango
+ * [0, 1] — protege el frontend de un valor fuera de rango llegado
+ * por edición manual de la URL de la petición del Customizer
+ * (los `input_attrs` min/max del control son solo una ayuda de UI
+ * en el navegador, no una validación real de servidor).
+ */
+function ce_construction_sanitize_hero_overlay_opacity( $value ) {
+	$value = (float) $value;
+	if ( $value < 0 ) {
+		$value = 0;
+	} elseif ( $value > 1 ) {
+		$value = 1;
+	}
+	return (string) $value;
+}

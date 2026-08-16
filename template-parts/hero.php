@@ -3,6 +3,12 @@
  * Template part: Hero.
  * Controlado 100% desde el Customizer (inc/customizer.php).
  *
+ * Sprint UX-4, Entregable UX-4.1 (fase "Optimización UX / Conversión"):
+ * admite fondo de imagen (comportamiento histórico, por defecto) o
+ * video (`ce_hero_type`), con overlay de opacidad configurable
+ * (`ce_hero_overlay_opacity`). Ver DECISIONS.md D-054. El modo
+ * "slider" (UX-4.2) todavía no existe.
+ *
  * @package CE_Construction
  */
 
@@ -12,6 +18,30 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 $hero_image_id = get_theme_mod( 'ce_hero_image' );
 $hero_image_url = $hero_image_id ? wp_get_attachment_image_url( $hero_image_id, 'ce-hero' ) : '';
+
+/* -----------------------------------------------------------
+ * Sprint UX-4, Entregable UX-4.1: tipo de fondo del Hero
+ * (imagen/video) + overlay configurable. Ver DECISIONS.md D-054.
+ * El modo "slider" (UX-4.2) no existe todavía — 'ce_hero_type'
+ * solo admite 'image'/'video' (whitelist en
+ * ce_construction_sanitize_hero_type(), inc/customizer.php).
+ * --------------------------------------------------------- */
+$hero_type = get_theme_mod( 'ce_hero_type', 'image' );
+
+$hero_video_id  = get_theme_mod( 'ce_hero_video' );
+$hero_video_url = $hero_video_id ? wp_get_attachment_url( $hero_video_id ) : '';
+$hero_video_mime = $hero_video_id ? get_post_mime_type( $hero_video_id ) : '';
+
+// Fallback silencioso a imagen: si el tipo es 'video' pero el
+// administrador no subió ningún video todavía, no tiene sentido
+// imprimir un <video> sin fuente — se usa la imagen de fondo ya
+// configurada (o el color sólido de respaldo de .ce-hero si tampoco
+// hay imagen), exactamente el comportamiento que tenía el tema antes
+// de este Entregable. Documentado en el control del Customizer
+// ('description' de ce_hero_type) para que el administrador lo sepa.
+$hero_is_video = ( 'video' === $hero_type && $hero_video_url );
+
+$hero_overlay_opacity = get_theme_mod( 'ce_hero_overlay_opacity', '1' );
 
 $title    = get_theme_mod( 'ce_hero_title', __( 'Construimos con precisión, entregamos con confianza', 'ce-construction' ) );
 $subtitle = get_theme_mod( 'ce_hero_subtitle', __( 'Más de una década ejecutando proyectos residenciales, comerciales e industriales con los más altos estándares de calidad y seguridad.', 'ce-construction' ) );
@@ -30,8 +60,13 @@ if ( '' === $btn1_url ) {
 $btn2_text = get_theme_mod( 'ce_hero_btn2_text', __( 'Ver Proyectos', 'ce-construction' ) );
 $btn2_url  = get_theme_mod( 'ce_hero_btn2_url', post_type_exists( 'proyecto' ) ? get_post_type_archive_link( 'proyecto' ) : '#proyectos' );
 ?>
-<section class="ce-hero" id="ce-hero" <?php echo $hero_image_url ? 'style="background-image:url(\'' . esc_url( $hero_image_url ) . '\')"' : ''; ?>>
-	<div class="ce-hero__overlay"></div>
+<section class="ce-hero" id="ce-hero" <?php echo ( ! $hero_is_video && $hero_image_url ) ? 'style="background-image:url(\'' . esc_url( $hero_image_url ) . '\')"' : ''; ?>>
+	<?php if ( $hero_is_video ) : ?>
+		<video class="ce-hero__video" autoplay muted loop playsinline aria-hidden="true">
+			<source src="<?php echo esc_url( $hero_video_url ); ?>" <?php echo $hero_video_mime ? 'type="' . esc_attr( $hero_video_mime ) . '"' : ''; ?>>
+		</video>
+	<?php endif; ?>
+	<div class="ce-hero__overlay" style="--ce-hero-overlay-opacity: <?php echo esc_attr( $hero_overlay_opacity ); ?>;"></div>
 	<div class="ce-container">
 		<div class="ce-hero__content ce-text-white">
 			<span class="ce-eyebrow"><?php esc_html_e( 'CE Construction', 'ce-construction' ); ?></span>

@@ -1251,3 +1251,33 @@ img[loading="lazy"] {
 .ce-modal--form .ce-modal__title {
   text-align: center;
 }
+
+/* =============================================================
+   26. SPRINT UX-4, ENTREGABLE UX-4.1 — HERO CONFIGURABLE
+   (imagen/video + overlay). Sección añadida sin modificar ninguna
+   regla anterior — ver DECISIONS.md D-054.
+
+   `.ce-hero__video`: capa de fondo alternativa a `background-image`
+   (sección 10, HERO). Mismo posicionamiento absoluto que ocuparía un
+   fondo de imagen, por detrás de `.ce-hero__overlay` (z-index nativo
+   por orden de aparición en el DOM, sin necesidad de declarar
+   z-index explícito: el <video> se imprime antes que el overlay).
+
+   `--ce-hero-overlay-opacity`: custom property inline (impresa por
+   template-parts/hero.php según `ce_hero_overlay_opacity`, con
+   fallback `1` aquí mismo si por alguna razón no llegara el atributo
+   `style` — nunca debería faltar, pero un fallback explícito es más
+   seguro que asumirlo). No se modifica el `background` original de
+   `.ce-hero__overlay` (sección 10): esta regla solo añade la
+   propiedad `opacity`, que no existía antes.
+   ============================================================= */
+.ce-hero__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ce-hero__overlay {
+  opacity: var(--ce-hero-overlay-opacity, 1);
+}
