@@ -3,6 +3,8 @@
 
 > Este documento corresponde a la **Fase de Análisis y Planificación** (secciones 1 y 16 del brief). No se ha implementado ningún cambio de código. No se ha tocado ningún archivo del tema ni de `docs/`.
 
+> **📌 ADENDA (post UX-5.1) — ver §8 "Auditoría UX/Arquitectura post UX-5.1 y roadmap ampliado".** Los Sprints UX-1 a UX-5 descritos en las secciones 1 a 7 de este documento ya están **completados y cerrados** (ver `docs/CURRENT_UX_SPRINT.md` para el detalle de cada Entregable y `docs/DECISIONS.md` D-045 a D-057). Las secciones 1 a 7 se conservan **sin modificar, como registro histórico** de la planificación original — no reflejan el estado actual de decisiones (por ejemplo, R-1 sobre `quote-form.php` ya quedó resuelto en UX-1.1/UX-3). El estado vigente del roadmap, incluidos los Sprints nuevos UX-6/UX-7/UX-8 y la renumeración del Sprint Responsive a UX-9, está en §8.
+
 ---
 
 ## 0. Trazabilidad y estado del Sprint 8 (pausado, no cerrado)
@@ -288,3 +290,206 @@ UX-1 primero porque todo lo demás depende del registro central de secciones. UX
 Necesito tu respuesta sobre **R-1** (§1) antes de fijar el alcance definitivo de UX-3.2: ¿`template-parts/quote-form.php` existe en tu copia de trabajo y faltó en este zip, o debo reconstruirlo como parte de UX-1.1?
 
 Con esa confirmación, el plan queda listo para tu aprobación explícita conforme a la metodología del proyecto (D-038): no se iniciará ningún Entregable de esta fase, ni se tocará ningún archivo, hasta que apruebes el plan y me indiques con cuál Entregable empezar.
+
+---
+
+## 8. Auditoría UX/Arquitectura post UX-5.1 y roadmap ampliado
+
+> **Estado vigente del roadmap.** Esta sección documenta la auditoría UX/Conversión/Arquitectura realizada sobre el estado real del proyecto tras UX-5.1 (a petición explícita del usuario, sin implementar cambios de código), **aprobada por el usuario como línea base de trabajo**. Ver `docs/DECISIONS.md` D-057 para la decisión formal de adopción y la resolución de la colisión de numeración con el Sprint UX-6 original (§8.4). **Ningún Sprint de esta sección está aprobado para implementación** — cada uno se marca explícitamente su estado; solo UX-1 a UX-5 (§1-§7) están cerrados.
+
+### 8.1 Cierre de Sprints UX-1 a UX-5
+
+| Sprint | Objetivo | Estado |
+|---|---|---|
+| UX-1 | Home Builder: base arquitectónica | ✅ Completado |
+| UX-2 | Secciones de Home faltantes: Team, Clients, FAQ | ✅ Completado |
+| UX-3 | CTA centralizado + Modo del formulario de cotización | ✅ Completado |
+| UX-4 | Hero configurable (imagen/video/slider) | ✅ Completado |
+| UX-5 | Múltiples CTA / estrategias de conversión | ✅ Completado (UX-5.1) |
+
+Detalle Entregable por Entregable: ver `docs/CURRENT_UX_SPRINT.md`. Decisiones de diseño de cada uno: `docs/DECISIONS.md` D-045 a D-056.
+
+### 8.2 Pendiente del plan original (sin cambios de alcance)
+
+- **UX-5.2** — Documentación de "objetivo de plantilla" (landing/corporativo/construcción/remodelación/servicios). Sigue tal como se definió en §5 de este documento — 100% documental, sin código nuevo. **No iniciado.**
+- **Sprint Responsive** — ver §8.4 (renumerado de UX-6 a **UX-9**, mismo alcance sin ningún cambio).
+
+### 8.3 Nuevo requisito arquitectónico detectado: reutilización de secciones fuera del Home Builder
+
+La auditoría detectó que el objetivo del usuario ("evolucionar el tema desde un Home configurable hacia un sistema donde las secciones y componentes existentes puedan reutilizarse y configurarse también en páginas y entradas") **no está cubierto por la arquitectura actual**:
+
+- `inc/home-builder.php` (`ce_construction_home_sections()` / `ce_construction_get_active_home_order()`) solo se consume desde `front-page.php`. Ningún `single-*.php` ni el editor de contenido puede invocar sus secciones.
+- **No existe `page.php`** en el árbol del tema — WordPress hace caer cualquier Página (`post_type=page`) en `index.php` (sin hero, sin secciones, sin CTA).
+- **Evidencia de campo:** la entrada "About Us" (capturada en la auditoría) contiene literalmente el texto `[ce_quienes_somos]` en su contenido — un intento de usar un shortcode que **no está registrado en ningún punto del código** (verificado: cero resultados de `add_shortcode`/`register_block_type` en todo el árbol). Esto confirma que el requisito de reutilización ya era una expectativa operativa real del proyecto, no solo una recomendación de esta auditoría.
+
+Este hallazgo es el más prioritario de todo el roadmap ampliado: sin resolverlo, ninguna sección existente (About, Services, Team, FAQ, CTA, etc.) puede usarse fuera del Home, y el contenido editorial del sitio (Páginas, entradas) queda desconectado del sistema de diseño y configuración ya construido en UX-1 a UX-5.
+
+### 8.4 Sprints propuestos — UX-6, UX-7, UX-8, UX-9
+
+**Ninguno de los siguientes Sprints está aprobado. Todos están "propuestos / pendientes de tu aprobación explícita" (D-038).** La numeración UX-6/UX-7/UX-8 es la usada por la auditoría ya aprobada como base de trabajo; ver D-057 para la nota de renumeración del Sprint Responsive.
+
+---
+
+#### Sprint UX-6 — "Arquitectura de reutilización de secciones fuera del Home Builder" — 🟡 **Propuesto, pendiente de aprobación explícita.**
+**Objetivo:** resolver §8.3 — permitir que las secciones ya existentes (Hero, About, Services, Team, FAQ, CTA, Quote Form, etc.) se usen dentro de Páginas y entradas, sin duplicar markup ni crear una segunda arquitectura.
+**Prioridad:** Crítica — desbloquea el resto del roadmap de reutilización (UX-7 depende parcialmente de este Sprint).
+**Dependencias:** ninguna — puede iniciarse de inmediato una vez aprobado.
+
+- **UX-6.1 — `page.php`** — ✅ **Completado.**
+  - Alcance: nueva plantilla de Página siguiendo el patrón ya establecido por `single.php` (Sprint 6B) — `template-parts/page-hero` + `the_content()`, respetando el sistema de diseño existente. Sin secciones del Home Builder todavía (eso es UX-6.2).
+  - Fuera de alcance: el mecanismo de shortcode/bloque en sí.
+  - Criterios de aceptación: cualquier Página de WordPress se renderiza con el hero interno y el estilo del tema, en vez de caer en `index.php`.
+  - Ver `docs/CURRENT_UX_SPRINT.md` (Sprint UX-6) y `docs/DECISIONS.md` D-059 para el detalle completo del cierre.
+
+- **UX-6.2 — Mecanismo de reutilización de secciones (shortcode)**
+  - Alcance: **recomendación de la auditoría — shortcode, no bloque Gutenberg** (ver comparación abajo). Nuevo `inc/section-shortcode.php` (aditivo, un archivo = una responsabilidad, consistente con la convención del proyecto): registra `[ce_section key="about"]` (u otra sintaxis a definir en el Entregable) que internamente llama `get_template_part( ce_construction_home_sections()[$key]['template'], null, $args )` — el mismo mecanismo que ya usa `front-page.php`, sin reimplementarlo.
+  - Comparación de opciones evaluadas (sin implementar ninguna todavía):
+    | Opción | A favor | En contra |
+    |---|---|---|
+    | **Shortcode** (recomendada) | Mínimo esfuerzo; reutiliza `get_template_part()` + `$args` ya existente; funciona en editor clásico y de bloques (bloque nativo "Shortcode"); cero dependencias nuevas; consistente con "sin builders/frameworks de terceros" ya declarado en `style.css` | Sin preview visual en el editor de bloques |
+    | Bloque Gutenberg dinámico | Mejor UX de edición (preview real) | Introduce el primer build step de JS/React (`block.json`, `render_callback`) que el proyecto no tiene hoy; mayor esfuerzo y superficie de mantenimiento |
+    | Page builder de terceros | — | Descartado sin evaluación: contradice la convención ya establecida del proyecto |
+  - Criterios de aceptación: una Página o entrada puede incluir `[ce_section key="about"]` (o la sintaxis que se defina) y renderizar exactamente la misma sección "Quiénes Somos" que el Home, sin copiar markup; el shortcode resuelto no requiere que la sección esté activa en el Home Builder (son consumos independientes del mismo registro).
+  - Nota explícita: la elección de bloque Gutenberg como mejora futura queda registrada aquí como alternativa descartada por ahora, no eliminada del roadmap — reevaluable si el uso real del shortcode revela necesidad de mejor UX de edición.
+
+---
+
+#### Sprint UX-7 — "Consistencia y configurabilidad: Hero, CTA, Header/Footer" — 🟡 **Propuesto, pendiente de aprobación explícita.**
+**Objetivo:** cerrar las inconsistencias y limitaciones de configuración detectadas en Hero, CTA, sidebars y Header/Footer.
+**Prioridad:** Alta a Media según Entregable (detallado abajo).
+**Dependencias:** UX-7.1 y UX-7.2 se benefician de que `page.php` exista (UX-6.1) para tener un contexto real de Página donde usar el Hero unificado, pero no son un bloqueo técnico duro. UX-7.3 a UX-7.5 son independientes.
+
+- **UX-7.1 — Unificación del Hero (Home + interior)** — Prioridad Alta
+  - Alcance: `template-parts/hero.php` y `template-parts/page-hero.php` son hoy dos componentes separados con overlay duplicado en CSS (secciones 10 y 20 de `main.css`). Unificar en un componente parametrizable (`$args['variant']`, mismo patrón ya usado en `cta.php` desde UX-5.1 y en `quote-form.php` con `context`), heredando video/slider/overlay configurable también en el Hero interno.
+  - Criterios de aceptación: page-hero puede usar imagen/video/slider igual que el Hero de Home, sin duplicar la lógica de `ce_hero_type`; el CTA de Home y el interno comparten la misma fuente de overlay en CSS.
+
+- **UX-7.2 — Layout de Hero de 1/2/3 columnas + integración opcional de Quote Form** — Prioridad Media
+  - Alcance: `ce_hero_layout` (theme_mod) + slot opcional para `quote-form` con un tercer valor de `context` (p. ej. `'hero'`), reutilizando el componente de formulario ya existente sin crear un formulario ni endpoint nuevo (mismo `inc/quote-form.php`, mismo nonce, misma sanitización).
+  - Depende de: UX-7.1 (Hero unificado).
+
+- **UX-7.3 — Aprovechamiento de espacios vacíos en sidebars (Servicios/Proyectos)** — Prioridad Media
+  - Alcance: `template-parts/sidebar-servicios.php` (confirmado visualmente en la auditoría: espacio vacío considerable en archivos con muchas cards) y, por el mismo patrón, `template-parts/sidebar-proyectos.php`. Añadir slot opcional para CTA secundario o testimonio corto reutilizando componentes ya existentes (`cta.php` variant, o una card de testimonio individual) — no crear un componente nuevo si uno existente cubre la necesidad.
+
+- **UX-7.4 — CTA: icono y color de botón configurables** — Prioridad Media
+  - Alcance: `template-parts/cta.php` tiene hoy iconos (`fa-paper-plane`/`fa-whatsapp`) y colores de botón fijos en markup/CSS. Nuevos theme_mods: selector de icono FA acotado a una lista curada (no input libre, por consistencia visual) + color picker nativo del Customizer para el color primario del botón.
+
+- **UX-7.5 — Logo independiente Header/Footer** — Prioridad Media
+  - Alcance: hoy `has_custom_logo()`/`the_custom_logo()` (logo nativo de WordPress) se usa de forma idéntica en `header.php` y `footer.php` — un único asset para ambos contextos, sin posibilidad de una variante de logo distinta para el fondo oscuro del footer. Nuevo theme_mod opcional `ce_footer_logo` (imagen), con fallback automático al logo del sitio si no se configura — extiende el mecanismo nativo, no lo reemplaza.
+  - **Nota explícita — no incluye el bug de iconos sociales del header:** ese hallazgo (regla CSS `.ce-header__social` sin `display`/`gap` propios, a diferencia de `.ce-footer__social`) se clasifica como corrección de QA, no como funcionalidad UX — ver §8.5 y `docs/CURRENT_UX_SPRINT.md`. Se deriva al Sprint 8 (`QA-043`, candidato), **no a este Sprint UX-7**.
+
+- **UX-7.6 — Estadísticas configurables desde el Customizer** — Prioridad Alta 🆕 (benchmark competitivo, §8.8)
+  - Estado actual verificado en código: `template-parts/stats.php` — los 4 valores (`350+`/`280+`/`12+`/`60+`), sus etiquetas y sus iconos están escritos directamente en un array de PHP (`apply_filters( 'ce_stats_items', array(...) )`), con cantidad fija de exactamente 4 elementos. Cambiar un número, renombrar una etiqueta, o agregar/quitar una estadística requiere hoy editar código PHP — no hay ningún `theme_mod` ni control de Customizer.
+  - Limitación: el cliente no puede ajustar sus propias cifras (proyectos realizados, clientes, años de experiencia, empleados) sin depender de un desarrollador, ni cambiar cuántas estadísticas mostrar.
+  - Propuesta: nuevo control custom de Customizer tipo repeater (mismo patrón ya usado por `CE_Customize_Hero_Slides_Control`, UX-4.2 — añadir/quitar/reordenar) para número, sufijo, etiqueta e icono de cada estadística, cantidad variable (no fija en 4). El filtro `ce_stats_items` existente se conserva como mecanismo de fallback/extensión para desarrolladores, sin eliminarlo.
+  - Clasificación: **B** (existe, limitado/hardcoded).
+
+- **UX-7.7 — Franja de insignias de confianza / licencias** — Prioridad Alta 🆕 (benchmark competitivo, §8.8)
+  - Contexto: no existe hoy ningún componente para mostrar insignias de confianza (licencias estatales, seguros, afiliaciones, certificaciones, ratings de plataformas externas) — hallazgo de la comparación con DayBrook Homes (Equal Housing Lender / BBB / Thumbtack) y Re-Bath. **Requisito explícito del usuario:** el cliente real de este proyecto cuenta con una licencia de contratista válida para operar en su estado, y necesita poder mostrarla — no es un elemento decorativo, es una insignia de credibilidad legal real.
+  - Propuesta: nueva sección del Home Builder (`template-parts/trust-badges.php`, registrada en `inc/home-builder.php` junto al resto), con un control repeater de Customizer (mismo patrón que UX-7.6/UX-4.2: imagen o texto + número de licencia opcional + enlace de verificación opcional por insignia) — cantidad variable, sin límite fijo de insignias.
+  - Requisito de reutilización (explícito del usuario, aplica a los 4 Entregables de este bloque): la sección se registra en `inc/home-builder.php` con el mismo mecanismo que ya usan `hero`/`about`/`services`/etc., para quedar automáticamente disponible vía `[ce_section key="trust_badges"]` en cuanto exista el shortcode de UX-6.2 — sin duplicar markup entre Home y páginas internas.
+  - Clasificación: **D** (funcionalidad nueva).
+
+- **UX-7.8 — Testimonio en video** — Prioridad Media 🆕 (benchmark competitivo, §8.8)
+  - Contexto: `inc/cpt-testimonios.php` ya registra el CPT `testimonio` (`title`+`editor`+`thumbnail`, sin campo de video) — a diferencia de las estadísticas, los testimonios **ya son administrables libremente desde wp-admin** (agregar/quitar/editar sin tocar código); el único hallazgo real del benchmark es la ausencia de soporte de video, no la arquitectura de testimonios en sí.
+  - Propuesta: nuevo campo meta opcional en el CPT `testimonio` (adjunto de video de WordPress o URL externa vía oEmbed, mismo patrón ya construido para `ce_hero_video` en UX-4.1 y propuesto para `_ce_proyecto_video_url` en UX-8.1 — sin duplicar el mecanismo de reproducción de video, una tercera reutilización del mismo patrón). `template-parts/testimonials.php` muestra el video si existe, o cae al testimonio de texto normal si no.
+  - Clasificación: **D** (funcionalidad nueva).
+
+- **UX-7.9 — Bloque de financiamiento / opciones de pago** — Prioridad Media 🆕 (benchmark competitivo, §8.8)
+  - Contexto: ni DayBrook ni Re-Bath son constructoras generales, pero ambas destacan una franja de financiamiento con CTA propio ("0% interés 12 meses", "Pre-aprobación sin afectar tu crédito") — hallazgo aplicable a CE Construction independientemente del tipo de proyecto, si el cliente ofrece o desea comunicar opciones de pago/financiamiento.
+  - Propuesta: nueva sección del Home Builder (`template-parts/financing.php`), campos vía Customizer (título, texto, texto de botón, URL de botón — mismo patrón exacto ya usado por `cta.php`/`cta_secondary`, UX-5.1, sin inventar un patrón nuevo). Registrada en `inc/home-builder.php` para quedar disponible vía shortcode (UX-6.2) igual que UX-7.7.
+  - Clasificación: **D** (funcionalidad nueva).
+
+---
+
+#### Sprint UX-8 — "Video en Proyectos (YouTube / TikTok / WordPress)" — 🟡 **Propuesto, futuro, sin iniciar.**
+**Objetivo:** punto 6 del brief de auditoría — soporte de video en el CPT Proyecto, además de la galería de imágenes ya existente.
+**Prioridad:** Baja–Media — mejora futura, explícitamente no implementada en esta fase.
+**Dependencias:** ninguna.
+
+- **UX-8.1 — Campo de video del Proyecto**
+  - Alcance: nuevo campo meta `_ce_proyecto_video_url` en `single-proyecto.php`/`content-proyecto.php`, usando **oEmbed nativo de WordPress** (cubre YouTube y TikTok sin ninguna librería nueva) para URLs externas, más una opción de adjunto de video local reutilizando el mismo patrón ya construido para `ce_hero_video` (UX-4.1) — sin duplicar el mecanismo de subida/reproducción.
+  - Criterios de aceptación: un Proyecto puede mostrar un video (externo embebido, o archivo de WordPress) junto a su galería de imágenes existente, sin afectar proyectos que no lo configuren.
+
+---
+
+#### Sprint UX-9 — "Registro de trabajo futuro: Responsive" (documental, sin código) — ⬜ No iniciado.
+> **Nota de renumeración (D-057):** este Sprint es idéntico en alcance, contenido y criterios de aceptación al que el plan original (§5 de este documento) numeraba como **"Sprint UX-6"**. Se renumera a **UX-9** únicamente para no colisionar con el nuevo Sprint UX-6 (§8.4, arriba), nombrado así por la auditoría aprobada por el usuario. Ningún carácter del alcance original cambió.
+
+**Objetivo:** punto 9 del brief original — dejar constancia formal sin ejecutar la revisión.
+**Dependencias:** ninguna.
+
+- **UX-9.1 — Entrada de backlog formal**
+  - Alcance: nueva entrada en `TODO.md`/`PROJECT_STATUS.md` ("Sprint Responsive — propuesto, no iniciado") listando explícitamente los 10 puntos del brief original (header superior, espaciados, nav móvil, iconos, Hero móvil, CTA, formularios, grids, imágenes, tipografía, footer). Sin tocar CSS.
+  - Nota (sin cambios respecto al plan original): si algún punto de los Sprints UX-6/UX-7/UX-8 requiere un ajuste responsive puntual e indispensable para que la funcionalidad nueva funcione, se resuelve dentro de ese Entregable específico y se documenta como excepción puntual — no como inicio adelantado de este Sprint completo.
+
+### 8.5 Clasificación bug/QA vs. funcionalidad UX nueva
+
+La auditoría distinguió explícitamente qué hallazgos son correcciones de algo ya roto frente a funcionalidad nueva:
+
+| Hallazgo | Clasificación | Ruta |
+|---|---|---|
+| Iconos sociales del header sin estilo base (`.ce-header__social` sin `display`/`gap`, a diferencia de `.ce-footer__social` — confirmado visualmente) | **Bug/QA** | Candidato `QA-043`, **Sprint 8** (no esta fase; Sprint 8 no se toca en este documento) |
+| Ausencia de `page.php` / mecanismo de reutilización de secciones | Funcionalidad nueva (arquitectura) | Sprint UX-6 |
+| Hero Home/interior duplicado, sin layout de columnas | Existe pero limitado (B) / nueva (D) según el punto | Sprint UX-7 |
+| CTA icono/color no configurables | Existe pero limitado (B) | Sprint UX-7 (UX-7.4) |
+| Logo único Header/Footer | Existe pero limitado (B) | Sprint UX-7 (UX-7.5) |
+| Estadísticas hardcodeadas en PHP, cantidad fija | Existe pero limitado (B) | Sprint UX-7 (UX-7.6) 🆕 |
+| Sin insignias de confianza/licencias | Funcionalidad nueva (D) | Sprint UX-7 (UX-7.7) 🆕 |
+| Testimonios sin soporte de video | Funcionalidad nueva (D) | Sprint UX-7 (UX-7.8) 🆕 |
+| Sin bloque de financiamiento/opciones de pago | Funcionalidad nueva (D) | Sprint UX-7 (UX-7.9) 🆕 |
+| Video en Proyectos | Funcionalidad nueva (D) | Sprint UX-8 |
+
+### 8.6 Orden de ejecución recomendado (roadmap ampliado)
+
+```
+UX-6.1 (page.php) → UX-6.2 (shortcode de reutilización)
+                        ↘ (dependencia blanda, no dura)
+                          UX-7.1 (Hero unificado) → UX-7.2 (columnas + Quote Form en Hero)
+
+UX-7.3 (sidebars) ⎫
+UX-7.4 (CTA icono/color) ⎬ independientes entre sí y del resto — pueden ejecutarse en cualquier orden/paralelo
+UX-7.5 (logo footer) ⎪
+UX-7.6 (estadísticas configurables) ⎪ 🆕 independiente, sin dependencia de UX-6
+UX-7.7 (insignias de confianza/licencias) ⎬ 🆕 se benefician de que UX-6.2 (shortcode) exista para reutilizarse
+UX-7.8 (testimonio en video) ⎪ 🆕 independiente, reutiliza el patrón de ce_hero_video
+UX-7.9 (bloque de financiamiento) ⎭ 🆕 se beneficia de que UX-6.2 exista, mismo patrón que cta.php
+
+UX-8.1 (video Proyectos): independiente, baja prioridad, futuro
+
+UX-5.2 (doc. objetivo de plantilla): independiente, documental puro, en cualquier momento
+UX-9.1 (Responsive, renumerado): independiente, documental puro, en cualquier momento
+
+QA-043 (iconos sociales header): Sprint 8, no esta fase — requiere que el usuario decida retomar Sprint 8 (pausado en Entregable 8.2)
+```
+UX-6 primero porque es la dependencia arquitectónica de mayor prioridad detectada en la auditoría: sin `page.php` ni el mecanismo de reutilización, ninguna sección puede usarse fuera del Home. UX-7.1/UX-7.2 se benefician de tener UX-6.1 ya resuelto (un contexto real de Página donde probar el Hero unificado), aunque no es un bloqueo técnico estricto. UX-7.7 y UX-7.9 (secciones nuevas, insignias y financiamiento) se benefician de UX-6.2 por la misma razón — quedan disponibles en páginas internas sin trabajo adicional una vez exista el shortcode, pero pueden construirse antes si se prioriza así. El resto de UX-7, UX-8, UX-5.2 y UX-9 no tienen dependencias entre sí.
+
+### 8.7 Pregunta abierta para el usuario
+
+Ningún Sprint de §8.4 está aprobado para implementación. Antes de iniciar cualquiera, se necesita tu confirmación explícita de:
+1. Con cuál Sprint/Entregable empezar (se recomienda UX-6.1, por ser la dependencia de mayor prioridad).
+2. Confirmar la recomendación de shortcode (vs. bloque Gutenberg) para UX-6.2 — o indicar si prefieres evaluar el bloque Gutenberg desde ahora pese al mayor esfuerzo.
+3. Si el hallazgo de QA-043 (iconos sociales del header) debe esperar a que retomes el Sprint 8 pausado, o si prefieres resolverlo de forma aislada antes, pese a pertenecer formalmente a la numeración QA.
+
+### 8.8 Benchmark competitivo (DayBrook Homes, Re-Bath Baltimore) — origen de UX-7.6 a UX-7.9
+
+A petición del usuario, se compararon 2 sitios de competidores orientados 100% a conversión (landing de Google Ads de DayBrook Homes; página de ubicación local de Re-Bath) contra el Home real de CE Construction. Ambos son de nicho (solo remodelación de baños) con presupuesto de ads — su estrategia está más "afilada" que la de un sitio corporativo general, pero varios elementos son aplicables sin romper la arquitectura del proyecto.
+
+**Hallazgos de los competidores, sin equivalente hoy en CE Construction:**
+- **DayBrook:** formulario de cotización dentro del Hero (sin scroll); oferta con urgencia + bullets de valor; insignias de confianza (BBB, Equal Housing Lender, rating de Thumbtack) justo debajo del Hero; testimonio en video; FAQ extenso orientado a objeciones de venta (costo, financiamiento, garantía); sección de financiamiento con CTA propio.
+- **Re-Bath:** nav de anclas internas; franja de financiamiento destacada (0% interés); slider de antes/después; formulario de cotización repetido más abajo en la página; alianza con diseñador reconocido como diferenciador.
+
+**Corrección a una observación previa de esta conversación:** se había señalado que la sección de estadísticas del Home mostraba "0" en producción — se confirmó por lectura de código que es un falso positivo: `template-parts/stats.php` anima los números por JavaScript (`ModuleCounters`) desde `0` hasta el valor real (`data-count`) al cargar en un navegador; la herramienta de lectura usada no ejecuta JavaScript, por lo que capturó el estado inicial de la animación, no el estado real en producción. Se retira esa alarma.
+
+**Hallazgo real confirmado por el usuario y verificado en código:** las estadísticas sí tienen un problema distinto y genuino — están hardcodeadas en un array de PHP (`template-parts/stats.php`), sin ningún `theme_mod`, con cantidad fija de 4 elementos. Cambiar un número, una etiqueta, o agregar/quitar una estadística requiere hoy editar código. Ver UX-7.6.
+
+**Requisito explícito adicional del usuario:** el cliente cuenta con una licencia de contratista real, válida para operar en su estado, y necesita poder mostrarla como insignia de confianza — no es un elemento decorativo. Ver UX-7.7.
+
+**Testimonios — verificado que NO es un problema arquitectónico:** a diferencia de las estadísticas, `inc/cpt-testimonios.php` ya registra un CPT propio (`testimonio`) administrable libremente desde wp-admin (agregar/quitar/editar sin tocar código) — el único hallazgo real es la ausencia de soporte de video, no la arquitectura de testimonios. Ver UX-7.8.
+
+**Resultado:** 4 nuevos Entregables incorporados a Sprint UX-7 (§8.4, arriba): UX-7.6 (estadísticas configurables), UX-7.7 (insignias de confianza/licencias), UX-7.8 (testimonio en video), UX-7.9 (bloque de financiamiento) — todos diseñados, por requisito explícito del usuario, para quedar reutilizables también en páginas y entradas vía el mismo mecanismo de UX-6 (registro en `inc/home-builder.php`, sin arquitectura paralela). **Ninguno de los 4 está aprobado para implementación** — mismo estado "propuesto / pendiente de aprobación" que el resto de UX-7.
+
+**Hallazgos del benchmark que NO se incorporaron como Entregable (quedan solo anotados, menor prioridad o requieren más definición):**
+- Nav de anclas internas en el Home (Re-Bath) — mejora menor de UX, baja prioridad.
+- Oferta con urgencia tipo "50% OFF este mes" (DayBrook) — es una táctica de landing page de ads; no está claro que encaje con el posicionamiento de marca de una constructora general. Requiere decisión de negocio del usuario antes de convertirse en Entregable, no es una mejora puramente técnica.
+- FAQ orientado a objeciones de venta — el componente (`faq.php`, CPT `preguntas_frecuentes` si aplica) ya existe desde UX-2.2; esto es un ajuste de contenido/copy, no de código — no requiere Entregable nuevo.
+- Personalización de copy por ubicación (Re-Bath) — de menor relevancia dado que CE Construction opera desde una sola oficina/ciudad, a diferencia de Re-Bath (franquicia multi-ubicación); se descarta por ahora.

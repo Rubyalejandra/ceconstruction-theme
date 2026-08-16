@@ -95,12 +95,12 @@ Con UX-4.2 entregado, el **Sprint UX-4 queda completo** (UX-4.1 + UX-4.2), pendi
 
 ## Sprint actual de esta fase
 
-**Sprint UX-5 — "Múltiples CTA / estrategias de conversión"** — Estado: **En curso.**
+**Sprint UX-5 — "Múltiples CTA / estrategias de conversión"** — Estado: ✅ **Completado.**
 
 | Entregable | Objetivo | Estado |
 |---|---|---|
-| UX-5.1 | CTA secundario reutilizable + estrategias A/B vía Home Builder | 🟡 **Entregado — pendiente de tu aprobación** |
-| UX-5.2 | Documentación de "objetivo de plantilla" (landing/corporativo/construcción/remodelación/servicios) | ⬜ No iniciado |
+| UX-5.1 | CTA secundario reutilizable + estrategias A/B vía Home Builder | ✅ Completado — confirmado explícitamente por el usuario ("UX-5.1 YA ESTÁ COMPLETADO") al solicitar la auditoría UX/Arquitectura post UX-5.1 |
+| UX-5.2 | Documentación de "objetivo de plantilla" (landing/corporativo/construcción/remodelación/servicios) | ⬜ No iniciado — pendiente del plan original, sin cambios de alcance (ver `docs/UX_CONVERSION_ANALISIS_Y_PLAN.md` §8.2) |
 
 ## Trabajo realizado (Entregable UX-5.1)
 Decisión explícita del usuario: sin variante corta del Quote Form — `inc/quote-form.php`/`template-parts/quote-form.php` sin tocar (ver `DECISIONS.md` D-056). CTA secundario reutilizable: `template-parts/cta.php` se registra dos veces en el Home Builder (`cta`/`cta_secondary`, mismo archivo, sin duplicar), distinguido por `$args['variant']` desde `front-page.php`, con contenido independiente vía nueva sección "CE: CTA Secundario" en el Customizer. Fix D-050 preservado y parametrizado para ambas variantes. No activo por defecto (mismo criterio que team/clients/faq).
@@ -113,11 +113,57 @@ Decisión explícita del usuario: sin variante corta del Quote Form — `inc/quo
 ## Documentación actualizada
 `DECISIONS.md` (D-056), `CHANGELOG.md`, este archivo.
 
-## Próximo Entregable
+## Próximo Entregable (histórico — ver estado vigente más abajo)
 **Sprint UX-5, Entregable UX-5.2** — Documentación de casos de uso (landing/corporativo/construcción/remodelación/servicios). No inicia sin tu aprobación explícita de UX-5.1.
 
+---
+
+## 🆕 Auditoría UX/Arquitectura post UX-5.1 — estado vigente del roadmap
+
+El usuario solicitó una auditoría UX/Conversión/Arquitectura sobre el estado real del proyecto (sin implementar cambios), y la aprobó explícitamente como línea base de trabajo. Detalle completo, comparativas y criterios de aceptación de cada Sprint nuevo: `docs/UX_CONVERSION_ANALISIS_Y_PLAN.md` §8. Decisión formal de adopción y renumeración: `docs/DECISIONS.md` D-057. **Esta sección es puramente documental — ningún Sprint listado aquí está aprobado para implementación**, salvo que se indique "✅ Completado".
+
+| Sprint | Objetivo | Estado |
+|---|---|---|
+| UX-1 a UX-5 | Home Builder, secciones faltantes, CTA centralizado + modal, Hero configurable, CTA secundario | ✅ **Completados** (ver tablas de arriba) |
+| UX-5.2 | Documentación de "objetivo de plantilla" | ⬜ No iniciado — pendiente del plan original |
+| **UX-6** | **Arquitectura de reutilización de secciones fuera del Home Builder** (`page.php` + mecanismo shortcode) | 🟡 **En curso.** Aprobación explícita del usuario recibida para iniciar el Sprint. UX-6.1 (`page.php`) ✅ completado — ver detalle abajo. UX-6.2 (shortcode) sin iniciar. |
+| **UX-7** | Consistencia y configurabilidad: unificación de Hero Home/interior, layout de columnas + Quote Form en Hero, aprovechamiento de sidebars, CTA icono/color, logo independiente Header/Footer — 🆕 ampliado tras benchmark competitivo (DayBrook Homes / Re-Bath): estadísticas configurables (UX-7.6), insignias de confianza/licencias (UX-7.7), testimonio en video (UX-7.8), bloque de financiamiento (UX-7.9) | 🟡 **Propuesto — pendiente de tu aprobación explícita.** Ver `docs/DECISIONS.md` D-058 para el detalle del benchmark y la corrección de un falso positivo sobre las estadísticas (no muestran "0" en producción — era una lectura incorrecta de la animación JS). |
+| **UX-8** | Video en Proyectos (YouTube/TikTok/WordPress vía oEmbed nativo) | 🟡 **Propuesto — futuro, sin iniciar.** Prioridad baja. |
+| UX-9 (renumerado de UX-6 original) | Registro de backlog formal de Responsive (documental, sin código) | ⬜ No iniciado — mismo alcance que el "Sprint UX-6" del plan original, solo renumerado para no colisionar con el nuevo Sprint UX-6 de la auditoría (ver D-057) |
+
+### Hallazgo derivado a Sprint 8 (QA), no a esta fase
+La auditoría detectó que `.ce-header__social` (iconos sociales de la barra superior del header) no tiene reglas base de `display`/`gap`/tamaño en `assets/css/main.css` (a diferencia de `.ce-footer__social`, que sí las tiene) — confirmado visualmente en captura, los iconos aparecen apelmazados. Es una **corrección de algo ya roto (bug/QA), no una funcionalidad UX nueva** — se documenta aquí como referencia cruzada, candidata a `QA-043` dentro del **Sprint 8** ("Cierre de Hallazgos QA", pausado en el Entregable 8.2). **Este documento no modifica ningún archivo del Sprint 8** (`CURRENT_SPRINT.md`/`QA_REPORT.md`/`HANDOFF.md` sin tocar) — queda a la espera de que decidas si se resuelve al retomar el Sprint 8, o de forma aislada antes.
+
+## Sprint UX-6 — "Arquitectura de reutilización de secciones fuera del Home Builder" — Estado: 🟡 En curso (UX-6.1 completado, UX-6.2 sin iniciar)
+
+| Entregable | Objetivo | Estado |
+|---|---|---|
+| UX-6.1 | `page.php`: hero interno (`template-parts/page-hero`) + `the_content()` para cualquier Página, siguiendo el patrón ya establecido por `single.php` | ✅ **Completado** |
+| UX-6.2 | Mecanismo de reutilización de secciones (shortcode `[ce_section key="..."]`) | ⬜ No iniciado — pendiente de tu aprobación explícita de arranque |
+
+### Trabajo realizado (Entregable UX-6.1)
+Nuevo `page.php` en la raíz del tema (Template Hierarchy nativa de WordPress: WordPress le da prioridad automática sobre `index.php` para cualquier Página, sin configuración adicional). Reutiliza `template-parts/page-hero.php` (sin modificarlo) con un `eyebrow` genérico (`get_bloginfo('name')`, mismo criterio que el eyebrow genérico ya usado por `archive.php`) y `the_content()` para el cuerpo, siguiendo exactamente el mismo patrón de `single.php`: soporte de Página protegida por contraseña (`post_password_required()`), paginación de contenido (`wp_link_pages()`), y comentarios vía `comments.php` (ya genérico para post/page desde el Entregable 6B.2, sin necesidad de modificarlo) si el administrador los habilita en una Página puntual. Sin secciones del Home Builder ni mecanismo de shortcode — eso es UX-6.2, explícitamente fuera de alcance de este Entregable. Sin cambios en `template-parts/page-hero.php` (layout/columnas/video es UX-7.1, tampoco tocado). Ver `docs/DECISIONS.md` D-059 para el detalle completo de las 3 decisiones de diseño de este cierre.
+
+### Archivos creados / modificados (Entregable UX-6.1)
+- Creados: `page.php` (raíz del tema).
+- Modificados: ninguno.
+- Sin cambios: `template-parts/page-hero.php`, `comments.php`, `index.php`, todo el Home Builder (UX-1/UX-2), todo el sistema de cotización (UX-3), el Hero de Home (UX-4), los CTA (UX-5), y todo el Sprint 8.
+- Eliminados: ninguno.
+
+### Documentación actualizada (en este cierre)
+`docs/DECISIONS.md` (D-059), este mismo archivo. Sin cambios en `ARCHITECTURE.md`/`TREE.md`/`TODO.md`/`CHANGELOG.md` en este cierre (pendientes de actualización — ver "Pendientes" abajo), ni en `CURRENT_SPRINT.md`/`QA_REPORT.md`/`HANDOFF.md` (Sprint 8, sin tocar).
+
+### Validaciones ejecutadas
+Sin entorno WordPress/navegador real disponible (misma limitación metodológica ya documentada para UX-3.2/D-050): verificación por trazado lógico manual del flujo de `page.php` contra `single.php` (estructura idéntica: `get_header()` → loop → `page-hero` → contenido/contraseña → comentarios → `get_footer()`), balance de tags PHP (`<?php`/`?>`) y de estructuras alternativas (`if/endif`, `while/endwhile`) verificado línea por línea — sin `php -l` disponible en este entorno. **Pendiente de prueba funcional real en WordPress** (crear una Página de prueba y confirmar que renderiza con `page.php` en vez de `index.php`) antes de considerarlo verificado en runtime.
+
+### Pendiente explícito de este Entregable
+- `docs/CHANGELOG.md`: sin entrada añadida en este cierre — pendiente, mismo criterio que otros cierres de esta fase que difieren la actualización de `CHANGELOG.md`/`TREE.md` a un punto de cierre de Sprint más significativo.
+- `docs/TREE.md`: no refleja todavía `page.php` como archivo nuevo en la raíz.
+- Prueba funcional real en WordPress (ver validaciones arriba).
+
 ## Riesgos y pendientes abiertos (adicionales a los ya listados arriba)
-- Ninguno nuevo. Pendiente de confirmación: bump de `style.css` (sigue en `0.8.5`).
+- Pendiente de confirmación: bump de `style.css` (sigue en `0.8.5`) — sin cambios en este Entregable, no aplica bump.
+- 🆕 Pendiente de tu aprobación explícita: inicio de UX-6.2 (shortcode), elección de shortcode vs. bloque Gutenberg (ya recomendado shortcode por la auditoría, sin decisión final tuya todavía), y decisión sobre cuándo resolver `QA-043` (iconos sociales del header) — ver `docs/UX_CONVERSION_ANALISIS_Y_PLAN.md` §8.7.
 
 ## Riesgos y pendientes abiertos
 - ~~Investigación del HTTP 400 en el envío del formulario de cotización~~ — **cerrado**: causa confirmada como error de carga del usuario en un ZIP anterior (`inc/quote-form.php` no incluido en ese paquete), no un bug de código. Ver nota completa arriba, en la sección del Sprint UX-3.
