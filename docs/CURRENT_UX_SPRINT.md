@@ -91,8 +91,33 @@ Con UX-4.2 entregado, el **Sprint UX-4 queda completo** (UX-4.1 + UX-4.2), pendi
 ## Documentación actualizada (en este cierre)
 `DECISIONS.md` (D-054), `CHANGELOG.md` (entrada de UX-4.1), y este mismo archivo. Sin cambios en `ARCHITECTURE.md`/`TREE.md`/`TODO.md` (sin archivos nuevos ni backlog que actualizar) ni en `CURRENT_SPRINT.md`, `QA_REPORT.md` o `HANDOFF.md` (Sprint 8, sin tocar).
 
+## Sprint UX-4 — Estado: ✅ Completado (UX-4.1 + UX-4.2), aprobación implícita al instruir continuar directamente a UX-5.1.
+
+## Sprint actual de esta fase
+
+**Sprint UX-5 — "Múltiples CTA / estrategias de conversión"** — Estado: **En curso.**
+
+| Entregable | Objetivo | Estado |
+|---|---|---|
+| UX-5.1 | CTA secundario reutilizable + estrategias A/B vía Home Builder | 🟡 **Entregado — pendiente de tu aprobación** |
+| UX-5.2 | Documentación de "objetivo de plantilla" (landing/corporativo/construcción/remodelación/servicios) | ⬜ No iniciado |
+
+## Trabajo realizado (Entregable UX-5.1)
+Decisión explícita del usuario: sin variante corta del Quote Form — `inc/quote-form.php`/`template-parts/quote-form.php` sin tocar (ver `DECISIONS.md` D-056). CTA secundario reutilizable: `template-parts/cta.php` se registra dos veces en el Home Builder (`cta`/`cta_secondary`, mismo archivo, sin duplicar), distinguido por `$args['variant']` desde `front-page.php`, con contenido independiente vía nueva sección "CE: CTA Secundario" en el Customizer. Fix D-050 preservado y parametrizado para ambas variantes. No activo por defecto (mismo criterio que team/clients/faq).
+
+## Archivos creados / modificados (Entregable UX-5.1)
+- Creados: ninguno.
+- Modificados: `inc/home-builder.php`, `front-page.php`, `template-parts/cta.php`, `inc/customizer.php`.
+- Sin cambios: `inc/quote-form.php`, `template-parts/quote-form.php`, `inc/helpers.php`, `footer.php`, `assets/js/main.js`, `template-parts/hero.php`, todo el Sprint 8.
+
+## Documentación actualizada
+`DECISIONS.md` (D-056), `CHANGELOG.md`, este archivo.
+
 ## Próximo Entregable
-**Sprint UX-4, Entregable UX-4.2** — Modo slider del Hero (ver `docs/UX_CONVERSION_ANALISIS_Y_PLAN.md` §5 para el alcance exacto — generalización de `ModuleTestimonialSlider`, `ce_hero_slides` como repeater). No inicia sin tu aprobación explícita de UX-4.1. Ver el prompt de continuación entregado junto con este Entregable para el detalle exacto de alcance.
+**Sprint UX-5, Entregable UX-5.2** — Documentación de casos de uso (landing/corporativo/construcción/remodelación/servicios). No inicia sin tu aprobación explícita de UX-5.1.
+
+## Riesgos y pendientes abiertos (adicionales a los ya listados arriba)
+- Ninguno nuevo. Pendiente de confirmación: bump de `style.css` (sigue en `0.8.5`).
 
 ## Riesgos y pendientes abiertos
 - ~~Investigación del HTTP 400 en el envío del formulario de cotización~~ — **cerrado**: causa confirmada como error de carga del usuario en un ZIP anterior (`inc/quote-form.php` no incluido en ese paquete), no un bug de código. Ver nota completa arriba, en la sección del Sprint UX-3.

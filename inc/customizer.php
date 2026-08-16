@@ -504,6 +504,36 @@ function ce_construction_customize_register( $wp_customize ) {
 	}
 
 	/* -----------------------------------------------------------
+	 * 6 bis. CTA SECUNDARIO (Sprint UX-5, Entregable UX-5.1)
+	 * Contenido independiente para la sección 'cta_secondary' del
+	 * Home Builder — reutiliza el mismo template-parts/cta.php que
+	 * la sección CTA primaria de arriba (ver inc/home-builder.php),
+	 * mismo patrón exacto de 4 campos de texto. Permite construir,
+	 * solo con el Home Builder, recorridos con más de un punto de
+	 * CTA (Estrategias A/B del brief) sin tocar código. Ver
+	 * DECISIONS.md D-056.
+	 * --------------------------------------------------------- */
+	$wp_customize->add_section( 'ce_section_cta_secondary', array(
+		'title'       => __( 'CE: CTA Secundario', 'ce-construction' ),
+		'description' => __( 'Contenido de la sección "CTA Secundario" del Home Builder — el mismo componente visual que "CE: Sección CTA", con su propio texto y botón independientes. Actívala y posiciónala desde el panel "CE: Home Builder".', 'ce-construction' ),
+		'priority'    => 35,
+	) );
+	$cta2_fields = array(
+		'ce_cta2_title'    => __( 'Título CTA Secundario', 'ce-construction' ),
+		'ce_cta2_text'     => __( 'Texto CTA Secundario', 'ce-construction' ),
+		'ce_cta2_btn_text' => __( 'Texto del botón CTA Secundario', 'ce-construction' ),
+		'ce_cta2_btn_url'  => __( 'URL del botón CTA Secundario', 'ce-construction' ),
+	);
+	foreach ( $cta2_fields as $id => $label ) {
+		$wp_customize->add_setting( $id, array( 'sanitize_callback' => 'sanitize_text_field' ) );
+		$wp_customize->add_control( $id, array(
+			'label'   => $label,
+			'section' => 'ce_section_cta_secondary',
+			'type'    => 'text',
+		) );
+	}
+
+	/* -----------------------------------------------------------
 	 * 7. FOOTER
 	 * --------------------------------------------------------- */
 	$wp_customize->add_section( 'ce_section_footer', array(

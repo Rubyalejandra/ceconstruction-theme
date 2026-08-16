@@ -559,3 +559,26 @@ Se partió de 4 archivos ya trabajados en una sesión previa (`inc/customizer.ph
 - **Preservación de UX-4.1 (imagen/video):** confirmado por lectura que las ramas `image`/`video` de `template-parts/hero.php` y sus theme_mods (`ce_hero_video`, `ce_hero_overlay_opacity`) no cambiaron de comportamiento — la única condición tocada fue la de `background-image` inline, ampliada para excluir también el nuevo modo slider.
 - **Preservación del sistema de cotización y del Sprint 8:** confirmado (diff) que `footer.php`, `template-parts/quote-form.php`, `inc/quote-form.php` y todos los archivos del Sprint 8 no cambiaron.
 - Trazado lógico manual (no hay entorno WordPress real disponible) del flujo completo: añadir imágenes en el control → guardar → `ce_hero_type = slider` → render del track → autoplay — confirmado correcto por lectura de código. Misma limitación metodológica ya documentada en `CURRENT_UX_SPRINT.md` (sin navegador real disponible en este entorno).
+
+---
+
+## Sprint UX-5, Entregable UX-5.1: CTA secundario reutilizable — sin bump de `style.css`
+
+**Estado:** Entregado — pendiente de aprobación explícita (ver `DECISIONS.md` D-038)
+
+### Decisión de diseño (Quote Form corto)
+El usuario decidió explícitamente **no** crear una variante `short` ni un segundo formulario. `template-parts/quote-form.php` e `inc/quote-form.php` **no se tocaron** en este Entregable. Ver `DECISIONS.md` D-056.
+
+### Añadido/Cambiado
+- `inc/home-builder.php`: nueva entrada `cta_secondary` en el registro (reutiliza `template-parts/cta.php`, no un archivo nuevo).
+- `front-page.php`: 1 línea condicional — pasa `$args['variant']='secondary'` solo para `cta_secondary`.
+- `template-parts/cta.php`: lee `$args['variant']`, usa prefijo `ce_cta_`/`ce_cta2_` según corresponda; fix D-050 preservado y parametrizado para ambas variantes.
+- `inc/customizer.php`: nueva sección "CE: CTA Secundario" (4 campos, mismo patrón que la sección CTA ya existente).
+
+### Sin cambios
+- Sistema de cotización completo (`inc/quote-form.php`, `template-parts/quote-form.php`, `inc/helpers.php`, `footer.php`, `assets/js/main.js`), Hero (UX-4), Sprint 8, `style.css`.
+
+### Verificaciones
+- Balance de llaves/paréntesis OK en los 4 archivos tocados (Python).
+- Diff confirma exactamente 4 archivos modificados, cero nuevos, todo lo demás intacto.
+- Sin colisión de prioridad de sección en el Customizer (29/30/31/32/33/34/35/35/36/37 — CTA secundaria comparte 35 con CTA primaria, adyacentes por orden de registro).

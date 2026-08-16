@@ -127,6 +127,25 @@ function ce_construction_home_sections() {
 			'label'    => __( 'CTA', 'ce-construction' ),
 			'template' => 'template-parts/cta',
 		),
+		// 🆕 Sprint UX-5, Entregable UX-5.1: "CTA secundario reutilizable".
+		// Deliberadamente NO es un archivo nuevo — reutiliza el mismo
+		// template-parts/cta.php que la clave 'cta' de arriba, con su
+		// propio conjunto independiente de theme_mods (prefijo
+		// 'ce_cta2_', sección "CE: CTA Secundario" en el Customizer).
+		// front-page.php le pasa $args['variant'] = 'secondary' al
+		// invocarlo (única línea de lógica nueva en ese archivo) para
+		// que cta.php sepa qué conjunto de contenido leer — ver
+		// DECISIONS.md D-056. Permite construir, solo con el Home
+		// Builder, recorridos de conversión con más de un punto de CTA
+		// (Estrategias A/B del brief) sin duplicar componentes ni
+		// crear una segunda arquitectura. No forma parte del orden
+		// activo por defecto (mismo criterio que team/clients/faq):
+		// queda disponible para que el administrador la active y la
+		// posicione donde la necesite.
+		'cta_secondary' => array(
+			'label'    => __( 'CTA Secundario', 'ce-construction' ),
+			'template' => 'template-parts/cta',
+		),
 		'quote_form'   => array(
 			'label'    => __( 'Formulario de Cotización', 'ce-construction' ),
 			'template' => 'template-parts/quote-form',

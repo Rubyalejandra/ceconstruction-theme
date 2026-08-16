@@ -38,7 +38,15 @@ foreach ( ce_construction_get_active_home_order() as $ce_home_section_key ) {
 	if ( ! isset( $ce_home_sections[ $ce_home_section_key ] ) ) {
 		continue;
 	}
-	get_template_part( $ce_home_sections[ $ce_home_section_key ]['template'] );
+	// 🆕 Sprint UX-5, Entregable UX-5.1: 'cta_secondary' reutiliza el
+	// mismo template que 'cta' (ver inc/home-builder.php) — se le pasa
+	// $args['variant']='secondary' para que template-parts/cta.php
+	// sepa qué conjunto independiente de theme_mods leer (prefijo
+	// 'ce_cta2_'). Ninguna otra clave necesita $args; se pasa null
+	// para preservar exactamente el comportamiento anterior en todas
+	// las demás. Ver DECISIONS.md D-056.
+	$ce_home_section_args = ( 'cta_secondary' === $ce_home_section_key ) ? array( 'variant' => 'secondary' ) : null;
+	get_template_part( $ce_home_sections[ $ce_home_section_key ]['template'], null, $ce_home_section_args );
 }
 
 get_footer();
