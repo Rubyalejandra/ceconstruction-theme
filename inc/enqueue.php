@@ -161,3 +161,44 @@ function ce_construction_enqueue_home_builder_control_script() {
 	);
 }
 add_action( 'customize_controls_enqueue_scripts', 'ce_construction_enqueue_home_builder_control_script' );
+
+/* =========================================================
+ * SPRINT UX-4, ENTREGABLE UX-4.2 — Hero configurable (modo slider):
+ * script del control custom `CE_Customize_Hero_Slides_Control`
+ * (ver inc/customizer.php). Mismo criterio de ubicación/hook que
+ * ce_construction_enqueue_home_builder_control_script() (arriba):
+ * este archivo es "el único archivo válido de encolado de assets"
+ * del proyecto (ver docs/TREE.md).
+ *
+ * Dependencias: 'media-editor' (núcleo de WordPress) garantiza que
+ * `wp.media` esté disponible independientemente de si algún otro
+ * control de Media (ce_hero_image/ce_hero_video, ya registrados en
+ * esta misma sección) lo hubiera cargado ya de forma incidental —
+ * no se añade ninguna librería nueva al proyecto. No se usa
+ * 'jquery-ui-sortable': el reordenamiento de este control es por
+ * botones "mover antes/después", no por arrastre — ver
+ * DECISIONS.md D-055.
+ *
+ * Localización: los textos de la ventana de `wp.media` (título,
+ * botón) se pasan vía wp_localize_script(), mismo patrón ya usado
+ * en inc/enqueue.php para `ceConstructionData` del frontend —
+ * ningún string se hardcodea en el JS, todo pasa por __()/_x() en
+ * PHP para que el catálogo de traducción del tema lo cubra.
+ *
+ * Ver DECISIONS.md D-055.
+ * ========================================================= */
+function ce_construction_enqueue_hero_slides_control_script() {
+	wp_enqueue_script(
+		'ce-admin-hero-slides',
+		CE_THEME_URI . '/assets/js/admin-hero-slides.js',
+		array( 'jquery', 'media-editor', 'customize-controls' ),
+		ce_construction_asset_version( 'assets/js/admin-hero-slides.js' ),
+		true
+	);
+
+	wp_localize_script( 'ce-admin-hero-slides', 'ceHeroSlidesData', array(
+		'mediaTitle'  => __( 'Selecciona imágenes para el slider del Hero', 'ce-construction' ),
+		'mediaButton' => __( 'Añadir al slider', 'ce-construction' ),
+	) );
+}
+add_action( 'customize_controls_enqueue_scripts', 'ce_construction_enqueue_hero_slides_control_script' );

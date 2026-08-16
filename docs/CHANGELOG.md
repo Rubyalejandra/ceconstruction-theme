@@ -511,3 +511,51 @@ Ver `DECISIONS.md` D-053 para el detalle completo, incluido el diagnóstico lín
 - **Preservación de D-050:** confirmado por lectura que el bloque `$btn1_url = get_theme_mod( 'ce_hero_btn1_url', '' ); if ( '' === $btn1_url ) { ... }` permanece exactamente igual, sin ninguna línea modificada.
 - **Preservación del sistema de cotización:** confirmado (diff) que `footer.php`, `template-parts/quote-form.php`, `inc/quote-form.php`, `inc/helpers.php` y `assets/js/main.js` no cambiaron — este Entregable no interactúa con la investigación pendiente del HTTP 400 (ver nota en `CURRENT_UX_SPRINT.md`).
 - **Regresión sobre Sprint 8:** confirmado (diff) que ningún archivo del Sprint 8 fue tocado.
+
+---
+
+## Sprint UX-4, Entregable UX-4.2: Hero configurable — modo slider — sin bump de `style.css`
+
+**Módulo:** Hero configurable — modo slider (varias imágenes, autoplay)
+**Estado:** Entregado — pendiente de aprobación explícita del usuario (ver `DECISIONS.md` D-038)
+
+> **Nota de versionado:** siguiendo tu instrucción explícita, **no se aplicó ningún bump a `style.css`** (permanece en `Version: 0.8.5`). Versión propuesta, arrastrada desde UX-3.1/UX-4.1 y sin cambios: **`0.8.6`**. Indícamelo cuando quieras aplicarlo.
+
+### Retomado de la sesión anterior (sin descartar)
+Se partió de 4 archivos ya trabajados en una sesión previa (`inc/customizer.php`, `assets/js/admin-hero-slides.js`, `inc/enqueue.php`, `assets/js/main.js`) y se completó lo que faltaba para que el Entregable quedara funcional de extremo a extremo:
+- **`inc/helpers.php` — `ce_get_hero_slide_ids()`:** no existía todavía pese a que `inc/customizer.php` ya la invocaba (`ce_construction_sanitize_hero_slides()` y `CE_Customize_Hero_Slides_Control::render_content()`) — sin ella el control y el sanitize callback habrían producido un fatal error. Creada siguiendo el mismo criterio que `ce_get_gallery_ids()`.
+- **`assets/js/main.js` — `ModuleHeroSlider.init();`:** el módulo estaba definido (`createSliderController()` + `ModuleHeroSlider`) pero nunca se registraba en el bootstrap de inicialización — el slider no se habría activado nunca en el navegador. Añadida la línea que faltaba junto al resto de `Module*.init()`.
+- **`template-parts/hero.php`:** no tenía ningún cambio de la sesión anterior — la rama del modo slider no existía. Añadida en este cierre.
+- **`assets/css/main.css`:** sección 27 (slider del Hero) no existía — añadida en este cierre.
+
+### Añadido
+- **`inc/customizer.php`** (ya recibido de la sesión anterior, verificado y conservado sin cambios): tercer valor `slider` en `ce_hero_type`; nuevo setting+control `ce_hero_slides` (`CE_Customize_Hero_Slides_Control`, selector múltiple de imágenes con miniaturas, añadir/quitar/reordenar); `ce_construction_sanitize_hero_slides()`; estilos admin del control (`customize_controls_print_styles`).
+- **`assets/js/admin-hero-slides.js`** (ya recibido de la sesión anterior, verificado y conservado sin cambios): inicialización del control custom — añadir imágenes vía `wp.media`, quitar, reordenar con botones ↑/↓, serialización a IDs separados por comas.
+- **`inc/enqueue.php`** (ya recibido de la sesión anterior, verificado y conservado sin cambios): `ce_construction_enqueue_hero_slides_control_script()`, encolado en `customize_controls_enqueue_scripts`.
+- **`inc/helpers.php`** (nuevo, este cierre): `ce_get_hero_slide_ids()` — parsea/sanea la cadena de IDs de `ce_hero_slides`, misma fuente de verdad para el sanitize callback, el preview del control y el frontend.
+- **`assets/js/main.js`** (completado, este cierre): `createSliderController()` — fábrica compartida extraída de `ModuleTestimonialSlider` (refactorizado para usarla, sin cambio de comportamiento); `ModuleHeroSlider` (nuevo, sin dots/flechas/swipe/pausa-en-hover — fondo decorativo), ahora sí registrado en el bootstrap.
+- **`assets/css/main.css`** (sección 27, 100% aditiva, este cierre): `.ce-hero-slider`/`.ce-hero-slider__track`/`.ce-hero-slider__slide` — mismo patrón de capa que `.ce-hero__video` (sección 26).
+
+### Cambiado
+- **`template-parts/hero.php`** (este cierre): cómputo de `$hero_slide_urls`/`$hero_is_slider` (con fallback silencioso a imagen si `ce_hero_slides` está vacío, mismo criterio que el modo video de D-054); nueva rama `elseif ( $hero_is_slider )` que imprime el track de slides; la condición de `background-image` inline del `<section>` ahora también excluye el modo slider. **El bloque de cálculo de `$btn1_url`/`$btn2_url` (incluido el fix de D-050) no se tocó** — verificado línea por línea.
+
+### Sin cambios
+- **`inc/home-builder.php`, `front-page.php`, `functions.php`, `header.php`, `template-parts/cta.php`, `template-parts/sidebar-servicios.php`, `template-parts/sidebar-proyectos.php`, `footer.php`, `template-parts/quote-form.php`, `inc/quote-form.php`, `style.css`: sin cambios en este Entregable** — verificado por diff. `ModuleTestimonialSlider` conserva exactamente el mismo comportamiento observable (selectores, `dotLabel`, `defaultDelay`) pese a su refactor interno.
+- Ningún archivo del Sprint 8.
+
+### Comportamiento
+- **Tipo `slider` con 1 o más imágenes:** las imágenes rotan automáticamente de fondo (autoplay 6s, igual que el slider de Testimonios), sin dots ni flechas (es un fondo decorativo). El overlay configurable (UX-4.1) sigue funcionando igual, encima del slider.
+- **Tipo `slider` sin ninguna imagen configurada:** fallback automático a imagen de fondo normal (o color sólido de respaldo de `.ce-hero`) — nunca se imprime un slider vacío.
+- **Coexistencia con el slider de Testimonios en la misma página (Home):** ambos operan de forma aislada (selectores y estado propios), sin colisión.
+
+### Decisiones clave
+- Ver `DECISIONS.md`: D-055.
+
+### Verificaciones ejecutadas
+- **Sintaxis PHP:** balance de llaves/paréntesis (Python) en `inc/customizer.php` (58/58, 384/384), `inc/helpers.php` (38/38, 187/187) y `template-parts/hero.php` (4/4, 80/80) — todos balanceados.
+- **Sintaxis JS:** `node --check assets/js/main.js` → sin errores.
+- **Sintaxis CSS:** balance de llaves (Python) en `assets/css/main.css` tras la sección 27 nueva (372/372) — sin diferencia respecto al total esperado.
+- **Alcance del diff:** confirmado que, de los 4 archivos recibidos de la sesión anterior, `inc/customizer.php`, `assets/js/admin-hero-slides.js` e `inc/enqueue.php` se conservan **exactamente iguales** (verificado por diff/hash) — el único de los 4 con trabajo añadido fue `assets/js/main.js` (la línea de registro en el bootstrap).
+- **Preservación de UX-4.1 (imagen/video):** confirmado por lectura que las ramas `image`/`video` de `template-parts/hero.php` y sus theme_mods (`ce_hero_video`, `ce_hero_overlay_opacity`) no cambiaron de comportamiento — la única condición tocada fue la de `background-image` inline, ampliada para excluir también el nuevo modo slider.
+- **Preservación del sistema de cotización y del Sprint 8:** confirmado (diff) que `footer.php`, `template-parts/quote-form.php`, `inc/quote-form.php` y todos los archivos del Sprint 8 no cambiaron.
+- Trazado lógico manual (no hay entorno WordPress real disponible) del flujo completo: añadir imágenes en el control → guardar → `ce_hero_type = slider` → render del track → autoplay — confirmado correcto por lectura de código. Misma limitación metodológica ya documentada en `CURRENT_UX_SPRINT.md` (sin navegador real disponible en este entorno).

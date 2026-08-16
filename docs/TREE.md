@@ -34,25 +34,27 @@ ce-construction-theme/
 ├── inc/
 │   ├── setup.php                      ✅
 │   ├── enqueue.php                    ✅ único archivo válido de encolado de assets
-│   ├── customizer.php                 ✅
-│   ├── helpers.php                    ✅
+│   ├── customizer.php                 ✅ 🔧 Sprint UX-4, Entregables UX-4.1/UX-4.2 — controles de tipo/video/overlay/slides del Hero, ver DECISIONS.md D-054/D-055
+│   ├── helpers.php                    ✅ 🔧 Sprint UX-4, Entregable UX-4.2 — `ce_get_hero_slide_ids()` nueva (aditiva, al final del archivo)
 │   ├── cpt-servicios.php              ✅
 │   ├── cpt-proyectos.php              ✅
 │   ├── cpt-testimonios.php            ✅
 │   ├── cpt-equipo.php                 ✅
 │   ├── cpt-clientes.php               ✅
 │   ├── cpt-faq.php                    ✅
-│   ├── meta-boxes.php                 ✅
+│   ├── meta-boxes.php                 ✅ patrón de galería (`wp.media` multiple + IDs por comas) reutilizado por `CE_Customize_Hero_Slides_Control` en Sprint UX-4, Entregable UX-4.2
 │   ├── quote-form.php                 ✅
 │   ├── seo.php                        ✅
 │   ├── widgets.php                    ✅ Sprint 7, Entregable 7.1
 │   └── home-builder.php               ✅ 🆕 Sprint UX-1, Entregable UX-1.1 — registro central de secciones del Home. 🔧 Sprint UX-2 (UX-2.1 y UX-2.2): solo comentarios actualizados (team/clients/faq ya tienen template-part), sin cambio de lógica en ningún Entregable
 │
-├── template-parts/                    ✅ (24 archivos — 🆕 Sprint UX-2 COMPLETADO: UX-2.1 team.php/clients.php (D-047); UX-2.2 faq.php/content-faq-accordion.php (D-048), partial de ítem compartido con single-servicio.php. Sin cambios en Sprint 7 salvo reutilización por archive.php)
+├── template-parts/                    ✅ (24 archivos — 🆕 Sprint UX-2 COMPLETADO: UX-2.1 team.php/clients.php (D-047); UX-2.2 faq.php/content-faq-accordion.php (D-048), partial de ítem compartido con single-servicio.php. 🔧 Sprint UX-4: hero.php — tipo imagen/video/overlay (UX-4.1, D-054) + modo slider (UX-4.2, D-055))
 │
 └── assets/
-    ├── css/main.css                   ✅ 24 secciones — 🔧 Sprint 7, Entregable 7.3: sección 24 (QA-018, responsive de .ce-header__top)
-    ├── js/main.js                     ✅ 13 módulos ES6 — sin cambios en Sprint 7
+    ├── css/main.css                   ✅ 27 secciones — 🔧 Sprint UX-4: sección 26 (UX-4.1, hero video/overlay) + sección 27 (UX-4.2, hero slider), ambas 100% aditivas
+    ├── js/main.js                     ✅ 🔧 Sprint UX-4, Entregable UX-4.2 — `createSliderController()` (fábrica compartida) extraída de `ModuleTestimonialSlider` (refactorizado, sin cambio de comportamiento) + `ModuleHeroSlider` nuevo (D-055)
+    ├── js/admin-home-builder.js       ✅ Sprint UX-1, Entregable UX-1.2 — control custom del Home Builder (drag&drop, jquery-ui-sortable)
+    ├── js/admin-hero-slides.js        ✅ 🆕 Sprint UX-4, Entregable UX-4.2 — control custom `ce_hero_slides` (añadir/quitar/reordenar por botones, sin Sortable — D-055)
     └── img/                           ⬜ Vacía — pendiente de imágenes reales del cliente (no requerida para screenshot.png, que es un archivo independiente en la raíz del tema)
 ```
 

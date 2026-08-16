@@ -1281,3 +1281,46 @@ img[loading="lazy"] {
 .ce-hero__overlay {
   opacity: var(--ce-hero-overlay-opacity, 1);
 }
+
+/* =============================================================
+   27. SPRINT UX-4, ENTREGABLE UX-4.2 — HERO CONFIGURABLE (modo
+   slider). Sección añadida sin modificar ninguna regla anterior
+   (incluida la sección 26 de arriba) — ver DECISIONS.md D-055.
+
+   `.ce-hero-slider`: mismo criterio de capa que `.ce-hero__video`
+   (sección 26): posicionamiento absoluto a pantalla completa,
+   detrás de `.ce-hero__overlay` por orden de aparición en el DOM
+   (mismo mecanismo, sin z-index explícito).
+
+   `.ce-hero-slider__track`/`.ce-hero-slider__slide`: mismo patrón
+   ya usado por `.ce-testimonial-track`/`.ce-testimonial-slide`
+   (sección 11, Testimonials slider) — track en flex con
+   `transition: transform`, cada slide al 100% del ancho del track,
+   movido por `ModuleHeroSlider` (assets/js/main.js) exactamente
+   igual que `ModuleTestimonialSlider` mueve el suyo (misma fábrica
+   `createSliderController()`). Diferencia intencional: cada slide
+   aquí es una capa de fondo a pantalla completa (`background-size:
+   cover`), no una tarjeta de contenido — por eso no reutiliza
+   `.ce-testimonial-slide` tal cual, que trae su propio padding
+   pensado para una tarjeta centrada.
+   ============================================================= */
+.ce-hero-slider {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.ce-hero-slider__track {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  transition: transform var(--ce-transition-slow);
+  will-change: transform;
+}
+.ce-hero-slider__slide {
+  flex: 0 0 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+}

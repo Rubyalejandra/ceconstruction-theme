@@ -409,12 +409,13 @@ function ce_construction_customize_register( $wp_customize ) {
 	) );
 	$wp_customize->add_control( 'ce_hero_type', array(
 		'label'       => __( 'Tipo de fondo del Hero', 'ce-construction' ),
-		'description' => __( 'En modo Video, si no se sube ningún video (o el navegador no puede reproducirlo), el Hero usa automáticamente la imagen de fondo configurada abajo como respaldo.', 'ce-construction' ),
+		'description' => __( 'En modo Video, si no se sube ningún video (o el navegador no puede reproducirlo), el Hero usa automáticamente la imagen de fondo configurada abajo como respaldo. En modo Slider, si no se selecciona ninguna imagen, ocurre lo mismo.', 'ce-construction' ),
 		'section'     => 'ce_section_hero',
 		'type'        => 'select',
 		'choices'     => array(
-			'image' => __( 'Imagen (por defecto)', 'ce-construction' ),
-			'video' => __( 'Video', 'ce-construction' ),
+			'image'  => __( 'Imagen (por defecto)', 'ce-construction' ),
+			'video'  => __( 'Video', 'ce-construction' ),
+			'slider' => __( 'Slider (varias imágenes)', 'ce-construction' ),
 		),
 		'priority'    => 5,
 	) );
@@ -426,6 +427,23 @@ function ce_construction_customize_register( $wp_customize ) {
 		'section'     => 'ce_section_hero',
 		'mime_type'   => 'video',
 		'priority'    => 6,
+	) ) );
+
+	/* ---------------------------------------------------------
+	 * Sprint UX-4, Entregable UX-4.2: imágenes del slider del Hero
+	 * (solo aplica si el tipo de fondo es "Slider"). Ver
+	 * DECISIONS.md D-055.
+	 * --------------------------------------------------------- */
+	$wp_customize->add_setting( 'ce_hero_slides', array(
+		'default'           => '',
+		'sanitize_callback' => 'ce_construction_sanitize_hero_slides',
+		'transport'         => 'refresh',
+	) );
+	$wp_customize->add_control( new CE_Customize_Hero_Slides_Control( $wp_customize, 'ce_hero_slides', array(
+		'label'       => __( 'Imágenes del slider del Hero (solo si el tipo es "Slider")', 'ce-construction' ),
+		'description' => __( 'Añade una o varias imágenes; se reproducen en bucle automático, igual que el slider de Testimonios. Usa las flechas para reordenar y la "×" para quitar una imagen.', 'ce-construction' ),
+		'section'     => 'ce_section_hero',
+		'priority'    => 7,
 	) ) );
 
 	$wp_customize->add_setting( 'ce_hero_overlay_opacity', array(
@@ -443,7 +461,7 @@ function ce_construction_customize_register( $wp_customize ) {
 			'max'  => 1,
 			'step' => 0.05,
 		),
-		'priority'    => 7,
+		'priority'    => 8,
 	) );
 
 	$hero_text_fields = array(
@@ -633,9 +651,14 @@ add_action( 'customize_controls_print_styles', 'ce_construction_home_builder_con
  * `sanitize_callback` de `ce_hero_type`. Whitelist estricta —
  * cualquier valor no reconocido cae a 'image' (comportamiento
  * histórico del tema, sin regresión).
+ *
+ * 🆕 Sprint UX-4, Entregable UX-4.2: se añade 'slider' al whitelist
+ * (antes solo 'image'/'video', ver DECISIONS.md D-054). Ampliación
+ * de una única línea (el array `$allowed`) — la lógica de la
+ * función no cambia.
  */
 function ce_construction_sanitize_hero_type( $value ) {
-	$allowed = array( 'image', 'video' );
+	$allowed = array( 'image', 'video', 'slider' );
 	return in_array( $value, $allowed, true ) ? $value : 'image';
 }
 
@@ -656,3 +679,140 @@ function ce_construction_sanitize_hero_overlay_opacity( $value ) {
 	}
 	return (string) $value;
 }
+
+/* =========================================================
+ * SPRINT UX-4, ENTREGABLE UX-4.2 — Hero configurable: modo slider.
+ * Ver DECISIONS.md D-055.
+ * ========================================================= */
+
+/**
+ * `sanitize_callback` de `ce_hero_slides`. Reutiliza
+ * `ce_get_hero_slide_ids()` (`inc/helpers.php`) para parsear y
+ * filtrar la cadena entrante a solo IDs de adjunto válidos (> 0),
+ * y la vuelve a serializar como cadena separada por comas — mismo
+ * criterio de saneamiento que ya usa `ce_construction_save_meta_boxes()`
+ * para `_ce_proyecto_galeria` (`inc/meta-boxes.php`), aplicado aquí
+ * a un theme_mod en vez de a post meta.
+ */
+function ce_construction_sanitize_hero_slides( $value ) {
+	$ids = ce_get_hero_slide_ids( is_string( $value ) ? $value : '' );
+	return implode( ',', $ids );
+}
+
+/**
+ * Control custom del Customizer: selector múltiple de imágenes para
+ * el slider del Hero, con miniaturas, botón "Añadir imágenes" (
+ * `wp.media` en modo `multiple: true` — mismo mecanismo ya usado en
+ * `inc/meta-boxes.php::ce_render_proyecto_gallery()` para la
+ * galería de Proyecto, adaptado aquí de metabox a control de
+ * Customizer) y reordenamiento mediante botones "mover antes/después"
+ * por miniatura (sin jQuery UI Sortable — ver DECISIONS.md D-055
+ * para la justificación de esta elección frente al patrón de
+ * arrastre de `CE_Customize_Home_Sections_Control`).
+ *
+ * El JS real (añadir/quitar/reordenar + serialización del hidden
+ * input) vive en assets/js/admin-hero-slides.js (encolado desde
+ * inc/enqueue.php, mismo criterio que assets/js/admin-home-builder.js
+ * — inc/customizer.php define el control, no encola nada
+ * directamente).
+ *
+ * Guardado en `class_exists()` por el mismo motivo que
+ * `CE_Customize_Home_Sections_Control`: `WP_Customize_Control` solo
+ * está disponible cuando WordPress ya cargó el core del Customizer.
+ */
+if ( class_exists( 'WP_Customize_Control' ) ) {
+
+	class CE_Customize_Hero_Slides_Control extends WP_Customize_Control {
+
+		public $type = 'ce_hero_slides';
+
+		public function render_content() {
+			$ids = ce_get_hero_slide_ids( $this->value() );
+			?>
+			<?php if ( ! empty( $this->label ) ) : ?>
+				<span class="customize-control-title"><?php echo esc_html( $this->label ); ?></span>
+			<?php endif; ?>
+			<?php if ( ! empty( $this->description ) ) : ?>
+				<span class="description customize-control-description"><?php echo wp_kses_post( $this->description ); ?></span>
+			<?php endif; ?>
+
+			<ul class="ce-hero-slides-list">
+				<?php
+				foreach ( $ids as $id ) :
+					$thumb = wp_get_attachment_image_url( $id, 'thumbnail' );
+					if ( ! $thumb ) {
+						continue; // Adjunto borrado desde entonces: se omite del preview, no del guardado (lo purga el propio guardado en el siguiente 'Publicar').
+					}
+					?>
+					<li class="ce-hero-slides-item" data-id="<?php echo esc_attr( $id ); ?>">
+						<img src="<?php echo esc_url( $thumb ); ?>" alt="">
+						<button type="button" class="ce-hero-slides-item__up" aria-label="<?php esc_attr_e( 'Mover antes', 'ce-construction' ); ?>">&uarr;</button>
+						<button type="button" class="ce-hero-slides-item__down" aria-label="<?php esc_attr_e( 'Mover después', 'ce-construction' ); ?>">&darr;</button>
+						<button type="button" class="ce-hero-slides-item__remove" aria-label="<?php esc_attr_e( 'Quitar', 'ce-construction' ); ?>">&times;</button>
+					</li>
+				<?php endforeach; ?>
+			</ul>
+
+			<button type="button" class="button ce-hero-slides-add"><?php esc_html_e( 'Añadir imágenes', 'ce-construction' ); ?></button>
+
+			<input type="hidden" class="ce-hero-slides-value" <?php $this->link(); ?> value="<?php echo esc_attr( $this->value() ); ?>">
+			<?php
+		}
+	}
+}
+
+/**
+ * Estilos del control custom `ce_hero_slides` dentro del admin del
+ * Customizer. Mismo criterio que
+ * ce_construction_home_builder_control_styles() (arriba): función
+ * separada, mismo hook (`customize_controls_print_styles`), `<style>`
+ * con id propio — no se añade nada a la función ya existente.
+ */
+function ce_construction_hero_slides_control_styles() {
+	?>
+	<style id="ce-hero-slides-control-styles">
+		.ce-hero-slides-list {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 8px;
+			margin: 8px 0 10px;
+			padding: 0;
+			list-style: none;
+		}
+		.ce-hero-slides-item {
+			position: relative;
+			width: 72px;
+			border: 1px solid #dcdcde;
+			border-radius: 3px;
+			overflow: hidden;
+			background: #fff;
+		}
+		.ce-hero-slides-item img {
+			display: block;
+			width: 100%;
+			height: 54px;
+			object-fit: cover;
+		}
+		.ce-hero-slides-item__up,
+		.ce-hero-slides-item__down,
+		.ce-hero-slides-item__remove {
+			position: absolute;
+			top: 2px;
+			width: 18px;
+			height: 18px;
+			line-height: 16px;
+			padding: 0;
+			font-size: 11px;
+			text-align: center;
+			background: rgba(255,255,255,.92);
+			border: 1px solid #dcdcde;
+			border-radius: 2px;
+			cursor: pointer;
+		}
+		.ce-hero-slides-item__up { left: 2px; }
+		.ce-hero-slides-item__down { left: 22px; }
+		.ce-hero-slides-item__remove { right: 2px; color: #b32d2e; }
+	</style>
+	<?php
+}
+add_action( 'customize_controls_print_styles', 'ce_construction_hero_slides_control_styles' );

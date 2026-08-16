@@ -427,3 +427,35 @@ function ce_construction_quote_form_rendered_inline_get( $set = null ) {
 	}
 	return $rendered;
 }
+
+/* =========================================================
+ * SPRINT UX-4, ENTREGABLE UX-4.2 — Hero configurable: modo slider.
+ * Ver DECISIONS.md D-055.
+ * ========================================================= */
+
+/**
+ * IDs de las imágenes del slider del Hero como array de enteros.
+ * Mismo criterio de parseo/saneamiento que `ce_get_gallery_ids()`
+ * (arriba, este mismo archivo) — cadena de IDs separados por comas
+ * → `array_map('absint')` → `array_filter()` (descarta ceros/valores
+ * inválidos) — adaptado de post meta (`_ce_proyecto_galeria`) a
+ * theme_mod (`ce_hero_slides`), por eso recibe la cadena ya leída
+ * en vez de un `$post_id`: la usan tanto
+ * `ce_construction_sanitize_hero_slides()` (`inc/customizer.php`,
+ * saneando el valor entrante del control antes de guardar) como
+ * `CE_Customize_Hero_Slides_Control::render_content()` (pintando
+ * el preview de miniaturas ya guardadas) y `template-parts/hero.php`
+ * (leyendo el theme_mod ya guardado para renderizar el slider en
+ * frontend) — una sola fuente de verdad para las 3 lecturas.
+ *
+ * @param string $raw Cadena de IDs separados por comas (theme_mod
+ *                     `ce_hero_slides`, o el valor entrante sin
+ *                     guardar todavía en el caso del sanitize_callback).
+ * @return int[] IDs de adjunto válidos (> 0), en el orden recibido.
+ */
+function ce_get_hero_slide_ids( $raw ) {
+	if ( empty( $raw ) || ! is_string( $raw ) ) {
+		return array();
+	}
+	return array_filter( array_map( 'absint', explode( ',', $raw ) ) );
+}

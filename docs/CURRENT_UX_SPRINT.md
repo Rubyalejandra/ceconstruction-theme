@@ -51,10 +51,32 @@ Plan completo de Sprints UX-1 a UX-6: ver `docs/UX_CONVERSION_ANALISIS_Y_PLAN.md
 
 | Entregable | Objetivo | Estado |
 |---|---|---|
-| UX-4.1 | Hero configurable: tipo imagen/video + overlay ajustable | 🟡 **Entregado — pendiente de tu aprobación** |
-| UX-4.2 | Modo slider del Hero | ⬜ No iniciado — no comienza sin tu aprobación explícita de UX-4.1 |
+| UX-4.1 | Hero configurable: tipo imagen/video + overlay ajustable | 🟡 Entregado — aprobación implícita al instruir continuar con UX-4.2 (ver nota abajo) |
+| UX-4.2 | Modo slider del Hero | 🟡 **Entregado — pendiente de tu aprobación explícita** |
 
-## Trabajo realizado (Entregable UX-4.1)
+> **Nota sobre la aprobación de UX-4.1:** este cierre de UX-4.2 se ejecutó por instrucción explícita tuya de continuar directamente ("si no existe contradicción, continúa directamente"), sin objeciones sobre UX-4.1. Se registra como aprobación implícita a efectos de este documento, pero sigue sujeta a que la confirmes (o señales alguna corrección) junto con UX-4.2 — ninguna de las dos queda formalmente cerrada (D-038) hasta tu confirmación explícita.
+
+## Trabajo realizado (Entregable UX-4.2)
+
+`ce_hero_type` admite ahora un tercer valor, `slider`: varias imágenes de fondo (`ce_hero_slides`, nuevo control custom del Customizer `CE_Customize_Hero_Slides_Control` con miniaturas, añadir/quitar/reordenar) en bucle automático, renderizadas en `template-parts/hero.php` con el mismo criterio de capas y fallback silencioso que el modo video de UX-4.1. En frontend, un nuevo `ModuleHeroSlider` (`assets/js/main.js`) reutiliza una fábrica compartida (`createSliderController()`) extraída de `ModuleTestimonialSlider` — sin duplicar la mecánica de slide, sin cambio de comportamiento en el slider de Testimonios. Ver `CHANGELOG.md` (entrada de UX-4.2) y `DECISIONS.md` D-055 para el detalle completo.
+
+Este Entregable retomó 4 archivos ya trabajados en una sesión anterior (`inc/customizer.php`, `assets/js/admin-hero-slides.js`, `inc/enqueue.php`, `assets/js/main.js`) y completó lo que faltaba: `inc/helpers.php::ce_get_hero_slide_ids()` (no existía, pese a que `inc/customizer.php` ya la invocaba), el registro de `ModuleHeroSlider.init()` en el bootstrap de `assets/js/main.js` (el módulo estaba definido pero nunca se llamaba), la rama del modo slider en `template-parts/hero.php` (sin ningún cambio previo), y la sección 27 de `assets/css/main.css` (sin crear todavía).
+
+**Este Entregable tampoco tocó nada del sistema de cotización** ni del Home Builder — mismo alcance acotado que UX-4.1.
+
+## Archivos creados / modificados (Sprint UX-4, Entregable UX-4.2)
+- Creados: `assets/js/admin-hero-slides.js` (recibido de sesión anterior, verificado, sin cambios en este cierre).
+- Modificados: `inc/customizer.php` (recibido de sesión anterior, verificado, sin cambios en este cierre), `inc/enqueue.php` (recibido de sesión anterior, verificado, sin cambios en este cierre), `inc/helpers.php` (nueva `ce_get_hero_slide_ids()`), `template-parts/hero.php` (rama del modo slider), `assets/js/main.js` (fábrica compartida + `ModuleHeroSlider` + registro en el bootstrap), `assets/css/main.css` (sección 27, aditiva).
+- Sin cambios: todo el sistema de cotización (Sprint UX-3), el Home Builder (Sprint UX-1/UX-2), y las ramas imagen/video del Hero (UX-4.1).
+- Eliminados: ninguno.
+
+## Documentación actualizada (en este cierre)
+`DECISIONS.md` (D-055), `CHANGELOG.md` (entrada de UX-4.2), `TREE.md` (nuevo archivo `assets/js/admin-hero-slides.js` + estado de `main.js`/`main.css`/`customizer.php`/`helpers.php`), y este mismo archivo. Sin cambios en `ARCHITECTURE.md` (sin cambio de arquitectura, solo generalización interna ya prevista en el plan) ni en `CURRENT_SPRINT.md`, `QA_REPORT.md` o `HANDOFF.md` (Sprint 8, sin tocar).
+
+## Próximo Entregable
+Con UX-4.2 entregado, el **Sprint UX-4 queda completo** (UX-4.1 + UX-4.2), pendiente de tu aprobación explícita de ambos. El siguiente Sprint según el orden recomendado de `docs/UX_CONVERSION_ANALISIS_Y_PLAN.md` §6 es **Sprint UX-5** ("Múltiples CTA / estrategias de conversión + objetivo de plantilla"), que no comienza sin tu aprobación explícita de UX-4 completo. El Sprint 8 (pausado en el Entregable 8.2) sigue exactamente donde estaba, disponible para retomar en 8.3 si lo prefieres en su lugar.
+
+## Trabajo realizado (Entregable UX-4.1, sin cambios respecto al cierre anterior)
 
 3 controles nuevos en la sección ya existente "CE: Sección Hero" del Customizer (`ce_hero_type`, `ce_hero_video`, `ce_hero_overlay_opacity`), consumidos por una rama condicional en `template-parts/hero.php` que decide entre imagen de fondo (comportamiento histórico, con fallback automático si el tipo es "video" pero no hay ningún video subido) o un `<video>` de fondo, más una nueva regla CSS aditiva para la opacidad del overlay vía custom property. El bloque de cálculo de los botones del Hero (incluido el fix de D-050) se verificó intacto, línea por línea, antes y después del cambio. Ver `CHANGELOG.md` (entrada de UX-4.1) y `DECISIONS.md` D-054 para el detalle completo.
 

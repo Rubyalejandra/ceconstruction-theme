@@ -230,75 +230,149 @@
 	};
 
 	/* ============================================================
+	 * FÁBRICA COMPARTIDA: CONTROLADOR DE SLIDER (autoplay + swipe +
+	 * flechas + dots opcionales).
+	 *
+	 * 🆕 Sprint UX-4, Entregable UX-4.2 (fase "Optimización UX /
+	 * Conversión"). Antes de este Entregable, esta lógica vivía
+	 * duplicada dentro del objeto `ModuleTestimonialSlider` de forma
+	 * no reutilizable. Se extrae aquí para que tanto
+	 * `ModuleTestimonialSlider` (abajo, refactorizado para usar esta
+	 * fábrica, MISMO comportamiento de antes — ver DECISIONS.md
+	 * D-055) como el nuevo `ModuleHeroSlider` la reutilicen sin
+	 * copiar/pegar ninguna línea de la mecánica de slide (mitigación
+	 * de R-4 ya prevista en docs/UX_CONVERSION_ANALISIS_Y_PLAN.md).
+	 *
+	 * @param {Object} config
+	 * @param {string}  config.rootSelector    Selector del contenedor raíz (lee data-autoplay).
+	 * @param {string}  config.trackSelector   Selector del track (dentro de root).
+	 * @param {string}  config.slideSelector   Selector de cada slide (dentro de track).
+	 * @param {string}  [config.navSelector]   Selector del contenedor de dots (dentro de root.parentElement). Si se omite, no se crean dots.
+	 * @param {string}  [config.prevSelector]  Selector de la flecha "anterior" (dentro de root.parentElement).
+	 * @param {string}  [config.nextSelector]  Selector de la flecha "siguiente" (dentro de root.parentElement).
+	 * @param {string}  [config.dotLabel]      Prefijo de aria-label de cada dot (recibe el número, 1-indexed).
+	 * @param {number}  [config.defaultDelay]  Delay de autoplay (ms) si el root no trae data-autoplay. Por defecto 6000.
+	 * @param {boolean} [config.swipe]         Si es `false`, no se activa el swipe táctil. Por defecto `true`.
+	 * @param {boolean} [config.pauseOnHover]  Si es `false`, el autoplay no se detiene con mouseenter/mouseleave. Por defecto `true`.
+	 * @returns {Object} Controlador con `.init()`, listo para usarse como módulo del bootstrap.
+	 * ============================================================ */
+	function createSliderController(config) {
+		return {
+			init() {
+				this.root = $(config.rootSelector);
+				if (!this.root) return;
+
+				this.track = $(config.trackSelector, this.root);
+				this.slides = $$(config.slideSelector, this.track);
+				if (!this.slides.length) return;
+
+				this.current = 0;
+				this.autoplayDelay = parseInt(this.root.dataset.autoplay, 10) || config.defaultDelay || 6000;
+				this.timer = null;
+
+				this.buildNav();
+				this.bindArrows();
+				this.bindSwipe();
+				this.goTo(0);
+				this.startAutoplay();
+
+				if (config.pauseOnHover !== false) {
+					on(this.root, 'mouseenter', () => this.stopAutoplay());
+					on(this.root, 'mouseleave', () => this.startAutoplay());
+				}
+			},
+			buildNav() {
+				if (!config.navSelector) return;
+				this.nav = $(config.navSelector, this.root.parentElement);
+				if (!this.nav) return;
+				this.dots = this.slides.map((_, i) => {
+					const dot = document.createElement('button');
+					dot.className = 'ce-slider-dot';
+					dot.setAttribute('aria-label', `${config.dotLabel || 'Slide'} ${i + 1}`);
+					on(dot, 'click', () => this.goTo(i));
+					this.nav.appendChild(dot);
+					return dot;
+				});
+			},
+			bindArrows() {
+				const prev = config.prevSelector ? $(config.prevSelector, this.root.parentElement) : null;
+				const next = config.nextSelector ? $(config.nextSelector, this.root.parentElement) : null;
+				on(prev, 'click', () => this.goTo(this.current - 1));
+				on(next, 'click', () => this.goTo(this.current + 1));
+			},
+			bindSwipe() {
+				if (config.swipe === false) return;
+				let startX = 0;
+				on(this.track, 'touchstart', (e) => { startX = e.touches[0].clientX; }, { passive: true });
+				on(this.track, 'touchend', (e) => {
+					const diff = e.changedTouches[0].clientX - startX;
+					if (Math.abs(diff) > 40) {
+						this.goTo(this.current + (diff < 0 ? 1 : -1));
+					}
+				}, { passive: true });
+			},
+			goTo(index) {
+				const total = this.slides.length;
+				this.current = (index + total) % total;
+				this.track.style.transform = `translateX(-${this.current * 100}%)`;
+				if (this.dots) {
+					this.dots.forEach((d, i) => d.classList.toggle('is-active', i === this.current));
+				}
+			},
+			startAutoplay() {
+				this.stopAutoplay();
+				this.timer = setInterval(() => this.goTo(this.current + 1), this.autoplayDelay);
+			},
+			stopAutoplay() {
+				if (this.timer) clearInterval(this.timer);
+			},
+		};
+	}
+
+	/* ============================================================
 	 * MÓDULO: SLIDER DE TESTIMONIOS
 	 * Slider automático con soporte de swipe, flechas y dots.
+	 * 🆕 Sprint UX-4, Entregable UX-4.2: refactorizado para usar
+	 * createSliderController() (arriba) — mismos selectores, mismo
+	 * dotLabel, mismo defaultDelay (6000ms) y mismas opciones
+	 * (swipe/pauseOnHover no se tocan, sus valores por defecto ya
+	 * reproducen el comportamiento anterior a este Entregable
+	 * byte a byte). Ver DECISIONS.md D-055.
 	 * ============================================================ */
-	const ModuleTestimonialSlider = {
-		init() {
-			this.root = $('.ce-testimonial-slider');
-			if (!this.root) return;
+	const ModuleTestimonialSlider = createSliderController({
+		rootSelector: '.ce-testimonial-slider',
+		trackSelector: '.ce-testimonial-track',
+		slideSelector: '.ce-testimonial-slide',
+		navSelector: '.ce-slider-nav',
+		prevSelector: '.ce-slider-arrow--prev',
+		nextSelector: '.ce-slider-arrow--next',
+		dotLabel: 'Testimonio',
+		defaultDelay: 6000,
+	});
 
-			this.track = $('.ce-testimonial-track', this.root);
-			this.slides = $$('.ce-testimonial-slide', this.track);
-			if (!this.slides.length) return;
-
-			this.current = 0;
-			this.autoplayDelay = parseInt(this.root.dataset.autoplay, 10) || 6000;
-			this.timer = null;
-
-			this.buildNav();
-			this.bindArrows();
-			this.bindSwipe();
-			this.goTo(0);
-			this.startAutoplay();
-
-			on(this.root, 'mouseenter', () => this.stopAutoplay());
-			on(this.root, 'mouseleave', () => this.startAutoplay());
-		},
-		buildNav() {
-			this.nav = $('.ce-slider-nav', this.root.parentElement);
-			if (!this.nav) return;
-			this.dots = this.slides.map((_, i) => {
-				const dot = document.createElement('button');
-				dot.className = 'ce-slider-dot';
-				dot.setAttribute('aria-label', `Testimonio ${i + 1}`);
-				on(dot, 'click', () => this.goTo(i));
-				this.nav.appendChild(dot);
-				return dot;
-			});
-		},
-		bindArrows() {
-			const prev = $('.ce-slider-arrow--prev', this.root.parentElement);
-			const next = $('.ce-slider-arrow--next', this.root.parentElement);
-			on(prev, 'click', () => this.goTo(this.current - 1));
-			on(next, 'click', () => this.goTo(this.current + 1));
-		},
-		bindSwipe() {
-			let startX = 0;
-			on(this.track, 'touchstart', (e) => { startX = e.touches[0].clientX; }, { passive: true });
-			on(this.track, 'touchend', (e) => {
-				const diff = e.changedTouches[0].clientX - startX;
-				if (Math.abs(diff) > 40) {
-					this.goTo(this.current + (diff < 0 ? 1 : -1));
-				}
-			}, { passive: true });
-		},
-		goTo(index) {
-			const total = this.slides.length;
-			this.current = (index + total) % total;
-			this.track.style.transform = `translateX(-${this.current * 100}%)`;
-			if (this.dots) {
-				this.dots.forEach((d, i) => d.classList.toggle('is-active', i === this.current));
-			}
-		},
-		startAutoplay() {
-			this.stopAutoplay();
-			this.timer = setInterval(() => this.goTo(this.current + 1), this.autoplayDelay);
-		},
-		stopAutoplay() {
-			if (this.timer) clearInterval(this.timer);
-		},
-	};
+	/* ============================================================
+	 * MÓDULO: SLIDER DE HERO (modo "slider" del Hero configurable)
+	 * 🆕 Sprint UX-4, Entregable UX-4.2. Reutiliza la misma fábrica
+	 * que ModuleTestimonialSlider (arriba) — cero lógica de slide
+	 * duplicada. Fondo decorativo/de ambiente: sin dots ni flechas
+	 * (el brief solo exige "funcional con autoplay", ver
+	 * docs/UX_CONVERSION_ANALISIS_Y_PLAN.md §5), sin pausa por hover
+	 * y sin swipe táctil (evita interferir con el scroll normal de
+	 * la página al deslizar sobre el Hero en móvil) — ver
+	 * DECISIONS.md D-055 para el detalle de estas 3 decisiones.
+	 * Auto-inicializable: si el marcado `.ce-hero-slider` no existe
+	 * en la página (Hero en modo imagen/video, o sin ninguna imagen
+	 * configurada), `init()` retorna de inmediato sin efecto, igual
+	 * que el resto de módulos de este archivo.
+	 * ============================================================ */
+	const ModuleHeroSlider = createSliderController({
+		rootSelector: '.ce-hero-slider',
+		trackSelector: '.ce-hero-slider__track',
+		slideSelector: '.ce-hero-slider__slide',
+		defaultDelay: 6000,
+		swipe: false,
+		pauseOnHover: false,
+	});
 
 	/* ============================================================
 	 * MÓDULO: LIGHTBOX DE GALERÍA
@@ -696,6 +770,7 @@
 		ModuleWhatsAppFloat.init();
 		ModuleCounters.init();
 		ModuleTestimonialSlider.init();
+		ModuleHeroSlider.init(); // 🆕 Sprint UX-4, Entregable UX-4.2 (ver DECISIONS.md D-055).
 		ModuleLightbox.init();
 		ModuleModals.init();
 		ModuleQuoteForm.init();
