@@ -12,16 +12,24 @@
  * D-051/D-052 documentado en DECISIONS.md — historial completo ahí,
  * no repetido aquí):
  *
- * Este archivo admite 2 contextos de invocación, vía `$args['context']`:
- *   - Normal (sin `$args`, o `$args['context']` distinto de 'modal'):
- *     sección completa (`<section id="ce-quote-form-section">`) con
- *     eyebrow/título/lista + tarjeta del formulario. La invocan la
+ * Este archivo admite 3 contextos de invocación, vía `$args['context']`:
+ *   - Normal (sin `$args`, o `$args['context']` distinto de 'modal'/
+ *     'hero'): sección completa (`<section id="ce-quote-form-section">`)
+ *     con eyebrow/título/lista + tarjeta del formulario. La invocan la
  *     sección `quote_form` del Home Builder (`front-page.php` vía
  *     `inc/home-builder.php`) y, de forma incondicional, `single-servicio.php`/
  *     `single-proyecto.php`.
  *   - Modal (`$args['context'] = 'modal'`, usada exclusivamente por
  *     `footer.php`): imprime ÚNICAMENTE el `<form>`, sin el
  *     `<section>`/encabezado/tarjeta de la presentación integrada.
+ *   - 🆕 Hero (`$args['context'] = 'hero'`, Sprint UX-7, Entregable
+ *     UX-7.2 — ver DECISIONS.md D-064), usada exclusivamente por
+ *     `template-parts/hero.php` cuando `ce_hero_show_quote_form` está
+ *     activado: imprime el `<form>` envuelto en una tarjeta compacta
+ *     (`.ce-hero-quote-card`), sin el `<section>`/eyebrow/lista de la
+ *     presentación integrada — mismo criterio que el modal (bare
+ *     form + wrapper propio), pero con su propio wrapper visual
+ *     pensado para convivir con el fondo oscuro del Hero.
  *
  * Modos de `ce_quote_form_mode` (theme_mod, `inc/customizer.php`) y
  * su efecto en ESTE archivo:
@@ -39,6 +47,14 @@
  *     ni siquiera llega a invocar este archivo en modo 'disabled')
  *     imprimen nada — sin formulario de cotización en ningún punto
  *     del sitio.
+ *   - 🆕 La invocación en contexto 'hero' se comporta, frente a este
+ *     mismo guard, exactamente igual que la invocación normal (no
+ *     modal): en modo 'modal'/'disabled' tampoco imprime nada — el
+ *     Hero es una instancia INTEGRADA más (visible directamente en
+ *     la página, no un popup), así que respeta la misma regla que ya
+ *     aplican `single-servicio.php`/`single-proyecto.php`. Sin
+ *     cambios en el guard ya existente (la condición `! $ce_quote_is_modal`
+ *     ya cubre 'hero' sin necesidad de una rama nueva).
  *
  * IDs internos de los campos (`ce_name`, `ce_email`, etc.): se
  * sufijan con `-modal` únicamente cuando el `<form>` del modal usa el
@@ -56,6 +72,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 $ce_quote_context = isset( $args['context'] ) ? $args['context'] : '';
 $ce_quote_is_modal = ( 'modal' === $ce_quote_context );
+// 🆕 Sprint UX-7, Entregable UX-7.2 (D-064): tercer contexto, usado
+// exclusivamente por template-parts/hero.php.
+$ce_quote_is_hero = ( 'hero' === $ce_quote_context );
 
 // Invocación "normal" (no modal) mientras el modo global es 'modal' O
 // 'disabled': no imprimir la sección integrada.
@@ -83,7 +102,13 @@ if ( ! $ce_quote_is_modal && ( 'modal' === $ce_quote_mode || 'disabled' === $ce_
 // misma página. No afecta a la rama modal (ce_quote_is_modal=true):
 // esa invocación no imprime una segunda instancia "integrada", así
 // que no marca nada.
-if ( ! $ce_quote_is_modal ) {
+// 🆕 UX-7.2 (D-064): la instancia 'hero' NO marca esta bandera. Usa
+// su propio id fijo, sin colisión posible con "ce-quote-form" (ver
+// resolución de $ce_quote_form_id más abajo), así que no necesita
+// (ni debe) reservar ese id para el modal — el modal solo necesita
+// saber si la instancia INTEGRADA (la que sí usa "ce-quote-form")
+// ya se imprimió.
+if ( ! $ce_quote_is_modal && ! $ce_quote_is_hero ) {
 	ce_construction_mark_quote_form_rendered_inline();
 }
 
@@ -98,19 +123,35 @@ if ( ! $ce_quote_is_modal ) {
 // localiza todas las instancias por clase (`.ce-quote-form-instance`)
 // en vez de por un id fijo, precisamente para poder inicializar
 // ambas de forma independiente cuando coexisten.
-$ce_quote_form_id = 'ce-quote-form';
-if ( $ce_quote_is_modal && ce_construction_quote_form_rendered_inline() ) {
-	$ce_quote_form_id = 'ce-quote-form-modal';
+// 🆕 UX-7.2 (D-064): la instancia 'hero' usa un id FIJO y distinto
+// ("ce-quote-form-hero") — a lo sumo un Hero por página, así que no
+// necesita ningún cálculo de colisión dinámico como el modal. Al no
+// competir nunca por el id base "ce-quote-form", tampoco afecta la
+// decisión de abajo (que sigue mirando únicamente si la instancia
+// INTEGRADA, no la de Hero, ya se imprimió).
+if ( $ce_quote_is_hero ) {
+	$ce_quote_form_id = 'ce-quote-form-hero';
+} else {
+	$ce_quote_form_id = 'ce-quote-form';
+	if ( $ce_quote_is_modal && ce_construction_quote_form_rendered_inline() ) {
+		$ce_quote_form_id = 'ce-quote-form-modal';
+	}
 }
 // Mismo criterio para los `id`/`for` de los campos internos (nombre
 // = 'ce_name', 'ce_email'...): solo se sufijan cuando hay colisión
-// real (la instancia del modal, cuando coexiste con la integrada).
-// Los atributos `name=` NO se tocan en ningún caso — inc/quote-form.php
+// real (la instancia del modal, cuando coexiste con la integrada, o
+// la instancia de Hero, que siempre tiene su propio id). Los
+// atributos `name=` NO se tocan en ningún caso — inc/quote-form.php
 // (handler AJAX) y FormData()/this.form.elements[name] en
 // assets/js/main.js identifican cada campo por `name`, nunca por
 // `id`; cambiar el `id` es puramente para no duplicar IDs en el DOM
 // (validez HTML/accesibilidad de las etiquetas <label for="...">).
-$ce_quote_id_suffix = ( 'ce-quote-form-modal' === $ce_quote_form_id ) ? '-modal' : '';
+$ce_quote_id_suffix = '';
+if ( 'ce-quote-form-modal' === $ce_quote_form_id ) {
+	$ce_quote_id_suffix = '-modal';
+} elseif ( 'ce-quote-form-hero' === $ce_quote_form_id ) {
+	$ce_quote_id_suffix = '-hero';
+}
 
 $servicios = get_posts( array(
 	'post_type'      => 'servicio',
@@ -120,7 +161,13 @@ $servicios = get_posts( array(
 	'order'          => 'ASC',
 ) );
 ?>
-<?php if ( ! $ce_quote_is_modal ) : ?>
+<?php if ( $ce_quote_is_hero ) : ?>
+<!-- 🆕 UX-7.2 (D-064): tarjeta compacta para el slot del Hero — sin
+     <section>/eyebrow/lista de la presentación integrada, mismo
+     criterio de "bare form + wrapper propio" que el modal. -->
+<div class="ce-hero-quote-card ce-card">
+	<div class="ce-card__body">
+<?php elseif ( ! $ce_quote_is_modal ) : ?>
 <section class="ce-section ce-section--alt" id="ce-quote-form-section">
 	<div class="ce-container">
 		<div class="ce-grid ce-grid--2 ce-items-center">
@@ -216,7 +263,10 @@ $servicios = get_posts( array(
 
 					</form>
 
-<?php if ( ! $ce_quote_is_modal ) : ?>
+<?php if ( $ce_quote_is_hero ) : ?>
+	</div>
+</div>
+<?php elseif ( ! $ce_quote_is_modal ) : ?>
 				</div>
 			</div>
 

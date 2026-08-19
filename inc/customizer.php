@@ -464,6 +464,47 @@ function ce_construction_customize_register( $wp_customize ) {
 		'priority'    => 8,
 	) );
 
+	/* ---------------------------------------------------------
+	 * 🆕 Sprint UX-7, Entregable UX-7.2: layout de columnas del
+	 * Hero de Home + slot opcional de Quote Form embebido. Ver
+	 * DECISIONS.md D-064. Aditivo dentro de la misma sección
+	 * 'ce_section_hero' ya existente. Solo aplica al Hero de Home
+	 * (template-parts/hero.php) — el Hero interno
+	 * (template-parts/page-hero.php, unificado en UX-7.1) sigue de
+	 * una sola columna, sin este control (decisión explícita del
+	 * usuario para este Entregable).
+	 * --------------------------------------------------------- */
+	$wp_customize->add_setting( 'ce_hero_layout', array(
+		'default'           => '1',
+		'sanitize_callback' => 'ce_construction_sanitize_hero_layout',
+		'transport'         => 'refresh',
+	) );
+	$wp_customize->add_control( 'ce_hero_layout', array(
+		'label'       => __( 'Layout de columnas del Hero (solo Home)', 'ce-construction' ),
+		'description' => __( 'Proporción de ancho entre el contenido (título/subtítulo/botones) y el Formulario de Cotización, cuando este último está activado abajo. Sin el formulario activado, el contenido siempre ocupa el ancho completo, sin importar esta opción.', 'ce-construction' ),
+		'section'     => 'ce_section_hero',
+		'type'        => 'select',
+		'choices'     => array(
+			'1' => __( 'Una columna (ancho completo)', 'ce-construction' ),
+			'2' => __( 'Dos columnas — contenido 7 / formulario 5', 'ce-construction' ),
+			'3' => __( 'Dos columnas — contenido 8 / formulario 4', 'ce-construction' ),
+		),
+		'priority'    => 9,
+	) );
+
+	$wp_customize->add_setting( 'ce_hero_show_quote_form', array(
+		'default'           => false,
+		'sanitize_callback' => 'ce_construction_sanitize_checkbox',
+		'transport'         => 'refresh',
+	) );
+	$wp_customize->add_control( 'ce_hero_show_quote_form', array(
+		'label'       => __( 'Mostrar el Formulario de Cotización dentro del Hero', 'ce-construction' ),
+		'description' => __( 'Combinable con cualquier layout de arriba. Con layout "Una columna", el formulario aparece debajo del contenido (apilado); con "Dos columnas", aparece al lado. Reutiliza el mismo formulario/handler de siempre (mismo nonce, misma validación) — respeta el modo configurado en "CE: Formulario de Cotización" (si es "Desactivado" o "Solo Popup", este formulario embebido tampoco se muestra).', 'ce-construction' ),
+		'section'     => 'ce_section_hero',
+		'type'        => 'checkbox',
+		'priority'    => 10,
+	) );
+
 	$hero_text_fields = array(
 		'ce_hero_title'    => __( 'Título principal', 'ce-construction' ),
 		'ce_hero_subtitle' => __( 'Subtítulo', 'ce-construction' ),
@@ -708,6 +749,37 @@ function ce_construction_sanitize_hero_overlay_opacity( $value ) {
 		$value = 1;
 	}
 	return (string) $value;
+}
+
+/* =========================================================
+ * SPRINT UX-7, ENTREGABLE UX-7.2 — Layout de columnas del Hero de
+ * Home + Quote Form embebido. Ver DECISIONS.md D-064.
+ * ========================================================= */
+
+/**
+ * `sanitize_callback` de `ce_hero_layout`. Whitelist estricta —
+ * cualquier valor no reconocido cae a '1' (una columna, ancho
+ * completo: comportamiento histórico del Hero, sin regresión),
+ * mismo criterio ya usado por `ce_construction_sanitize_hero_type()`.
+ */
+function ce_construction_sanitize_hero_layout( $value ) {
+	$allowed = array( '1', '2', '3' );
+	return in_array( $value, $allowed, true ) ? $value : '1';
+}
+
+/**
+ * `sanitize_callback` genérico para controles `type => 'checkbox'`
+ * del Customizer. WordPress no incluye uno nativo (a diferencia de
+ * `sanitize_hex_color`/`absint`/etc., ya usados en este archivo) —
+ * un checkbox sin marcar no envía el campo en el POST, así que
+ * cualquier valor recibido (normalmente '1') debe tratarse como
+ * `true`; su ausencia ya la resuelve `get_theme_mod()` devolviendo
+ * el `default` (`false`) declarado en `add_setting()`. Reutilizable
+ * por cualquier futuro control de tipo checkbox del tema, no solo
+ * `ce_hero_show_quote_form`.
+ */
+function ce_construction_sanitize_checkbox( $value ) {
+	return (bool) $value;
 }
 
 /* =========================================================

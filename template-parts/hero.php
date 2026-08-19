@@ -26,6 +26,29 @@
  * (Hero interno, ahora también capaz de video/slider). Sin cambio de
  * comportamiento en este archivo. Ver DECISIONS.md D-063.
  *
+ * 🆕 Sprint UX-7, Entregable UX-7.2 (fase "Optimización UX /
+ * Conversión"): layout de columnas (`ce_hero_layout`, solo Home) +
+ * slot opcional de Quote Form embebido (`ce_hero_show_quote_form`),
+ * reutilizando `template-parts/quote-form.php` con
+ * `$args['context'] = 'hero'` (mismo handler/nonce/validación de
+ * siempre, sin formulario ni endpoint nuevo). Ver DECISIONS.md D-064.
+ *
+ * Comportamiento (decisión explícita del usuario para este
+ * Entregable, ver D-064):
+ *   - `ce_hero_show_quote_form` desactivado (por defecto): el
+ *     contenido ocupa siempre el ancho completo — comportamiento
+ *     histórico sin ningún cambio de markup, sin importar el valor
+ *     de `ce_hero_layout`.
+ *   - `ce_hero_show_quote_form` activado + `ce_hero_layout = '1'`:
+ *     contenido y formulario se apilan, ambos a ancho completo (una
+ *     sola columna con 2 bloques, no lado a lado).
+ *   - `ce_hero_show_quote_form` activado + `ce_hero_layout = '2'`
+ *     o `'3'`: contenido y formulario en 2 columnas lado a lado,
+ *     proporción 7/5 u 8/4 respectivamente (desde tablet grande;
+ *     apilados en móvil, ver assets/css/main.css sección 28).
+ * Este layout NO aplica al Hero interno (`page-hero.php`) — decisión
+ * explícita del usuario, ese Hero permanece de una sola columna.
+ *
  * @package CE_Construction
  */
 
@@ -63,6 +86,19 @@ $hero_is_slider  = $hero_media['is_slider'];
 $hero_slide_urls = $hero_media['slide_urls'];
 
 $hero_overlay_opacity = get_theme_mod( 'ce_hero_overlay_opacity', '1' );
+
+/* -----------------------------------------------------------
+ * 🆕 Sprint UX-7, Entregable UX-7.2: layout de columnas + slot de
+ * Quote Form embebido. Ver docblock de arriba y DECISIONS.md D-064.
+ * --------------------------------------------------------- */
+$hero_layout = get_theme_mod( 'ce_hero_layout', '1' );
+$hero_show_quote_form = (bool) get_theme_mod( 'ce_hero_show_quote_form', false );
+// El layout de columnas solo tiene efecto visual cuando el
+// formulario está activado (si no, no hay un segundo bloque con el
+// que compartir la fila) — con el formulario desactivado, el
+// contenido siempre es de una sola columna, ancho completo, igual
+// que antes de este Entregable, sin importar $hero_layout.
+$hero_use_columns = $hero_show_quote_form && in_array( $hero_layout, array( '2', '3' ), true );
 
 $title    = get_theme_mod( 'ce_hero_title', __( 'Construimos con precisión, entregamos con confianza', 'ce-construction' ) );
 $subtitle = get_theme_mod( 'ce_hero_subtitle', __( 'Más de una década ejecutando proyectos residenciales, comerciales e industriales con los más altos estándares de calidad y seguridad.', 'ce-construction' ) );
@@ -107,23 +143,56 @@ $btn2_url  = get_theme_mod( 'ce_hero_btn2_url', post_type_exists( 'proyecto' ) ?
 	<?php endif; ?>
 	<div class="ce-hero__overlay" style="--ce-hero-overlay-opacity: <?php echo esc_attr( $hero_overlay_opacity ); ?>;"></div>
 	<div class="ce-container">
-		<div class="ce-hero__content ce-text-white">
-			<span class="ce-eyebrow"><?php esc_html_e( 'CE Construction', 'ce-construction' ); ?></span>
-			<h1><?php echo esc_html( $title ); ?></h1>
-			<p class="ce-hero__subtitle"><?php echo esc_html( $subtitle ); ?></p>
-			<div class="ce-hero__actions">
-				<?php if ( $btn1_url ) : ?>
-					<a href="<?php echo esc_url( $btn1_url ); ?>" class="ce-btn ce-btn--primary">
-						<i class="fa-solid fa-file-invoice-dollar" aria-hidden="true"></i>
-						<?php echo esc_html( $btn1_text ); ?>
-					</a>
-				<?php endif; ?>
-				<a href="<?php echo esc_url( $btn2_url ); ?>" class="ce-btn ce-btn--outline">
-					<i class="fa-solid fa-building" aria-hidden="true"></i>
-					<?php echo esc_html( $btn2_text ); ?>
-				</a>
+		<?php if ( $hero_show_quote_form ) : ?>
+			<?php
+			// 🆕 UX-7.2 (D-064): con el formulario activado, el contenido
+			// y el formulario comparten un grid — apilado (una columna)
+			// si ce_hero_layout='1', lado a lado (7/5 u 8/4) si es '2'/'3'.
+			// Sin el formulario activado (rama else, abajo) el markup NO
+			// se toca: mismo .ce-hero__content suelto de siempre.
+			$hero_layout_class = $hero_use_columns ? 'ce-hero__layout--' . $hero_layout : 'ce-hero__layout--stacked';
+			?>
+			<div class="ce-hero__layout <?php echo esc_attr( $hero_layout_class ); ?>">
+				<div class="ce-hero__content ce-text-white">
+					<span class="ce-eyebrow"><?php esc_html_e( 'CE Construction', 'ce-construction' ); ?></span>
+					<h1><?php echo esc_html( $title ); ?></h1>
+					<p class="ce-hero__subtitle"><?php echo esc_html( $subtitle ); ?></p>
+					<div class="ce-hero__actions">
+						<?php if ( $btn1_url ) : ?>
+							<a href="<?php echo esc_url( $btn1_url ); ?>" class="ce-btn ce-btn--primary">
+								<i class="fa-solid fa-file-invoice-dollar" aria-hidden="true"></i>
+								<?php echo esc_html( $btn1_text ); ?>
+							</a>
+						<?php endif; ?>
+						<a href="<?php echo esc_url( $btn2_url ); ?>" class="ce-btn ce-btn--outline">
+							<i class="fa-solid fa-building" aria-hidden="true"></i>
+							<?php echo esc_html( $btn2_text ); ?>
+						</a>
+					</div>
+				</div>
+				<div class="ce-hero__quote-form-col">
+					<?php get_template_part( 'template-parts/quote-form', null, array( 'context' => 'hero' ) ); ?>
+				</div>
 			</div>
-		</div>
+		<?php else : ?>
+			<div class="ce-hero__content ce-text-white">
+				<span class="ce-eyebrow"><?php esc_html_e( 'CE Construction', 'ce-construction' ); ?></span>
+				<h1><?php echo esc_html( $title ); ?></h1>
+				<p class="ce-hero__subtitle"><?php echo esc_html( $subtitle ); ?></p>
+				<div class="ce-hero__actions">
+					<?php if ( $btn1_url ) : ?>
+						<a href="<?php echo esc_url( $btn1_url ); ?>" class="ce-btn ce-btn--primary">
+							<i class="fa-solid fa-file-invoice-dollar" aria-hidden="true"></i>
+							<?php echo esc_html( $btn1_text ); ?>
+						</a>
+					<?php endif; ?>
+					<a href="<?php echo esc_url( $btn2_url ); ?>" class="ce-btn ce-btn--outline">
+						<i class="fa-solid fa-building" aria-hidden="true"></i>
+						<?php echo esc_html( $btn2_text ); ?>
+					</a>
+				</div>
+			</div>
+		<?php endif; ?>
 	</div>
 	<a href="#ce-about" class="ce-hero__scroll" aria-label="<?php esc_attr_e( 'Desplázate hacia abajo', 'ce-construction' ); ?>">
 		<i class="fa-solid fa-chevron-down" aria-hidden="true"></i>

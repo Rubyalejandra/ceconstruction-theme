@@ -241,8 +241,8 @@ Con el Sprint UX-6 cerrado, el usuario priorizó e inició el **Sprint UX-7** (C
 
 | Entregable | Objetivo | Estado |
 |---|---|---|
-| UX-7.1 | Unificación del Hero (Home + interior) | 🟡 **Entregado — pendiente de tu aprobación explícita** |
-| UX-7.2 | Layout de Hero de 1/2/3 columnas + Quote Form opcional en Hero | Sin iniciar (depende de UX-7.1) |
+| UX-7.1 | Unificación del Hero (Home + interior) | ✅ **Aprobado explícitamente por el usuario** en esta sesión, junto con la instrucción de iniciar UX-7.2. |
+| UX-7.2 | Layout de Hero de 1/2/3 columnas + Quote Form opcional en Hero | 🟡 **Entregado — pendiente de tu aprobación explícita** |
 | UX-7.3 | Aprovechamiento de espacios vacíos en sidebars | Sin iniciar |
 | UX-7.4 | CTA: icono y color de botón configurables | Sin iniciar |
 | UX-7.5 | Logo independiente Header/Footer | Sin iniciar |
@@ -250,6 +250,29 @@ Con el Sprint UX-6 cerrado, el usuario priorizó e inició el **Sprint UX-7** (C
 | UX-7.7 | Franja de insignias de confianza / licencias | Sin iniciar |
 | UX-7.8 | Testimonio en video | Sin iniciar |
 | UX-7.9 | Bloque de financiamiento / opciones de pago | Sin iniciar |
+
+### Trabajo realizado (Entregable UX-7.2)
+
+Antes de implementar se detectó una ambigüedad real: `docs/UX_CONVERSION_ANALISIS_Y_PLAN.md` §8.4 no especifica qué representa "1/2/3 columnas" ni cómo se activa el Quote Form embebido. Conforme a la instrucción explícita de esta sesión de detenerse ante cualquier decisión fuera del alcance confirmado, se consultó al usuario antes de tocar código (3 preguntas, ver `DECISIONS.md` D-064 para el detalle completo de las respuestas y su resolución técnica).
+
+`ce_hero_layout` (nuevo theme_mod, Customizer, sección "CE: Sección Hero", solo Home) representa la proporción de ancho entre el contenido y el Quote Form: `'1'` = ancho completo (por defecto, sin cambio de comportamiento), `'2'` = 7/5, `'3'` = 8/4. `ce_hero_show_quote_form` (checkbox independiente, misma sección) activa el formulario embebido, combinable con cualquier layout. `template-parts/quote-form.php` gana un tercer contexto (`$args['context'] = 'hero'`), reutilizando exactamente el mismo `<form>`/handler/nonce de siempre (`inc/quote-form.php`, sin tocar), con id fijo `ce-quote-form-hero` sin colisión con la instancia integrada ni el modal. `assets/js/main.js` no requirió ningún cambio (ya generaliza por clase, D-053). Ver `DECISIONS.md` D-064 para el detalle técnico completo, incluida la resolución explícita de la combinación "layout=1 + formulario activado" (se apilan, ambos a ancho completo).
+
+**Este Entregable no tocó** `inc/quote-form.php` (handler AJAX), el Home Builder (UX-1/UX-2), el shortcode/`page.php` (UX-6), el Hero interno (`template-parts/page-hero.php`, permanece de una columna por decisión explícita del usuario), ni el Sprint 8.
+
+### Archivos creados / modificados (Sprint UX-7, Entregable UX-7.2)
+- Creados: ninguno.
+- Modificados: `inc/customizer.php` (2 controles nuevos + 2 sanitize callbacks, dentro/después de la sección Hero ya existente), `template-parts/hero.php` (wrapper de layout condicional + slot de Quote Form), `template-parts/quote-form.php` (tercer contexto `'hero'`), `assets/css/main.css` (sección 28, aditiva).
+- Sin cambios: `inc/quote-form.php`, `template-parts/page-hero.php`, `assets/js/main.js`, Home Builder (UX-1/UX-2), shortcode (UX-6), Sprint 8, `style.css` (sin bump).
+- Eliminados: ninguno.
+
+### Documentación actualizada (en este cierre)
+`DECISIONS.md` (D-064), este mismo archivo. **Diferido a un punto de cierre de Sprint más significativo (criterio D-034, mismo diferimiento ya aplicado en UX-7.1):** `CHANGELOG.md`, `TREE.md`.
+
+### Validaciones ejecutadas
+Sin entorno WordPress/navegador real disponible (misma limitación metodológica documentada en Entregables anteriores): balance de tags `<?php`/llaves/paréntesis verificado en los 3 archivos PHP tocados y en `main.css` completo tras la inserción; trazado lógico manual de los 3 contextos de `quote-form.php` (normal/modal/hero) confirmando que ninguna combinación duplica un `id` en el DOM. **Pendiente de prueba funcional real en WordPress**, incluida la verificación visual de los 2 layouts de columnas en desktop/mobile.
+
+### Próximo Entregable
+Con UX-7.2 entregado, el Sprint UX-7 **no avanza a UX-7.3** sin tu aprobación explícita de UX-7.2 (D-038, modalidad Entregable por Entregable ya elegida por el usuario).
 
 ### Trabajo realizado (Entregable UX-7.1)
 
@@ -269,8 +292,8 @@ Con el Sprint UX-6 cerrado, el usuario priorizó e inició el **Sprint UX-7** (C
 ### Validaciones ejecutadas
 Sin entorno WordPress/navegador real disponible (misma limitación metodológica documentada en Entregables anteriores): balance de tags `<?php`/llaves/paréntesis en los 3 archivos PHP tocados/creados y en `main.css` completo; trazado lógico manual de los 9 llamadores existentes de `page-hero.php`, confirmando que ninguno pasa argumentos distintos a los ya soportados. **Pendiente de prueba funcional real en WordPress.**
 
-### Próximo Entregable
-Con UX-7.1 entregado, el Sprint UX-7 **no avanza a UX-7.2** sin tu aprobación explícita de UX-7.1 (D-038, modalidad Entregable por Entregable elegida). UX-7.2 depende funcionalmente de UX-7.1 (layout de columnas + Quote Form sobre el Hero ya unificado).
+### Próximo Entregable (histórico — superado, ver estado vigente arriba)
+~~Con UX-7.1 entregado, el Sprint UX-7 no avanza a UX-7.2 sin tu aprobación explícita de UX-7.1~~ — **resuelto:** UX-7.1 aprobado explícitamente por el usuario en la sesión siguiente, junto con la instrucción de iniciar UX-7.2 directamente. UX-7.2 ya fue entregado (ver sección de arriba) y es ahora el que está pendiente de aprobación.
 
 ### Prompt documental para el siguiente Sprint UX (preparado, sin ejecutar)
 

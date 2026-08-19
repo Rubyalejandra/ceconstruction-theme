@@ -1402,3 +1402,55 @@ img[loading="lazy"] {
   background-size: cover;
   background-position: center;
 }
+
+/* =============================================================
+   28. SPRINT UX-7, ENTREGABLE UX-7.2 — LAYOUT DE COLUMNAS DEL HERO
+   (SOLO HOME) + QUOTE FORM EMBEBIDO. Sección añadida sin modificar
+   ninguna regla anterior (incluidas las secciones 10/26/27 de
+   arriba) — ver DECISIONS.md D-064.
+
+   `.ce-hero__layout`: solo se imprime cuando
+   `ce_hero_show_quote_form` está activado (ver template-parts/hero.php)
+   — con el formulario desactivado, `.ce-hero__content` sigue suelto,
+   sin este wrapper, comportamiento histórico intacto.
+
+   Mobile-first: apilado (1 columna) por defecto en todos los
+   anchos, igual que el resto del sistema de grid del tema
+   (`.ce-grid--2`/`.ce-grid--3`, sección 4) — los 2 modificadores de
+   columnas (`--2` 7/5, `--3` 8/4) solo aplican desde `lg` (992px),
+   mismo breakpoint que el resto de layouts de 2 columnas del tema
+   (`.ce-layout-with-sidebar`, sección 20). `--stacked` es
+   explícito (mismo `grid-template-columns: 1fr` que el default)
+   para dejar constancia en el HTML de que layout='1' fue una
+   elección explícita, no la ausencia de modificador.
+   ============================================================= */
+.ce-hero__layout {
+  display: grid;
+  gap: var(--ce-space-6);
+  grid-template-columns: 1fr;
+  align-items: center;
+}
+.ce-hero__quote-form-col { width: 100%; }
+
+/* Tarjeta compacta del formulario embebido en el Hero — mismo
+   componente `.ce-card` ya existente (sección 7), fondo blanco
+   sólido para mantener contraste sobre el fondo oscuro del Hero.
+   Sin `:hover` de elevación (`.ce-card:hover`, sección 7): ese
+   efecto está pensado para tarjetas clicables/listados, no para un
+   formulario fijo — se anula aquí explícitamente. */
+.ce-hero-quote-card {
+  width: 100%;
+  max-width: 480px;
+  margin-inline: auto;
+}
+.ce-hero__layout--2 .ce-hero-quote-card,
+.ce-hero__layout--3 .ce-hero-quote-card { margin-inline: 0; }
+.ce-hero-quote-card:hover { transform: none; box-shadow: var(--ce-shadow-sm); }
+.ce-hero-quote-card .ce-card__body { padding: var(--ce-space-4); }
+.ce-hero-quote-card .ce-section-title,
+.ce-hero-quote-card .ce-eyebrow { display: none; } /* defensivo: este contexto nunca los imprime, ver quote-form.php */
+
+@media (min-width: 992px) {
+  .ce-hero__layout--2 { grid-template-columns: 7fr 5fr; }
+  .ce-hero__layout--3 { grid-template-columns: 8fr 4fr; }
+}
