@@ -52,51 +52,69 @@ while ( have_posts() ) :
 
 	<section class="ce-section">
 		<div class="ce-container">
-			<div class="ce-max-w-content">
 
-				<?php if ( post_password_required( $post_id ) ) : ?>
+			<?php if ( post_password_required( $post_id ) ) : ?>
 
+				<div class="ce-max-w-content">
 					<div class="ce-card ce-animate-on-scroll is-in-view">
 						<div class="ce-card__body">
 							<?php echo get_the_password_form( $post_id ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- get_the_password_form() ya escapa/genera su propio HTML seguro. ?>
 						</div>
 					</div>
+				</div>
 
-				<?php else : ?>
+			<?php else : ?>
 
-					<article <?php post_class( 'ce-animate-on-scroll is-in-view' ); ?>>
-						<div class="ce-service-content">
-							<?php
-							the_content();
+				<?php
+				// 🆕 Sprint UX-6, Entregable UX-6.3: <article> ya NO va dentro
+				// de .ce-max-w-content (ver DECISIONS.md D-061; mismo cambio
+				// aplicado en single.php). Es hijo directo de .ce-container
+				// para que .ce-service-content pueda usar todo su ancho
+				// disponible: la clase adicional ce-content-breakout
+				// (assets/css/main.css) convierte .ce-service-content en un
+				// grid de 3 columnas — el contenido normal de the_content()
+				// sigue centrado a 640px (misma lectura de siempre), pero
+				// cualquier `[ce_section]` embebido (inc/section-shortcode.php)
+				// ocupa el ancho completo del .ce-container, igual que en el
+				// Home. .ce-max-w-content NO se modificó: sigue igual en los
+				// otros ~15 usos del proyecto.
+				?>
+				<article <?php post_class( 'ce-animate-on-scroll is-in-view' ); ?>>
+					<div class="ce-service-content ce-content-breakout">
+						<?php
+						the_content();
 
-							wp_link_pages( array(
-								'before'      => '<div class="ce-mt-4 ce-flex ce-gap-2 ce-flex-wrap">' . esc_html__( 'Páginas:', 'ce-construction' ),
-								'after'       => '</div>',
-								'link_before' => '<span class="ce-btn ce-btn--sm ce-btn--dark">',
-								'link_after'  => '</span>',
-							) );
-							?>
-						</div>
-					</article>
+						wp_link_pages( array(
+							'before'      => '<div class="ce-mt-4 ce-flex ce-gap-2 ce-flex-wrap">' . esc_html__( 'Páginas:', 'ce-construction' ),
+							'after'       => '</div>',
+							'link_before' => '<span class="ce-btn ce-btn--sm ce-btn--dark">',
+							'link_after'  => '</span>',
+						) );
+						?>
+					</div>
+				</article>
 
-					<?php
-					// Los comentarios en Páginas están desactivados por
-					// defecto en WordPress, pero el administrador puede
-					// habilitarlos por Página desde el editor — cuando lo
-					// hace, ya obtienen el estilo completo del sistema de
-					// diseño vía comments.php (genérico post/page desde el
-					// Entregable 6B.2), no el fallback de compatibilidad
-					// nativo que usaba index.php hasta ahora.
-					if ( comments_open( $post_id ) || get_comments_number( $post_id ) ) :
-						echo '<div class="ce-mt-6">';
-						comments_template();
-						echo '</div>';
-					endif;
+				<?php
+				// Los comentarios en Páginas están desactivados por
+				// defecto en WordPress, pero el administrador puede
+				// habilitarlos por Página desde el editor — cuando lo
+				// hace, ya obtienen el estilo completo del sistema de
+				// diseño vía comments.php (genérico post/page desde el
+				// Entregable 6B.2), no el fallback de compatibilidad
+				// nativo que usaba index.php hasta ahora.
+				if ( comments_open( $post_id ) || get_comments_number( $post_id ) ) :
 					?>
+					<div class="ce-max-w-content">
+						<div class="ce-mt-6">
+							<?php comments_template(); ?>
+						</div>
+					</div>
+					<?php
+				endif;
+				?>
 
-				<?php endif; ?>
+			<?php endif; ?>
 
-			</div>
 		</div>
 	</section>
 

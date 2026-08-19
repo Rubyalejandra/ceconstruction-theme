@@ -492,9 +492,19 @@ body.ce-no-scroll { overflow: hidden; }
   background-position: center;
   overflow: hidden;
 }
+.ce-hero,
+.ce-page-hero {
+  /* 🆕 Sprint UX-7, Entregable UX-7.1 (D-063): fuente única del
+     gradiente de overlay, compartida por .ce-hero__overlay (Home) y
+     .ce-page-hero__overlay (interior, sección 20) — antes eran dos
+     gradientes definidos por separado. Declarada en ambos selectores
+     de sección (no en :root) para no introducir una variable global
+     nueva fuera del alcance de estos dos componentes. */
+  --ce-hero-overlay-gradient: linear-gradient(120deg, rgba(8,26,43,0.92) 0%, rgba(15,42,67,0.78) 55%, rgba(15,42,67,0.45) 100%);
+}
 .ce-hero__overlay {
   position: absolute; inset: 0;
-  background: linear-gradient(120deg, rgba(8,26,43,0.92) 0%, rgba(15,42,67,0.78) 55%, rgba(15,42,67,0.45) 100%);
+  background: var(--ce-hero-overlay-gradient);
 }
 .ce-hero__content {
   position: relative;
@@ -881,8 +891,20 @@ img[loading="lazy"] {
   overflow: hidden;
 }
 .ce-page-hero__overlay {
+  /* 🆕 Sprint UX-7, Entregable UX-7.1 (D-063): antes tenía su propio
+     gradiente de 2 stops, distinto del de .ce-hero__overlay (sección
+     10). Ahora reutiliza --ce-hero-overlay-gradient (declarada en
+     .ce-page-hero, arriba) — misma fuente que el Hero de Home,
+     consistencia intencional entre ambos Heros. Cambio visual menor
+     esperado (gradiente de 3 stops en vez de 2) — es el objetivo
+     mismo de este Entregable ("Consistencia y configurabilidad").
+     Opacidad configurable vía el mismo ce_hero_overlay_opacity del
+     Customizer que ya usa el Hero de Home (sección 26,
+     --ce-hero-overlay-opacity, fallback 1 si faltara el atributo
+     style). */
   position: absolute; inset: 0;
-  background: linear-gradient(120deg, rgba(8,26,43,0.92) 0%, rgba(15,42,67,0.75) 100%);
+  background: var(--ce-hero-overlay-gradient);
+  opacity: var(--ce-hero-overlay-opacity, 1);
 }
 .ce-page-hero__content { position: relative; z-index: 2; max-width: 720px; }
 .ce-page-hero__subtitle { color: var(--ce-color-neutral-300); margin-top: var(--ce-space-2); max-width: 620px; }
@@ -986,6 +1008,48 @@ img[loading="lazy"] {
   background: rgba(217,142,41,0.12); color: var(--ce-color-secondary);
   display: flex; align-items: center; justify-content: center;
   font-size: 1.9rem; margin-bottom: var(--ce-space-3);
+}
+
+/* -------------------------------------------------------------
+   4.1 BREAKOUT DE CONTENIDO — Sprint UX-6, Entregable UX-6.3
+   -------------------------------------------------------------
+   Ver docs/DECISIONS.md D-061.
+
+   Problema: single.php y page.php envolvían todo the_content() en
+   .ce-max-w-content (640px), lo que dejaba cualquier [ce_section]
+   embebido (inc/section-shortcode.php) encogido a 640px en vez de
+   usar el ancho completo del .ce-container, como sí ocurre en el
+   Home (front-page.php nunca usa .ce-max-w-content).
+
+   Solución: clase adicional .ce-content-breakout, añadida SOLO
+   junto a .ce-service-content en single.php y page.php (no en
+   single-servicio.php / single-proyecto.php / single-equipo.php,
+   que siguen sin cambios). NO se modifica la regla de
+   .ce-max-w-content de arriba (línea ~777): sigue intacta para sus
+   ~15 usos existentes en el resto del proyecto.
+
+   Mecanismo: grid de 3 columnas. La columna central usa
+   min(640px, 100%) — mismo ancho de lectura que .ce-max-w-content
+   ya daba a párrafos, encabezados, listas, etc. Los hijos
+   directos .ce-section (lo que renderiza [ce_section]) ocupan la
+   fila completa (1 / -1) y cancelan, con margen negativo, el
+   padding-inline del .ce-container exterior (misma variable
+   --ce-space-4, fija en todos los breakpoints — ver línea ~164),
+   para que su propio .ce-container interno (template-parts/*.php)
+   vuelva a aplicar ese padding una sola vez: el resultado queda
+   pixel-idéntico al ancho/alineación que la misma sección tiene
+   en el Home. */
+.ce-content-breakout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) min(640px, 100%) minmax(0, 1fr);
+}
+.ce-content-breakout > * {
+  grid-column: 2;
+}
+.ce-content-breakout > .ce-section {
+  grid-column: 1 / -1;
+  width: calc(100% + (2 * var(--ce-space-4)));
+  margin-inline: calc(-1 * var(--ce-space-4));
 }
 
 /* Responsive: sidebar visible en 2 columnas desde tablet grande */
@@ -1270,6 +1334,13 @@ img[loading="lazy"] {
    seguro que asumirlo). No se modifica el `background` original de
    `.ce-hero__overlay` (sección 10): esta regla solo añade la
    propiedad `opacity`, que no existía antes.
+
+   🆕 Sprint UX-7, Entregable UX-7.1 (D-063): `.ce-hero__video` y las
+   reglas de opacidad de este bloque son ahora también consumidas por
+   `template-parts/page-hero.php` (Hero interno, mismas clases, mismo
+   `ce_hero_overlay_opacity`) — sin ninguna regla nueva, ya eran
+   genéricas (posicionamiento absoluto respecto al padre `position:
+   relative` más cercano, sin depender de `.ce-hero` como selector).
    ============================================================= */
 .ce-hero__video {
   position: absolute;
@@ -1303,6 +1374,13 @@ img[loading="lazy"] {
    cover`), no una tarjeta de contenido — por eso no reutiliza
    `.ce-testimonial-slide` tal cual, que trae su propio padding
    pensado para una tarjeta centrada.
+
+   🆕 Sprint UX-7, Entregable UX-7.1 (D-063): estas 3 clases también
+   las imprime ahora `template-parts/page-hero.php` cuando
+   `ce_hero_type = 'slider'` — sin ninguna regla nueva (ya eran
+   genéricas, ver nota de la sección 26). `ModuleHeroSlider` las
+   auto-detecta igual en cualquiera de los dos contextos, nunca
+   ambos a la vez en la misma carga de página.
    ============================================================= */
 .ce-hero-slider {
   position: absolute;

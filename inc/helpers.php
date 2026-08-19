@@ -459,3 +459,62 @@ function ce_get_hero_slide_ids( $raw ) {
 	}
 	return array_filter( array_map( 'absint', explode( ',', $raw ) ) );
 }
+
+/* =========================================================
+ * SPRINT UX-7, ENTREGABLE UX-7.1 — Unificación del Hero
+ * (Home + interior). Ver DECISIONS.md D-063.
+ * ========================================================= */
+
+/**
+ * Resuelve el estado de fondo de video/slider del Hero a partir de
+ * `ce_hero_type` y los theme_mods globales (`ce_hero_video`,
+ * `ce_hero_slides`) ya usados por el Hero de Home desde UX-4.1/UX-4.2
+ * (D-054/D-055) — única fuente de verdad, para que
+ * `template-parts/hero.php` (Home) y `template-parts/page-hero.php`
+ * (interior, desde UX-7.1) resuelvan el mismo `ce_hero_type` con
+ * exactamente la misma lógica, sin reimplementarla en un segundo
+ * archivo. `template-parts/hero.php` es la única fuente del tipo de
+ * fondo 'image' (usa siempre `ce_hero_image`); esta función solo
+ * cubre los modos 'video' y 'slider', porque el modo 'image' se
+ * resuelve de forma distinta en cada contexto (Home usa siempre
+ * `ce_hero_image`; el Hero interno usa por defecto la imagen
+ * destacada de cada Página/entrada — ver `template-parts/page-hero.php`).
+ *
+ * Mismo criterio de fallback silencioso ya documentado en D-054/D-055:
+ * si el tipo es 'video' pero no hay ningún video subido todavía (o
+ * 'slider' sin ninguna imagen seleccionada), ambos flags devuelven
+ * `false` y el llamador cae a su fondo de imagen normal.
+ *
+ * @param string $hero_type Valor ya leído de `get_theme_mod( 'ce_hero_type', 'image' )`.
+ * @return array {
+ *     @type bool   $is_video    Si debe renderizarse el fondo de video.
+ *     @type string $video_url   URL del adjunto de video (vacío si no aplica).
+ *     @type string $video_mime  MIME type del adjunto de video (vacío si no aplica).
+ *     @type bool   $is_slider   Si debe renderizarse el fondo de slider.
+ *     @type array  $slide_urls  URLs de las imágenes del slider (tamaño 'ce-hero'), vacío si no aplica.
+ * }
+ */
+function ce_construction_get_hero_media_state( $hero_type ) {
+	$hero_video_id   = get_theme_mod( 'ce_hero_video' );
+	$hero_video_url  = $hero_video_id ? wp_get_attachment_url( $hero_video_id ) : '';
+	$hero_video_mime = $hero_video_id ? get_post_mime_type( $hero_video_id ) : '';
+	$is_video        = ( 'video' === $hero_type && $hero_video_url );
+
+	$hero_slide_ids  = ce_get_hero_slide_ids( get_theme_mod( 'ce_hero_slides', '' ) );
+	$hero_slide_urls = array();
+	foreach ( $hero_slide_ids as $slide_id ) {
+		$slide_url = wp_get_attachment_image_url( $slide_id, 'ce-hero' );
+		if ( $slide_url ) {
+			$hero_slide_urls[] = $slide_url;
+		}
+	}
+	$is_slider = ( 'slider' === $hero_type && ! empty( $hero_slide_urls ) );
+
+	return array(
+		'is_video'   => (bool) $is_video,
+		'video_url'  => $is_video ? $hero_video_url : '',
+		'video_mime' => $is_video ? $hero_video_mime : '',
+		'is_slider'  => (bool) $is_slider,
+		'slide_urls' => $is_slider ? $hero_slide_urls : array(),
+	);
+}

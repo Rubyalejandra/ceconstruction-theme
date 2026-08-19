@@ -208,3 +208,35 @@ function ce_construction_default_home_order() {
 function ce_construction_get_active_home_order() {
 	return apply_filters( 'ce_home_active_order', ce_construction_default_home_order() );
 }
+
+/**
+ * Resuelve los `$args` que corresponde pasar a `get_template_part()` para
+ * una clave dada del registro de `ce_construction_home_sections()`.
+ *
+ * FASE: Optimización UX / Conversión — Sprint UX-6, Entregable UX-6.2.
+ *
+ * Contexto: desde UX-5.1 (D-056), la clave 'cta_secondary' reutiliza el
+ * mismo template que 'cta' (`template-parts/cta.php`), distinguido en
+ * runtime por `$args['variant'] = 'secondary'`. Esa única línea de
+ * lógica vivía hasta ahora solo en `front-page.php`. Con la llegada del
+ * shortcode `[ce_section key="..."]` (`inc/section-shortcode.php`),
+ * un segundo punto de consumo necesita exactamente el mismo cálculo —
+ * duplicar el condicional en dos archivos habría contradicho la
+ * instrucción explícita de UX-6.2 de reutilizar el mecanismo ya
+ * existente "sin reimplementarlo". Se extrae aquí como única fuente de
+ * verdad; `front-page.php` se actualiza para llamarla (sin cambio de
+ * comportamiento) y `inc/section-shortcode.php` la usa igual.
+ *
+ * Si en el futuro alguna otra clave necesita `$args` propios (p. ej.
+ * un tercer valor de `variant`, o un `context` como el que ya admite
+ * `template-parts/quote-form.php`), este es el único lugar a extender.
+ *
+ * @param string $key Clave de ce_construction_home_sections().
+ * @return array|null
+ */
+function ce_construction_get_home_section_args( $key ) {
+	if ( 'cta_secondary' === $key ) {
+		return array( 'variant' => 'secondary' );
+	}
+	return null;
+}

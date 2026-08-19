@@ -341,7 +341,7 @@ Este hallazgo es el más prioritario de todo el roadmap ampliado: sin resolverlo
   - Criterios de aceptación: cualquier Página de WordPress se renderiza con el hero interno y el estilo del tema, en vez de caer en `index.php`.
   - Ver `docs/CURRENT_UX_SPRINT.md` (Sprint UX-6) y `docs/DECISIONS.md` D-059 para el detalle completo del cierre.
 
-- **UX-6.2 — Mecanismo de reutilización de secciones (shortcode)**
+- **UX-6.2 — Mecanismo de reutilización de secciones (shortcode)** — 🟡 **Entregado, pendiente de tu aprobación explícita.**
   - Alcance: **recomendación de la auditoría — shortcode, no bloque Gutenberg** (ver comparación abajo). Nuevo `inc/section-shortcode.php` (aditivo, un archivo = una responsabilidad, consistente con la convención del proyecto): registra `[ce_section key="about"]` (u otra sintaxis a definir en el Entregable) que internamente llama `get_template_part( ce_construction_home_sections()[$key]['template'], null, $args )` — el mismo mecanismo que ya usa `front-page.php`, sin reimplementarlo.
   - Comparación de opciones evaluadas (sin implementar ninguna todavía):
     | Opción | A favor | En contra |

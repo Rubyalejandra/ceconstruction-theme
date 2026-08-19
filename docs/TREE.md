@@ -7,13 +7,13 @@
 ce-construction-theme/
 │
 ├── style.css                          ✅
-├── functions.php                      ✅
+├── functions.php                      ✅ 🔧 Sprint UX-6, Entregable UX-6.2 (aprobado — D-060, D-062) — 1 línea nueva en el array $modules para cargar inc/section-shortcode.php
 ├── header.php                         ✅
 ├── footer.php                         ✅
-├── front-page.php                     ✅ 🔧 Sprint UX-1, Entregable UX-1.1 — deja de tener orden fijo, ahora itera el registro de inc/home-builder.php (comportamiento visual idéntico, ver DECISIONS.md D-045)
+├── front-page.php                     ✅ 🔧 Sprint UX-1, Entregable UX-1.1 — deja de tener orden fijo, ahora itera el registro de inc/home-builder.php (comportamiento visual idéntico, ver DECISIONS.md D-045). 🔧 Sprint UX-5, Entregable UX-5.1 — 1 línea condicional para variant=secondary en cta_secondary (D-056). 🔧 Sprint UX-6, Entregable UX-6.2 — esa misma línea se reemplaza por una llamada a ce_construction_get_home_section_args() (inc/home-builder.php), sin cambio de comportamiento (D-060)
 ├── index.php                          ✅
-├── page.php                           ⬜ NO EXISTE (verificado en Sprint 8, ver QA_REPORT.md QA-041 — TREE.md lo marcaba erróneamente como ✅; WordPress usa index.php como fallback para páginas estáticas, sin plantilla dedicada)
-├── single.php                         ✅
+├── page.php                           ✅ 🆕 Sprint UX-6, Entregable UX-6.1 (aprobado — D-059, D-062) — corrige QA-041 (ya no falta la plantilla dedicada para Páginas): hero interno vía template-parts/page-hero.php + the_content(), mismo patrón que single.php. 🔧 Sprint UX-6, Entregable UX-6.3 — restructuración de wrappers (<article> fuera de .ce-max-w-content, clase ce-content-breakout añadida, D-061)
+├── single.php                         ✅ 🔧 Sprint UX-6, Entregable UX-6.3 (aprobado — D-061, D-062) — restructuración de wrappers (<article> fuera de .ce-max-w-content, clase ce-content-breakout añadida junto a .ce-service-content), sin cambio de contenido
 ├── comments.php                       ✅
 ├── 404.php                            ✅
 ├── archive.php                        ✅ Sprint 7, Entregable 7.2
@@ -30,6 +30,8 @@ ce-construction-theme/
 ├── docs/
 │   ├── PROJECT_STATUS.md, TODO.md, TREE.md, HANDOFF.md, CHANGELOG.md,
 │   │   DECISIONS.md, QA_REPORT.md, ARCHITECTURE.md, CURRENT_SPRINT.md    ✅
+│   ├── CURRENT_UX_SPRINT.md           ✅ 🆕 fase "Optimización UX / Conversión" (paralela al Sprint 8, pausado) — equivalente de CURRENT_SPRINT.md para esta fase
+│   ├── UX_CONVERSION_ANALISIS_Y_PLAN.md ✅ 🆕 análisis y plan completo de Sprints UX-1 a UX-9 (D-057)
 │
 ├── inc/
 │   ├── setup.php                      ✅
@@ -46,12 +48,13 @@ ce-construction-theme/
 │   ├── quote-form.php                 ✅
 │   ├── seo.php                        ✅
 │   ├── widgets.php                    ✅ Sprint 7, Entregable 7.1
-│   └── home-builder.php               ✅ 🆕 Sprint UX-1, Entregable UX-1.1 — registro central de secciones del Home. 🔧 Sprint UX-2 (UX-2.1 y UX-2.2): solo comentarios actualizados (team/clients/faq ya tienen template-part), sin cambio de lógica en ningún Entregable
+│   ├── home-builder.php               ✅ 🆕 Sprint UX-1, Entregable UX-1.1 — registro central de secciones del Home. 🔧 Sprint UX-2 (UX-2.1 y UX-2.2): solo comentarios actualizados (team/clients/faq ya tienen template-part), sin cambio de lógica en ningún Entregable. 🔧 Sprint UX-6, Entregable UX-6.2 (aprobado — D-060, D-062): nueva función ce_construction_get_home_section_args(), aditiva, única fuente de $args para front-page.php y el shortcode [ce_section]
+│   └── section-shortcode.php          ✅ 🆕 Sprint UX-6, Entregable UX-6.2 (aprobado — D-060, D-062) — registra [ce_section key="..."], resuelve contra ce_construction_home_sections() y delega en get_template_part(), independiente del Home Builder activo. Cargado desde functions.php ($modules)
 │
 ├── template-parts/                    ✅ (24 archivos — 🆕 Sprint UX-2 COMPLETADO: UX-2.1 team.php/clients.php (D-047); UX-2.2 faq.php/content-faq-accordion.php (D-048), partial de ítem compartido con single-servicio.php. 🔧 Sprint UX-4: hero.php — tipo imagen/video/overlay (UX-4.1, D-054) + modo slider (UX-4.2, D-055))
 │
 └── assets/
-    ├── css/main.css                   ✅ 27 secciones — 🔧 Sprint UX-4: sección 26 (UX-4.1, hero video/overlay) + sección 27 (UX-4.2, hero slider), ambas 100% aditivas
+    ├── css/main.css                   ✅ 27 secciones — 🔧 Sprint UX-4: sección 26 (UX-4.1, hero video/overlay) + sección 27 (UX-4.2, hero slider), ambas 100% aditivas. 🔧 Sprint UX-6, Entregable UX-6.3 (aprobado — D-061, D-062): nueva clase .ce-content-breakout, 100% aditiva — .ce-max-w-content sin modificar
     ├── js/main.js                     ✅ 🔧 Sprint UX-4, Entregable UX-4.2 — `createSliderController()` (fábrica compartida) extraída de `ModuleTestimonialSlider` (refactorizado, sin cambio de comportamiento) + `ModuleHeroSlider` nuevo (D-055)
     ├── js/admin-home-builder.js       ✅ Sprint UX-1, Entregable UX-1.2 — control custom del Home Builder (drag&drop, jquery-ui-sortable)
     ├── js/admin-hero-slides.js        ✅ 🆕 Sprint UX-4, Entregable UX-4.2 — control custom `ce_hero_slides` (añadir/quitar/reordenar por botones, sin Sortable — D-055)

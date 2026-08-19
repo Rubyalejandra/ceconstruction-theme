@@ -19,6 +19,13 @@
  * cálculo de los botones del Hero (incluido el fix de D-050) no se
  * toca en este Entregable — se preserva línea por línea.
  *
+ * 🆕 Sprint UX-7, Entregable UX-7.1 (fase "Optimización UX /
+ * Conversión"): la resolución de video/slider se extrajo a
+ * `ce_construction_get_hero_media_state()` (inc/helpers.php), única
+ * fuente de verdad compartida con `template-parts/page-hero.php`
+ * (Hero interno, ahora también capaz de video/slider). Sin cambio de
+ * comportamiento en este archivo. Ver DECISIONS.md D-063.
+ *
  * @package CE_Construction
  */
 
@@ -38,40 +45,22 @@ $hero_image_url = $hero_image_id ? wp_get_attachment_image_url( $hero_image_id, 
  * --------------------------------------------------------- */
 $hero_type = get_theme_mod( 'ce_hero_type', 'image' );
 
-$hero_video_id  = get_theme_mod( 'ce_hero_video' );
-$hero_video_url = $hero_video_id ? wp_get_attachment_url( $hero_video_id ) : '';
-$hero_video_mime = $hero_video_id ? get_post_mime_type( $hero_video_id ) : '';
-
-// Fallback silencioso a imagen: si el tipo es 'video' pero el
-// administrador no subió ningún video todavía, no tiene sentido
-// imprimir un <video> sin fuente — se usa la imagen de fondo ya
-// configurada (o el color sólido de respaldo de .ce-hero si tampoco
-// hay imagen), exactamente el comportamiento que tenía el tema antes
-// de este Entregable. Documentado en el control del Customizer
-// ('description' de ce_hero_type) para que el administrador lo sepa.
-$hero_is_video = ( 'video' === $hero_type && $hero_video_url );
-
 /* -----------------------------------------------------------
- * 🆕 Sprint UX-4, Entregable UX-4.2: modo slider. Mismo criterio
- * de fallback silencioso que el modo video (arriba): si el tipo es
- * 'slider' pero no hay ninguna imagen seleccionada todavía en
- * `ce_hero_slides`, se usa la imagen de fondo normal (o el color
- * sólido de respaldo de .ce-hero). `ce_get_hero_slide_ids()`
- * (inc/helpers.php) es la misma función que ya usan el
- * sanitize_callback y el control custom del Customizer — una única
- * fuente de verdad para parsear la cadena de IDs. Se usa el mismo
- * tamaño de imagen registrado ('ce-hero') que ya usa $hero_image_url
- * arriba, por consistencia visual entre los 3 modos.
+ * 🆕 Sprint UX-7, Entregable UX-7.1: la resolución de video/slider
+ * (antes inline en este archivo) se extrajo a
+ * `ce_construction_get_hero_media_state()` (inc/helpers.php) — única
+ * fuente de verdad, reutilizada también por
+ * `template-parts/page-hero.php` (Hero interno, unificado en este
+ * mismo Entregable). Mismo criterio de fallback silencioso que antes,
+ * sin cambio de comportamiento aquí. Ver DECISIONS.md D-063.
  * --------------------------------------------------------- */
-$hero_slide_ids = ce_get_hero_slide_ids( get_theme_mod( 'ce_hero_slides', '' ) );
-$hero_slide_urls = array();
-foreach ( $hero_slide_ids as $slide_id ) {
-	$slide_url = wp_get_attachment_image_url( $slide_id, 'ce-hero' );
-	if ( $slide_url ) {
-		$hero_slide_urls[] = $slide_url;
-	}
-}
-$hero_is_slider = ( 'slider' === $hero_type && ! empty( $hero_slide_urls ) );
+$hero_media = ce_construction_get_hero_media_state( $hero_type );
+
+$hero_is_video   = $hero_media['is_video'];
+$hero_video_url  = $hero_media['video_url'];
+$hero_video_mime = $hero_media['video_mime'];
+$hero_is_slider  = $hero_media['is_slider'];
+$hero_slide_urls = $hero_media['slide_urls'];
 
 $hero_overlay_opacity = get_theme_mod( 'ce_hero_overlay_opacity', '1' );
 

@@ -60,30 +60,53 @@ while ( have_posts() ) :
 					<?php endif; ?>
 				</div>
 
-				<?php if ( post_password_required( $post_id ) ) : ?>
+			</div>
 
+			<?php if ( post_password_required( $post_id ) ) : ?>
+
+				<div class="ce-max-w-content">
 					<div class="ce-card ce-animate-on-scroll is-in-view">
 						<div class="ce-card__body">
 							<?php echo get_the_password_form( $post_id ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- get_the_password_form() ya escapa/genera su propio HTML seguro. ?>
 						</div>
 					</div>
+				</div>
 
-				<?php else : ?>
+			<?php else : ?>
 
-					<article <?php post_class( 'ce-animate-on-scroll is-in-view' ); ?>>
-						<div class="ce-service-content">
-							<?php
-							the_content();
+				<?php
+				// 🆕 Sprint UX-6, Entregable UX-6.3: <article> ya NO va dentro
+				// de .ce-max-w-content (ver DECISIONS.md D-061). Es hijo
+				// directo de .ce-container para que .ce-service-content
+				// pueda usar todo su ancho disponible: la clase adicional
+				// ce-content-breakout (assets/css/main.css) convierte
+				// .ce-service-content en un grid de 3 columnas — el
+				// contenido normal de the_content() (párrafos, encabezados,
+				// listas...) sigue centrado a 640px (misma lectura de
+				// siempre), pero cualquier `[ce_section]` embebido
+				// (inc/section-shortcode.php) ocupa el ancho completo del
+				// .ce-container, igual que en el Home. Sin este cambio,
+				// [ce_section] quedaba encogido a 640px por estar anidado
+				// dentro de .ce-max-w-content (bug detectado probando
+				// UX-6.2). .ce-max-w-content NO se modificó: sigue igual
+				// en los otros ~15 usos del proyecto.
+				?>
+				<article <?php post_class( 'ce-animate-on-scroll is-in-view' ); ?>>
+					<div class="ce-service-content ce-content-breakout">
+						<?php
+						the_content();
 
-							wp_link_pages( array(
-								'before'      => '<div class="ce-mt-4 ce-flex ce-gap-2 ce-flex-wrap">' . esc_html__( 'Páginas:', 'ce-construction' ),
-								'after'       => '</div>',
-								'link_before' => '<span class="ce-btn ce-btn--sm ce-btn--dark">',
-								'link_after'  => '</span>',
-							) );
-							?>
-						</div>
-					</article>
+						wp_link_pages( array(
+							'before'      => '<div class="ce-mt-4 ce-flex ce-gap-2 ce-flex-wrap">' . esc_html__( 'Páginas:', 'ce-construction' ),
+							'after'       => '</div>',
+							'link_before' => '<span class="ce-btn ce-btn--sm ce-btn--dark">',
+							'link_after'  => '</span>',
+						) );
+						?>
+					</div>
+				</article>
+
+				<div class="ce-max-w-content">
 
 					<?php
 					$tags = get_the_tags( $post_id );
@@ -141,9 +164,10 @@ while ( have_posts() ) :
 					endif;
 					?>
 
-				<?php endif; ?>
+				</div>
 
-			</div>
+			<?php endif; ?>
+
 		</div>
 	</section>
 

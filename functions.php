@@ -61,6 +61,7 @@ function ce_construction_require_modules() {
 		'inc/helpers.php',          // Funciones auxiliares reutilizables.
 		'inc/widgets.php',          // Widgets / sidebars del footer.
 		'inc/home-builder.php',     // Home Builder: registro/orden de secciones del Home (Sprint UX-1).
+		'inc/section-shortcode.php', // Shortcode [ce_section]: reutilización de secciones fuera del Home (Sprint UX-6.2).
 	);
 
 	foreach ( $modules as $module ) {

@@ -582,3 +582,71 @@ El usuario decidió explícitamente **no** crear una variante `short` ni un segu
 - Balance de llaves/paréntesis OK en los 4 archivos tocados (Python).
 - Diff confirma exactamente 4 archivos modificados, cero nuevos, todo lo demás intacto.
 - Sin colisión de prioridad de sección en el Customizer (29/30/31/32/33/34/35/35/36/37 — CTA secundaria comparte 35 con CTA primaria, adyacentes por orden de registro).
+
+---
+
+## Sprint UX-6, Entregable UX-6.1: `page.php` — hero interno + `the_content()` para Páginas — sin bump de `style.css`
+
+**Estado:** ✅ Aprobado (D-062). Entrada diferida hasta el cierre formal del Sprint UX-6 (mismo criterio ya usado en UX-6.1/UX-6.2 al momento de su entrega — ver `DECISIONS.md` D-034).
+
+### Añadido
+- `page.php` (nuevo, raíz del tema): Template Hierarchy nativa de WordPress — cualquier Página (`post_type=page`) deja de caer en `index.php`. Reutiliza `template-parts/page-hero.php` (eyebrow genérico vía `get_bloginfo('name')`, mismo criterio que `archive.php`) + `the_content()`, con soporte de Página protegida por contraseña, paginación de contenido y comentarios vía `comments.php` (ya genérico desde 6B.2).
+
+### Sin cambios
+- `template-parts/page-hero.php`, `comments.php`, `index.php`, Home Builder (UX-1/UX-2), sistema de cotización (UX-3), Hero de Home (UX-4), CTA (UX-5), Sprint 8.
+
+### Decisiones clave
+- Ver `DECISIONS.md`: D-059.
+
+---
+
+## Sprint UX-6, Entregable UX-6.2: shortcode `[ce_section key="..."]` — sin bump de `style.css`
+
+**Estado:** ✅ Aprobado (D-062), mecanismo confirmado explícitamente por el usuario frente a la alternativa de bloque Gutenberg. Entrada diferida hasta el cierre formal del Sprint UX-6.
+
+### Añadido
+- `inc/section-shortcode.php` (nuevo): registra `[ce_section key="..."]`, resuelve `key` contra `ce_construction_home_sections()` y delega en `get_template_part( ..., null, $args )` — mismo mecanismo que `front-page.php`, sin reimplementarlo. No depende de `ce_construction_get_active_home_order()`: renderiza la sección aunque esté desactivada en el Home Builder. Guardas: `key` vacía/inexistente → cadena vacía; límite defensivo de anidamiento (3 niveles); `sanitize_key()` sobre el atributo.
+
+### Cambiado
+- `inc/home-builder.php`: nueva función `ce_construction_get_home_section_args()` (aditiva) — extrae la única lógica de `$args` no trivial que tenía `front-page.php` (`cta_secondary` → `variant=secondary`, D-056), para que el shortcode no la reimplemente ni quede desincronizada.
+- `front-page.php`: 1 línea — usa `ce_construction_get_home_section_args()` en vez del ternario inline, sin cambio de comportamiento.
+- `functions.php`: 1 línea nueva en el array `$modules` para cargar `inc/section-shortcode.php`.
+
+### Sin cambios
+- `page.php` (UX-6.1, no tocado), `template-parts/page-hero.php`, `comments.php`, sistema de cotización (UX-3), Hero de Home (UX-4), CTA (UX-5), Sprint 8. `style.css` sin bump.
+
+### Decisiones clave
+- Ver `DECISIONS.md`: D-060.
+
+### Verificaciones ejecutadas
+- Sin entorno WordPress/PHP real disponible: balance de llaves/paréntesis y de tags `<?php` verificado en los 4 archivos tocados/creados; trazado lógico manual del flujo del shortcode contra `front-page.php`. **Pendiente de prueba funcional real en WordPress** (crear una Página con `[ce_section key="about"]` y confirmar que renderiza igual que en el Home, incluso con la sección desactivada en el Home Builder).
+
+---
+
+## Sprint UX-6, Entregable UX-6.3: `.ce-content-breakout` — fix de ancho de `[ce_section]` en `single.php`/`page.php` — sin bump de `style.css`
+
+**Estado:** ✅ Aprobado (D-062). Entrada diferida hasta el cierre formal del Sprint UX-6.
+
+### Bug corregido
+`[ce_section key="..."]` embebido en una Página o entrada se encogía a 640px con grandes espacios laterales, en vez de ocupar el ancho completo del sitio como en el Home — causado por `.ce-max-w-content` (`max-width:640px`), que envolvía todo `the_content()` en `single.php`/`page.php`. Confirmado por el usuario en DevTools (WordPress real) antes de implementar el fix.
+
+### Añadido
+- `assets/css/main.css`: nueva clase `.ce-content-breakout` (100% aditiva) — convierte el wrapper en un grid de 3 columnas: el contenido normal de `the_content()` sigue centrado a `min(640px, 100%)` (mismo ancho de lectura de siempre); los hijos directos `.ce-section` ocupan el ancho completo del `.ce-container`, cancelando con margen negativo el padding del contenedor exterior. `.ce-max-w-content` (compartida en ~15 archivos del proyecto) **no se modificó**.
+
+### Cambiado
+- `single.php`, `page.php`: restructuración de wrappers — el `<article>` se sacó de `.ce-max-w-content` y se le añadió `ce-content-breakout` junto a `.ce-service-content`; la meta info y los tags/paginación/comentarios siguen envueltos en `.ce-max-w-content`, sin cambio visual.
+
+### Sin cambios
+- `inc/section-shortcode.php` (el shortcode nunca fue la causa del bug), `single-servicio.php`/`single-proyecto.php`/`single-equipo.php` (comparten `.ce-service-content` pero quedan fuera de alcance de este bug), `template-parts/page-hero.php`, `front-page.php`, Sprint 8. `style.css` sin bump.
+
+### Decisiones clave
+- Ver `DECISIONS.md`: D-061.
+
+### Verificaciones ejecutadas
+- Causa confirmada por el usuario en DevTools sobre WordPress real antes de implementar. Balance de llaves/paréntesis/tags `<?php` verificado en `single.php`/`page.php` tras la restructuración; balance de llaves/paréntesis verificado en `main.css` completo tras la inserción. **Pendiente de prueba funcional real en WordPress** con caché purgada (confirmar ancho completo del `.ce-container` y que el resto del texto conserva el ancho de lectura de siempre).
+
+---
+
+## Sprint UX-6 — Cierre formal (UX-6.1 + UX-6.2 + UX-6.3)
+
+**Estado:** ✅ **Completado y aprobado.** Los tres Entregables aprobados explícitamente por el usuario en la misma sesión (ver `DECISIONS.md` D-062). Sin cambios de código en este cierre — puramente documental (actualización de este archivo, `TREE.md` y `DECISIONS.md`, diferida hasta este punto conforme a D-034).

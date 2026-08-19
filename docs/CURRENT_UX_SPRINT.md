@@ -126,7 +126,7 @@ El usuario solicitó una auditoría UX/Conversión/Arquitectura sobre el estado 
 |---|---|---|
 | UX-1 a UX-5 | Home Builder, secciones faltantes, CTA centralizado + modal, Hero configurable, CTA secundario | ✅ **Completados** (ver tablas de arriba) |
 | UX-5.2 | Documentación de "objetivo de plantilla" | ⬜ No iniciado — pendiente del plan original |
-| **UX-6** | **Arquitectura de reutilización de secciones fuera del Home Builder** (`page.php` + mecanismo shortcode) | 🟡 **En curso.** Aprobación explícita del usuario recibida para iniciar el Sprint. UX-6.1 (`page.php`) ✅ completado — ver detalle abajo. UX-6.2 (shortcode) sin iniciar. |
+| **UX-6** | **Arquitectura de reutilización de secciones fuera del Home Builder** (`page.php` + mecanismo shortcode) | ✅ **Completado y aprobado.** UX-6.1, UX-6.2 (shortcode `[ce_section]`, confirmado frente a bloque Gutenberg) y UX-6.3 (fix de ancho) aprobados explícitamente por el usuario. Ver `docs/DECISIONS.md` D-062. |
 | **UX-7** | Consistencia y configurabilidad: unificación de Hero Home/interior, layout de columnas + Quote Form en Hero, aprovechamiento de sidebars, CTA icono/color, logo independiente Header/Footer — 🆕 ampliado tras benchmark competitivo (DayBrook Homes / Re-Bath): estadísticas configurables (UX-7.6), insignias de confianza/licencias (UX-7.7), testimonio en video (UX-7.8), bloque de financiamiento (UX-7.9) | 🟡 **Propuesto — pendiente de tu aprobación explícita.** Ver `docs/DECISIONS.md` D-058 para el detalle del benchmark y la corrección de un falso positivo sobre las estadísticas (no muestran "0" en producción — era una lectura incorrecta de la animación JS). |
 | **UX-8** | Video en Proyectos (YouTube/TikTok/WordPress vía oEmbed nativo) | 🟡 **Propuesto — futuro, sin iniciar.** Prioridad baja. |
 | UX-9 (renumerado de UX-6 original) | Registro de backlog formal de Responsive (documental, sin código) | ⬜ No iniciado — mismo alcance que el "Sprint UX-6" del plan original, solo renumerado para no colisionar con el nuevo Sprint UX-6 de la auditoría (ver D-057) |
@@ -134,12 +134,50 @@ El usuario solicitó una auditoría UX/Conversión/Arquitectura sobre el estado 
 ### Hallazgo derivado a Sprint 8 (QA), no a esta fase
 La auditoría detectó que `.ce-header__social` (iconos sociales de la barra superior del header) no tiene reglas base de `display`/`gap`/tamaño en `assets/css/main.css` (a diferencia de `.ce-footer__social`, que sí las tiene) — confirmado visualmente en captura, los iconos aparecen apelmazados. Es una **corrección de algo ya roto (bug/QA), no una funcionalidad UX nueva** — se documenta aquí como referencia cruzada, candidata a `QA-043` dentro del **Sprint 8** ("Cierre de Hallazgos QA", pausado en el Entregable 8.2). **Este documento no modifica ningún archivo del Sprint 8** (`CURRENT_SPRINT.md`/`QA_REPORT.md`/`HANDOFF.md` sin tocar) — queda a la espera de que decidas si se resuelve al retomar el Sprint 8, o de forma aislada antes.
 
-## Sprint UX-6 — "Arquitectura de reutilización de secciones fuera del Home Builder" — Estado: 🟡 En curso (UX-6.1 completado, UX-6.2 sin iniciar)
+## Sprint UX-6 — "Arquitectura de reutilización de secciones fuera del Home Builder" — Estado: ✅ **Completado y aprobado** (UX-6.1 + UX-6.2 + UX-6.3, los tres aprobados explícitamente — ver `docs/DECISIONS.md` D-062)
 
 | Entregable | Objetivo | Estado |
 |---|---|---|
-| UX-6.1 | `page.php`: hero interno (`template-parts/page-hero`) + `the_content()` para cualquier Página, siguiendo el patrón ya establecido por `single.php` | ✅ **Completado** |
-| UX-6.2 | Mecanismo de reutilización de secciones (shortcode `[ce_section key="..."]`) | ⬜ No iniciado — pendiente de tu aprobación explícita de arranque |
+| UX-6.1 | `page.php`: hero interno (`template-parts/page-hero`) + `the_content()` para cualquier Página, siguiendo el patrón ya establecido por `single.php` | ✅ **Completado y aprobado** |
+| UX-6.2 | Mecanismo de reutilización de secciones (shortcode `[ce_section key="..."]`) | ✅ **Aprobado.** Mecanismo confirmado por el usuario: shortcode (no bloque Gutenberg). |
+| UX-6.3 | Fix de ancho: `[ce_section]` se encogía a 640px dentro de `single.php`/`page.php` (bug detectado validando UX-6.2 en WordPress real) | ✅ **Aprobado**, junto con UX-6.2, en la misma sesión. |
+
+### Trabajo realizado (Entregable UX-6.2)
+Nuevo `inc/section-shortcode.php`: registra `[ce_section key="..."]`, resuelve `key` contra `ce_construction_home_sections()` (`inc/home-builder.php`) y delega en `get_template_part( ..., null, $args )` — el mismo mecanismo que ya usa `front-page.php`, sin reimplementarlo. No depende de que la sección esté activa en el Home Builder (`ce_construction_get_active_home_order()`): son dos consumos independientes del mismo registro, tal como pedía el criterio de aceptación.
+
+Se detectó, al implementar, que `front-page.php` tenía una única línea de lógica de `$args` no trivial (`cta_secondary` → `variant=secondary`, D-056) que el shortcode también necesitaba para no renderizar contenido incorrecto en esa clave. Se extrajo a `ce_construction_get_home_section_args()` (nueva, `inc/home-builder.php`), usada ahora por ambos consumidores — `front-page.php` sin cambio de comportamiento. Detalle completo de la decisión, alternativas descartadas y guardas de seguridad (clave vacía/inexistente, límite de anidamiento defensivo): `docs/DECISIONS.md` D-060.
+
+### Trabajo realizado (Entregable UX-6.3 — fix de ancho)
+Al validar UX-6.2 en WordPress real, el usuario detectó (y confirmó en DevTools) que `[ce_section key="about"]` en una Página se renderizaba encogido a 640px con grandes espacios laterales, en vez del ancho completo del sitio que tiene en el Home. Causa: `single.php`/`page.php` envolvían todo `the_content()` (meta info + `<article>` + tags/paginación/comentarios) en un único `<div class="ce-max-w-content">` (`max-width:640px`), y cualquier `[ce_section]` embebido heredaba ese límite.
+
+Solución: nueva clase `.ce-content-breakout` (`assets/css/main.css`), añadida junto a `.ce-service-content` **solo** en `single.php` y `page.php` (no en `single-servicio.php`/`single-proyecto.php`/`single-equipo.php`, que también usan `.ce-service-content` pero quedan fuera de este bug). Convierte ese wrapper en un grid de 3 columnas: el contenido normal de `the_content()` sigue centrado a 640px (mismo ancho de lectura de siempre); los hijos `.ce-section` (lo que renderiza `[ce_section]`) ocupan el ancho completo del `.ce-container`, cancelando con margen negativo el padding del contenedor exterior para quedar pixel-idénticos al Home. `.ce-max-w-content` (compartida en ~15 archivos del proyecto) **no se modificó**. El `<article>` se sacó de `.ce-max-w-content` en ambos archivos (condición necesaria para que el grid tenga ancho disponible); la meta info y los tags/paginación/comentarios siguen envueltos en `.ce-max-w-content`, sin cambio visual. El hero (`template-parts/page-hero.php`) y el Home (`front-page.php`) quedan fuera de la cadena de ancestros afectada — verificado por lectura, sin relación con este cambio. Detalle completo, alternativas descartadas (breakout vía `100vw`, vía `calc()` contra `--ce-container-max`): `docs/DECISIONS.md` D-061.
+
+### Archivos creados / modificados (Entregable UX-6.2)
+- Creados: `inc/section-shortcode.php` (raíz de `/inc`).
+- Modificados: `inc/home-builder.php` (nueva función `ce_construction_get_home_section_args()`, aditiva), `front-page.php` (1 línea: usa la función anterior en vez del ternario inline, sin cambio de comportamiento), `functions.php` (1 línea nueva en `$modules`, necesaria para cargar el archivo nuevo).
+- Sin cambios: `page.php` (UX-6.1, instrucción explícita de no tocarlo — verificado por diff), `template-parts/page-hero.php`, `comments.php`, todo el sistema de cotización (UX-3), el Hero de Home (UX-4), los CTA (UX-5), y todo el Sprint 8.
+- Eliminados: ninguno.
+
+### Archivos creados / modificados (Entregable UX-6.3 — fix de ancho)
+- Modificados: `single.php` y `page.php` (restructuración de wrappers: `<article>` fuera de `.ce-max-w-content`, clase `ce-content-breakout` añadida a `.ce-service-content`; meta info y tags/paginación/comentarios siguen en `.ce-max-w-content` sin cambio visual), `assets/css/main.css` (nueva regla aditiva `.ce-content-breakout`; `.ce-max-w-content` intacta).
+- Sin cambios: `inc/section-shortcode.php` (el shortcode nunca fue la causa del bug), `single-servicio.php`, `single-proyecto.php`, `single-equipo.php` (comparten `.ce-service-content` pero no se les añadió la nueva clase — quedan fuera de alcance de este bug), `template-parts/page-hero.php`, `front-page.php`, Sprint 8.
+- Eliminados: ninguno.
+
+### Documentación actualizada (en este cierre)
+`docs/DECISIONS.md` (D-060, D-061), este mismo archivo. Sin cambios en `ARCHITECTURE.md`/`TREE.md`/`CHANGELOG.md` en este cierre (mismo criterio ya aplicado en el cierre de UX-6.1: se difieren a un punto de cierre de Sprint más significativo — ver "Pendiente explícito" abajo), ni en `CURRENT_SPRINT.md`/`QA_REPORT.md`/`HANDOFF.md` (Sprint 8, sin tocar).
+
+### Validaciones ejecutadas
+UX-6.2: sin entorno WordPress/navegador real disponible en ese momento (misma limitación metodológica ya documentada para UX-3.2/UX-6.1): balance de llaves/paréntesis y de tags `<?php` (sin `?>` de cierre, convención ya vigente en el proyecto) verificado en los 4 archivos tocados/creados, sin `php -l` disponible en este entorno. Trazado lógico manual del flujo del shortcode contra `front-page.php` (mismo `get_template_part()`, mismo registro central, mismo cálculo de `$args`).
+
+UX-6.3: causa confirmada por el propio usuario en DevTools sobre WordPress real (`.ce-max-w-content` con `max-width:640px`, comprobado desactivando la regla manualmente) antes de implementar el fix. Balance de llaves/paréntesis/tags `<?php` verificado en `single.php`/`page.php` tras la restructuración; balance de llaves/paréntesis verificado en `main.css` completo tras la inserción.
+
+**Pendiente de prueba funcional real en WordPress (ambos Entregables):** con caché purgada, crear/revisar una Página con `[ce_section key="about"]` y confirmar que (a) renderiza "Quiénes Somos" idéntica a la del Home, incluso con la sección desactivada en el Home Builder, y (b) ocupa el ancho completo del `.ce-container` del sitio, alineada igual que en el Home, mientras el resto del texto de la Página conserva el ancho de lectura de siempre.
+
+### Pendiente explícito de este Entregable
+- ~~`docs/CHANGELOG.md`: sin entrada añadida~~ — **resuelto en el cierre del Sprint UX-6** (D-062): entradas de UX-6.1, UX-6.2 y UX-6.3 añadidas.
+- ~~`docs/TREE.md`: no refleja `inc/section-shortcode.php`~~ — **resuelto en el cierre del Sprint UX-6** (D-062): árbol actualizado.
+- Prueba funcional real en WordPress de UX-6.2 (ver validaciones arriba) — **sigue pendiente**, no resuelta por la aprobación explícita de este cierre (UX-6.3 sí fue validada por el usuario en WordPress real, ver D-061).
+- ~~Con UX-6.3 implementado, el Sprint UX-6 queda completo, pendiente de tu aprobación explícita de los tres~~ — **✅ resuelto: los tres aprobados explícitamente por el usuario, Sprint UX-6 formalmente cerrado (D-062).**
 
 ### Trabajo realizado (Entregable UX-6.1)
 Nuevo `page.php` en la raíz del tema (Template Hierarchy nativa de WordPress: WordPress le da prioridad automática sobre `index.php` para cualquier Página, sin configuración adicional). Reutiliza `template-parts/page-hero.php` (sin modificarlo) con un `eyebrow` genérico (`get_bloginfo('name')`, mismo criterio que el eyebrow genérico ya usado por `archive.php`) y `the_content()` para el cuerpo, siguiendo exactamente el mismo patrón de `single.php`: soporte de Página protegida por contraseña (`post_password_required()`), paginación de contenido (`wp_link_pages()`), y comentarios vía `comments.php` (ya genérico para post/page desde el Entregable 6B.2, sin necesidad de modificarlo) si el administrador los habilita en una Página puntual. Sin secciones del Home Builder ni mecanismo de shortcode — eso es UX-6.2, explícitamente fuera de alcance de este Entregable. Sin cambios en `template-parts/page-hero.php` (layout/columnas/video es UX-7.1, tampoco tocado). Ver `docs/DECISIONS.md` D-059 para el detalle completo de las 3 decisiones de diseño de este cierre.
@@ -163,7 +201,8 @@ Sin entorno WordPress/navegador real disponible (misma limitación metodológica
 
 ## Riesgos y pendientes abiertos (adicionales a los ya listados arriba)
 - Pendiente de confirmación: bump de `style.css` (sigue en `0.8.5`) — sin cambios en este Entregable, no aplica bump.
-- 🆕 Pendiente de tu aprobación explícita: inicio de UX-6.2 (shortcode), elección de shortcode vs. bloque Gutenberg (ya recomendado shortcode por la auditoría, sin decisión final tuya todavía), y decisión sobre cuándo resolver `QA-043` (iconos sociales del header) — ver `docs/UX_CONVERSION_ANALISIS_Y_PLAN.md` §8.7.
+- ~~🆕 Pendiente de tu aprobación explícita: inicio de UX-6.2 (shortcode), elección de shortcode vs. bloque Gutenberg~~ — **resuelto (D-062): shortcode confirmado explícitamente, UX-6.2 y UX-6.3 aprobados.**
+- Sigue pendiente: decisión sobre cuándo resolver `QA-043` (iconos sociales del header) — ver `docs/UX_CONVERSION_ANALISIS_Y_PLAN.md` §8.7. Sin cambios en esta sesión.
 
 ## Riesgos y pendientes abiertos
 - ~~Investigación del HTTP 400 en el envío del formulario de cotización~~ — **cerrado**: causa confirmada como error de carga del usuario en un ZIP anterior (`inc/quote-form.php` no incluido en ese paquete), no un bug de código. Ver nota completa arriba, en la sección del Sprint UX-3.
@@ -174,3 +213,91 @@ Sin entorno WordPress/navegador real disponible (misma limitación metodológica
 - Pendiente de confirmación del usuario: bump de `style.css` a `0.8.6` (propuesto, no aplicado — ver nota de versionado arriba).
 - `HANDOFF.md` sigue pendiente de actualización — se evaluará en un punto de cierre de sesión/Sprint más significativo (criterio D-034 ya vigente en el proyecto). El cierre formal del Sprint UX-3 (una vez apruebes UX-3.2) es un candidato razonable para ese punto de actualización.
 - Ningún riesgo detectado que afecte al Sprint 8 pausado; ningún archivo compartido con el Sprint 8 fue tocado en este Entregable.
+
+---
+
+## ✅ Cierre del Sprint UX-6 (esta sesión)
+
+UX-6.1, UX-6.2 y UX-6.3 quedan **aprobados explícitamente por el usuario** en esta sesión (mecanismo de UX-6.2 confirmado: shortcode, no bloque Gutenberg). El **Sprint UX-6 queda formalmente cerrado**, conforme a D-038. Ningún archivo de código fue tocado en este cierre — el código de UX-6.2/UX-6.3 ya estaba presente y correcto en el ZIP revisado; se verificó por lectura antes de dar el cierre por bueno. Detalle completo: `docs/DECISIONS.md` D-062.
+
+**Documentación actualizada en este cierre** (diferida hasta este punto, ver criterio D-034 de "punto de cierre de Sprint más significativo"): `CHANGELOG.md` (entradas de UX-6.1, UX-6.2, UX-6.3), `TREE.md` (`page.php`, `inc/section-shortcode.php`, `single.php`, `assets/css/main.css`, `inc/home-builder.php`, `front-page.php`, `functions.php`), `DECISIONS.md` (D-062), este mismo archivo. Sin cambios en `PROJECT_STATUS.md`/`HANDOFF.md`/`QA_REPORT.md`/`CURRENT_SPRINT.md` (Sprint 8, sin tocar) ni en `ARCHITECTURE.md` (sin cambio de arquitectura respecto a lo ya descrito en D-059/D-060/D-061).
+
+**Pendiente, sin cambios de alcance:**
+- Prueba funcional real en WordPress de UX-6.2 (UX-6.3 sí fue validada por el usuario en WordPress real, ver D-061).
+- Bump de `style.css` a `0.8.6` (propuesto, no aplicado — sin autorización en esta sesión).
+- `QA-043` (iconos sociales del header) — sin decisión sobre cuándo resolverlo.
+
+### Próximo Sprint — decisión tomada, actualizado tras el inicio de UX-7
+
+Con el Sprint UX-6 cerrado, el usuario priorizó e inició el **Sprint UX-7** (Consistencia y configurabilidad), en modalidad Entregable por Entregable — ver la sección dedicada más abajo para el detalle y el estado de UX-7.1.
+
+**UX-5.2** — Documentación de "objetivo de plantilla" (landing/corporativo/construcción/remodelación/servicios) — sigue **sin iniciar**, pendiente del plan original; no compite con UX-7 salvo que el usuario decida reordenar.
+
+---
+
+## Sprint UX-7 — "Consistencia y configurabilidad: Hero, CTA, Header/Footer" — Estado: **En curso.**
+
+**Modalidad de aprobación elegida por el usuario:** Entregable por Entregable (no el Sprint completo de una vez), conforme a D-038.
+
+| Entregable | Objetivo | Estado |
+|---|---|---|
+| UX-7.1 | Unificación del Hero (Home + interior) | 🟡 **Entregado — pendiente de tu aprobación explícita** |
+| UX-7.2 | Layout de Hero de 1/2/3 columnas + Quote Form opcional en Hero | Sin iniciar (depende de UX-7.1) |
+| UX-7.3 | Aprovechamiento de espacios vacíos en sidebars | Sin iniciar |
+| UX-7.4 | CTA: icono y color de botón configurables | Sin iniciar |
+| UX-7.5 | Logo independiente Header/Footer | Sin iniciar |
+| UX-7.6 | Estadísticas configurables desde el Customizer | Sin iniciar |
+| UX-7.7 | Franja de insignias de confianza / licencias | Sin iniciar |
+| UX-7.8 | Testimonio en video | Sin iniciar |
+| UX-7.9 | Bloque de financiamiento / opciones de pago | Sin iniciar |
+
+### Trabajo realizado (Entregable UX-7.1)
+
+`template-parts/hero.php` (Home) y `template-parts/page-hero.php` (Hero interno) comparten ahora la resolución de video/slider de `ce_hero_type` vía una función nueva y única, `ce_construction_get_hero_media_state()` (`inc/helpers.php`) — sin reimplementar esa lógica en un segundo archivo. El Hero interno gana capacidad de video/slider (en modo `video`/`slider`, usa el mismo `ce_hero_video`/`ce_hero_slides` globales que el Home; en modo `image`, por defecto, sigue usando la imagen destacada propia de cada Página/entrada, sin cambio de comportamiento). El overlay de ambos Heros pasa a compartir la misma fuente de gradiente en CSS (`--ce-hero-overlay-gradient`) y la misma opacidad configurable (`ce_hero_overlay_opacity`, ya existente desde UX-4.1) — antes el Hero interno tenía un gradiente propio, ligeramente distinto, y sin control de opacidad. Ver `DECISIONS.md` D-063 para el detalle completo, incluidas las alternativas descartadas.
+
+**Cambio visual esperado (no un bug):** el overlay del Hero interno pasa de un gradiente de 2 stops a uno de 3 stops (el mismo del Home) — resultado intencional de la consistencia pedida por este Entregable.
+
+### Archivos creados / modificados (Sprint UX-7, Entregable UX-7.1)
+- Creados: ninguno.
+- Modificados: `inc/helpers.php` (nueva función `ce_construction_get_hero_media_state()`, aditiva), `template-parts/hero.php` (refactor interno, sin cambio de comportamiento), `template-parts/page-hero.php` (nueva capacidad video/slider + overlay compartido, modo imagen sin cambios), `assets/css/main.css` (gradiente de overlay extraído a variable compartida; `.ce-page-hero__overlay` gana `background`/`opacity`; comentarios de las secciones 26/27 actualizados), `inc/customizer.php` (descripciones de `ce_hero_type` y `ce_hero_overlay_opacity` actualizadas, sin cambio de lógica).
+- Sin cambios: Home Builder (UX-1/UX-2), sistema de cotización (UX-3), shortcode/`page.php` (UX-6), Sprint 8, `style.css` (sin bump).
+- Eliminados: ninguno.
+
+### Documentación actualizada (en este cierre)
+`DECISIONS.md` (D-063), este mismo archivo. **Diferido a un punto de cierre de Sprint más significativo (criterio D-034):** `CHANGELOG.md`, `TREE.md`.
+
+### Validaciones ejecutadas
+Sin entorno WordPress/navegador real disponible (misma limitación metodológica documentada en Entregables anteriores): balance de tags `<?php`/llaves/paréntesis en los 3 archivos PHP tocados/creados y en `main.css` completo; trazado lógico manual de los 9 llamadores existentes de `page-hero.php`, confirmando que ninguno pasa argumentos distintos a los ya soportados. **Pendiente de prueba funcional real en WordPress.**
+
+### Próximo Entregable
+Con UX-7.1 entregado, el Sprint UX-7 **no avanza a UX-7.2** sin tu aprobación explícita de UX-7.1 (D-038, modalidad Entregable por Entregable elegida). UX-7.2 depende funcionalmente de UX-7.1 (layout de columnas + Quote Form sobre el Hero ya unificado).
+
+### Prompt documental para el siguiente Sprint UX (preparado, sin ejecutar)
+
+```
+CE Construction — Sprint UX-6 CERRADO Y APROBADO (UX-6.1 + UX-6.2 + UX-6.3),
+ver docs/CURRENT_UX_SPRINT.md y docs/DECISIONS.md D-062.
+
+Te adjunto el ZIP con el estado actual del tema y docs/CURRENT_UX_SPRINT.md,
+docs/DECISIONS.md, docs/CHANGELOG.md, docs/TREE.md,
+docs/UX_CONVERSION_ANALISIS_Y_PLAN.md para el detalle completo.
+
+Quiero continuar la fase "Optimización UX / Conversión" con:
+[elige uno — ninguno está aprobado todavía]
+  (a) Sprint UX-5.2 — Documentación de "objetivo de plantilla"
+      (landing/corporativo/construcción/remodelación/servicios).
+  (b) Sprint UX-7 — Consistencia y configurabilidad (Hero Home/interior,
+      columnas + Quote Form en Hero, sidebars, CTA icono/color, logo
+      independiente Header/Footer, + UX-7.6 a UX-7.9 del benchmark
+      competitivo DayBrook Homes / Re-Bath — ver DECISIONS.md D-058).
+      Indica si apruebas el Sprint completo o quieres aprobarlo
+      Entregable por Entregable (UX-7.1, UX-7.2, ...).
+
+Antes de implementar: analiza la documentación .md relevante y confirma
+coherencia con CURRENT_UX_SPRINT.md. Si encuentras documentación
+desactualizada, actualízala. Si hay discrepancia, detente y consúltame.
+Si aparece alguna decisión fuera del alcance indicado arriba, detente y
+consúltame antes de tocar código. Aplica D-038 (aprobación explícita
+obligatoria por Entregable) en todo momento. Entrega archivos completos
+con ruta exacta, no diffs.
+```

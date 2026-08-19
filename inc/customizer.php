@@ -409,7 +409,7 @@ function ce_construction_customize_register( $wp_customize ) {
 	) );
 	$wp_customize->add_control( 'ce_hero_type', array(
 		'label'       => __( 'Tipo de fondo del Hero', 'ce-construction' ),
-		'description' => __( 'En modo Video, si no se sube ningún video (o el navegador no puede reproducirlo), el Hero usa automáticamente la imagen de fondo configurada abajo como respaldo. En modo Slider, si no se selecciona ninguna imagen, ocurre lo mismo.', 'ce-construction' ),
+		'description' => __( 'En modo Video, si no se sube ningún video (o el navegador no puede reproducirlo), el Hero usa automáticamente la imagen de fondo configurada abajo como respaldo. En modo Slider, si no se selecciona ninguna imagen, ocurre lo mismo. Sprint UX-7: en modo Video o Slider, este ajuste también se aplica al Hero interno de Páginas/Servicios/Proyectos/etc.; en modo Imagen (por defecto), el Hero interno sigue usando la imagen destacada propia de cada Página/entrada.', 'ce-construction' ),
 		'section'     => 'ce_section_hero',
 		'type'        => 'select',
 		'choices'     => array(
@@ -453,7 +453,7 @@ function ce_construction_customize_register( $wp_customize ) {
 	) );
 	$wp_customize->add_control( 'ce_hero_overlay_opacity', array(
 		'label'       => __( 'Intensidad del overlay oscuro', 'ce-construction' ),
-		'description' => __( 'De 0 (sin overlay, fondo a la vista) a 1 (overlay al 100%, como hasta ahora). Por defecto: 1 — mismo aspecto que antes de este Entregable.', 'ce-construction' ),
+		'description' => __( 'De 0 (sin overlay, fondo a la vista) a 1 (overlay al 100%, como hasta ahora). Por defecto: 1 — mismo aspecto que antes de este Entregable. Sprint UX-7: este ajuste ahora también controla el overlay del Hero interno de Páginas/Servicios/Proyectos/etc. (antes fijo, sin control).', 'ce-construction' ),
 		'section'     => 'ce_section_hero',
 		'type'        => 'number',
 		'input_attrs' => array(

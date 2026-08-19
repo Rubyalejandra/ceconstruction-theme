@@ -32,7 +32,7 @@ ce-construction-theme/
                                 tema instalable; ver sección 8 de este documento)
 ```
 
-**Archivos de plantilla de WordPress aún pendientes** (no existen todavía; ver `TODO.md`): `page.php`, `single.php`, `comments.php`, `404.php`, `archive.php` genérico. `index.php` (Entregable 6A) ya resuelve el fallback para estos contextos mientras tanto.
+**Nota histórica (desactualizada, corregida aquí):** este archivo listaba `page.php`, `single.php`, `comments.php`, `404.php` y `archive.php` genérico como plantillas "aún pendientes, no existen todavía". Los cinco existen desde hace varios Sprints: `single.php`/`comments.php` (Entregable 6B.2), `404.php`, `archive.php` (Sprint 7, Entregable 7.2), y `page.php` (Sprint UX-6, Entregable UX-6.1 — ver `DECISIONS.md` D-059, D-062). Sin plantillas pendientes en este punto.
 
 ---
 
