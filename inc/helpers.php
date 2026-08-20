@@ -817,3 +817,126 @@ function ce_construction_get_stats_items() {
 	$items = ce_construction_decode_stats_items( $raw );
 	return apply_filters( 'ce_stats_items', $items );
 }
+
+/* =========================================================
+ * SPRINT UX-7, ENTREGABLE UX-7.7 — Franja de insignias de
+ * confianza / licencias. Ver DECISIONS.md D-071.
+ *
+ * A diferencia de ce_construction_default_stats_items() (UX-7.6),
+ * esta funcionalidad es contenido nuevo, sin ningún valor previo
+ * hardcodeado que preservar — no existe un "default" no vacío:
+ * el `default` del setting `ce_trust_badges_items` es una cadena
+ * vacía, que decodifica a un array vacío. Mismo criterio de
+ * auto-ocultado ya usado por template-parts/stats.php (UX-7.6)
+ * cuando el administrador quita todas las filas.
+ * ========================================================= */
+
+/**
+ * Decodifica y normaliza el JSON guardado en `ce_trust_badges_items`.
+ * Única fuente de saneamiento para este dato — la usan tanto el
+ * `sanitize_callback` del setting (`ce_construction_sanitize_trust_badges()`,
+ * inc/customizer.php) como el `render_content()` del control repeater
+ * (`CE_Customize_Trust_Badges_Control`) y `ce_construction_get_trust_badges()`
+ * (frontend) — mismo principio arquitectónico ya aplicado en
+ * ce_construction_decode_stats_items() (UX-7.6) y
+ * ce_construction_decode_home_sections_order() (UX-1.2).
+ *
+ * Cada insignia admite: una imagen (adjunto de Medios, opcional),
+ * una etiqueta de texto (obligatoria — se usa como `alt` de la
+ * imagen si hay imagen, o como único contenido visible si no la
+ * hay), un número de licencia opcional, y un enlace de verificación
+ * opcional. Tolerante a datos corruptos/vacíos: cualquier fila sin
+ * `label` (el único campo obligatorio, mismo criterio que
+ * ce_construction_decode_stats_items()) se descarta en silencio.
+ *
+ * Límite defensivo de 12 insignias (mismo criterio y mismo número
+ * que ce_construction_decode_stats_items(), UX-7.6) — el plan pide
+ * "sin límite fijo" en el sentido de "no fijo en un número bajo
+ * arbitrario como 3 ó 4", no en el sentido de "ilimitado de verdad";
+ * protege el layout de una cantidad no realista de insignias.
+ *
+ * @param string $json Valor guardado (JSON) o cadena vacía/corrupta.
+ * @return array<int,array{image_id:int,label:string,license:string,url:string}>
+ */
+function ce_construction_decode_trust_badges( $json ) {
+	$items = json_decode( (string) $json, true );
+	if ( ! is_array( $items ) ) {
+		return array();
+	}
+
+	$normalized = array();
+	foreach ( $items as $item ) {
+		if ( ! is_array( $item ) ) {
+			continue;
+		}
+
+		$label = isset( $item['label'] ) ? sanitize_text_field( $item['label'] ) : '';
+		if ( '' === $label ) {
+			continue; // La etiqueta es el único campo obligatorio: sin ella, la fila se descarta.
+		}
+
+		$normalized[] = array(
+			'image_id' => isset( $item['image_id'] ) ? absint( $item['image_id'] ) : 0,
+			'label'    => mb_substr( $label, 0, 60 ),
+			'license'  => isset( $item['license'] ) ? sanitize_text_field( mb_substr( (string) $item['license'], 0, 40 ) ) : '',
+			'url'      => isset( $item['url'] ) ? esc_url_raw( $item['url'] ) : '',
+		);
+
+		if ( count( $normalized ) >= 12 ) {
+			break;
+		}
+	}
+
+	return $normalized;
+}
+
+/**
+ * Devuelve las insignias de confianza efectivas a renderizar en
+ * template-parts/trust-badges.php: decodifica el theme_mod
+ * `ce_trust_badges_items` (cadena vacía por defecto — sin
+ * regresión posible, ver nota de arriba) y aplica un filtro nuevo
+ * `ce_trust_badges_items` (mismo principio de extensión para
+ * desarrolladores ya aplicado por `ce_stats_items` en UX-7.6, sin
+ * precedente previo que preservar aquí porque esta sección no
+ * existía antes de este Entregable).
+ *
+ * @return array
+ */
+function ce_construction_get_trust_badges() {
+	$raw   = get_theme_mod( 'ce_trust_badges_items', '' );
+	$items = ce_construction_decode_trust_badges( $raw );
+	return apply_filters( 'ce_trust_badges_items', $items );
+}
+
+/**
+ * Título accesible de una insignia de confianza (usado como
+ * `title=` en el modo compacto de template-parts/trust-badges.php,
+ * donde el número de licencia no se muestra visualmente por
+ * espacio — sigue siendo consultable sin ocupar espacio visual).
+ * Incluye el número de licencia cuando existe.
+ *
+ * Definida aquí (inc/helpers.php) y no dentro del propio
+ * template-part: template-parts/trust-badges.php puede invocarse
+ * DOS VECES en la misma carga de página (la sección completa vía
+ * el Home Builder + el modo compacto vía template-parts/hero.php,
+ * si ambas están activas a la vez) — declarar una función dentro
+ * de un archivo que `get_template_part()` puede incluir más de una
+ * vez provocaría un fatal por redeclaración. Mismo principio ya
+ * aplicado en todo el proyecto: la lógica reutilizable vive en
+ * inc/helpers.php, nunca dentro de un template-part.
+ *
+ * @param array $badge Una insignia ya normalizada por
+ *                      ce_construction_decode_trust_badges().
+ * @return string
+ */
+function ce_construction_trust_badge_title( $badge ) {
+	if ( ! empty( $badge['license'] ) ) {
+		return sprintf(
+			/* translators: 1: nombre de la insignia, 2: número de licencia */
+			__( '%1$s — Lic. %2$s', 'ce-construction' ),
+			$badge['label'],
+			$badge['license']
+		);
+	}
+	return $badge['label'];
+}

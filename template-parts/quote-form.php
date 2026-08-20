@@ -277,6 +277,24 @@ $servicios = get_posts( array(
 					</form>
 
 <?php if ( $ce_quote_is_hero ) : ?>
+	<?php
+	// 🆕 Sprint UX-7, Entregable UX-7.7 (D-071): resolución de la
+	// nota añadida durante el ajuste puntual de UX-7.2 (D-065) —
+	// "una vez construido, el componente de insignias/bullets
+	// también debe quedar disponible para la tarjeta del Quote Form
+	// del Hero". Reutiliza el mismo template-part de las insignias
+	// de confianza (template-parts/trust-badges.php), en su modo
+	// compacto (`$args['compact']`), sin duplicar markup ni crear un
+	// segundo sistema de insignias. SOLO se imprime en el contexto
+	// 'hero' — el modal y la instancia integrada normal no lo llevan,
+	// conforme al alcance de este Entregable. Se oculta por completo,
+	// sin dejar ningún espacio vacío, si el administrador no
+	// configuró ninguna insignia en "CE: Insignias de Confianza"
+	// (mismo guard que ya trae ese template-part) — el badge
+	// "Respuesta en 24h" de arriba no depende de esto y sigue
+	// mostrándose igual.
+	get_template_part( 'template-parts/trust-badges', null, array( 'compact' => true ) );
+	?>
 	</div>
 </div>
 <?php elseif ( ! $ce_quote_is_modal ) : ?>

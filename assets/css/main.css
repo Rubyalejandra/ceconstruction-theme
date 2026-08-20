@@ -1604,3 +1604,114 @@ img[loading="lazy"] {
 @media (min-width: 992px) {
   .ce-stats-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
 }
+
+/* =============================================================
+   30. SPRINT UX-7, ENTREGABLE UX-7.7 — INSIGNIAS DE CONFIANZA /
+   LICENCIAS. Sección añadida sin modificar ninguna regla anterior
+   (incluidas las secciones 7 "Cards", 17 "Utilidades" — reutiliza
+   `.ce-badge` para el número de licencia sin tocar esa regla — y
+   28/28 bis del Hero). Ver DECISIONS.md D-071.
+
+   Dos variantes del mismo componente, mismo criterio ya usado por
+   `.ce-testimonial-card--compact` (UX-7.3):
+     - `.ce-trust-badges-list` (sección completa, Home Builder /
+       shortcode): tarjetas más grandes, con etiqueta y número de
+       licencia visibles.
+     - `.ce-trust-badges-list--compact` (dentro de
+       `.ce-hero-quote-card`, ver template-parts/quote-form.php):
+       fila compacta de iconos/miniaturas pequeñas, sin texto visible
+       salvo cuando no hay imagen (fallback a icono + etiqueta corta)
+       — el número de licencia queda disponible vía `title=` en vez
+       de ocupar espacio visual, dado el tamaño reducido de la
+       tarjeta del Hero.
+   ============================================================= */
+
+/* --- Variante completa (Home Builder / shortcode) --- */
+.ce-trust-badges-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--ce-space-4);
+}
+.ce-trust-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--ce-space-2);
+  padding: var(--ce-space-4);
+  background: var(--ce-color-white);
+  border-radius: var(--ce-radius-md);
+  box-shadow: var(--ce-shadow-sm);
+  width: 160px;
+  transition: transform var(--ce-transition-fast), box-shadow var(--ce-transition-fast);
+}
+a.ce-trust-badge:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--ce-shadow-md);
+}
+.ce-trust-badge__media {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(217,142,41,0.12);
+  color: var(--ce-color-secondary);
+  font-size: 1.5rem;
+  overflow: hidden;
+}
+.ce-trust-badge__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.ce-trust-badge__label {
+  font-family: var(--ce-font-heading);
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--ce-color-primary);
+}
+.ce-trust-badge__license {
+  /* Reutiliza .ce-badge (sección 17) sin tocarla; este selector solo
+     ajusta el tamaño de fuente para el contexto compacto de la card. */
+  font-size: 0.72rem;
+}
+
+/* --- Variante compacta (dentro de .ce-hero-quote-card) --- */
+.ce-trust-badges-list--compact {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ce-space-3);
+  margin-top: var(--ce-space-3);
+  padding-top: var(--ce-space-3);
+  border-top: 1px solid var(--ce-color-neutral-300);
+}
+.ce-trust-badge--compact {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ce-color-neutral-600);
+}
+.ce-trust-badge--compact img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+.ce-trust-badge--compact i {
+  font-size: 1.1rem;
+  color: var(--ce-color-secondary);
+}
+.ce-trust-badge--compact .ce-trust-badge__label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--ce-color-neutral-600);
+}
+a.ce-trust-badge--compact:hover {
+  color: var(--ce-color-secondary-text);
+}
+a.ce-trust-badge--compact:hover .ce-trust-badge__label {
+  color: var(--ce-color-secondary-text);
+}

@@ -150,6 +150,22 @@ function ce_construction_home_sections() {
 			'label'    => __( 'Formulario de Cotización', 'ce-construction' ),
 			'template' => 'template-parts/quote-form',
 		),
+		// 🆕 Sprint UX-7, Entregable UX-7.7: "Franja de insignias de
+		// confianza / licencias" (ver DECISIONS.md D-071). Registrada
+		// aquí, junto al resto, por el mismo requisito explícito ya
+		// aplicado a team/clients/faq/cta_secondary: queda disponible
+		// automáticamente vía [ce_section key="trust_badges"] (UX-6.2)
+		// en cuanto exista contenido, sin arquitectura paralela. NO
+		// forma parte del orden activo por defecto (mismo criterio que
+		// team/clients/faq, ver ce_construction_default_home_order()):
+		// además de no estar activada, no tiene ninguna insignia
+		// configurada por defecto (a diferencia de 'stats', que sí
+		// preservaba 4 valores previos) — el propio contenido vacío ya
+		// la oculta (ver template-parts/trust-badges.php).
+		'trust_badges' => array(
+			'label'    => __( 'Insignias de Confianza', 'ce-construction' ),
+			'template' => 'template-parts/trust-badges',
+		),
 	) );
 }
 

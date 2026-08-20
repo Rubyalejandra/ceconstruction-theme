@@ -243,3 +243,46 @@ function ce_construction_enqueue_stats_items_control_script() {
 	) );
 }
 add_action( 'customize_controls_enqueue_scripts', 'ce_construction_enqueue_stats_items_control_script' );
+
+/* =========================================================
+ * SPRINT UX-7, ENTREGABLE UX-7.7 — Insignias de confianza: script
+ * del control custom `CE_Customize_Trust_Badges_Control` (ver
+ * inc/customizer.php). Mismo criterio de ubicación/hook que los 3
+ * bloques anteriores de esta sección.
+ *
+ * Dependencia 'media-editor' (a diferencia de admin-stats-items.js,
+ * pero igual que admin-hero-slides.js): cada fila admite una
+ * imagen opcional vía `wp.media` — mismo mecanismo, sin añadir
+ * ninguna librería nueva al proyecto. Sin 'jquery-ui-sortable': el
+ * reordenamiento es por botones "mover antes/después" (D-055/D-070/
+ * D-071).
+ *
+ * Localización: los textos de las etiquetas de cada fila nueva
+ * (creada por JS al pulsar "Añadir insignia") se pasan vía
+ * wp_localize_script(), mismo patrón ya usado para
+ * `ceStatsItemsData`/`ceHeroSlidesData` arriba.
+ *
+ * Ver DECISIONS.md D-071.
+ * ========================================================= */
+function ce_construction_enqueue_trust_badges_control_script() {
+	wp_enqueue_script(
+		'ce-admin-trust-badges',
+		CE_THEME_URI . '/assets/js/admin-trust-badges.js',
+		array( 'jquery', 'media-editor', 'customize-controls' ),
+		ce_construction_asset_version( 'assets/js/admin-trust-badges.js' ),
+		true
+	);
+
+	wp_localize_script( 'ce-admin-trust-badges', 'ceTrustBadgesData', array(
+		'mediaTitle'   => __( 'Selecciona una imagen para la insignia', 'ce-construction' ),
+		'mediaButton'  => __( 'Usar esta imagen', 'ce-construction' ),
+		'labelLabel'   => __( 'Etiqueta', 'ce-construction' ),
+		'labelLicense' => __( 'Número de licencia (opcional)', 'ce-construction' ),
+		'labelUrl'     => __( 'Enlace de verificación (opcional)', 'ce-construction' ),
+		'labelSelect'  => __( 'Seleccionar imagen', 'ce-construction' ),
+		'labelReplace' => __( 'Cambiar imagen', 'ce-construction' ),
+		'labelRemoveImage' => __( 'Quitar imagen', 'ce-construction' ),
+		'labelRemove'  => __( 'Quitar', 'ce-construction' ),
+	) );
+}
+add_action( 'customize_controls_enqueue_scripts', 'ce_construction_enqueue_trust_badges_control_script' );

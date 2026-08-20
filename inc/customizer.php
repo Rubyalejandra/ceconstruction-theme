@@ -811,6 +811,36 @@ function ce_construction_customize_register( $wp_customize ) {
 		'description' => __( 'El sufijo (ej. "+") se añade después del número al animarse. El icono usa el mismo formato que el resto del tema (ej. "fa-solid fa-building") — consulta la galería de Font Awesome 6 Free si necesitas otro nombre de icono.', 'ce-construction' ),
 		'section'     => 'ce_section_stats',
 	) ) );
+
+	/* -----------------------------------------------------------
+	 * 9. INSIGNIAS DE CONFIANZA (Sprint UX-7, Entregable UX-7.7)
+	 * Ver DECISIONS.md D-071. Control custom tipo repeater — mismo
+	 * patrón general que CE_Customize_Stats_Items_Control (UX-7.6),
+	 * pero cada fila admite además una imagen opcional vía wp.media
+	 * (mismo mecanismo que CE_Customize_Hero_Slides_Control, UX-4.2).
+	 * Sin `default` con contenido previo (a diferencia de las
+	 * Estadísticas): esta sección no existía antes de este
+	 * Entregable, así que el `default` es una cadena vacía — el
+	 * panel aparece vacío hasta que el administrador añade su
+	 * primera insignia, y el frontend se mantiene oculto hasta
+	 * entonces (ver template-parts/trust-badges.php).
+	 * --------------------------------------------------------- */
+	$wp_customize->add_section( 'ce_section_trust_badges', array(
+		'title'       => __( 'CE: Insignias de Confianza', 'ce-construction' ),
+		'description' => __( 'Licencias, seguros, certificaciones o afiliaciones que respaldan al negocio. Cada insignia admite una imagen (opcional), una etiqueta, un número de licencia (opcional) y un enlace de verificación (opcional). Sin ninguna insignia, esta franja no se muestra. Publica para aplicar los cambios.', 'ce-construction' ),
+		'priority'    => 39,
+	) );
+
+	$wp_customize->add_setting( 'ce_trust_badges_items', array(
+		'default'           => '',
+		'sanitize_callback' => 'ce_construction_sanitize_trust_badges',
+		'transport'         => 'refresh',
+	) );
+	$wp_customize->add_control( new CE_Customize_Trust_Badges_Control( $wp_customize, 'ce_trust_badges_items', array(
+		'label'       => __( 'Insignias de Confianza', 'ce-construction' ),
+		'description' => __( 'La imagen es opcional: sin ella, la insignia se muestra como un icono genérico + la etiqueta de texto. El número de licencia y el enlace de verificación también son opcionales.', 'ce-construction' ),
+		'section'     => 'ce_section_trust_badges',
+	) ) );
 }
 add_action( 'customize_register', 'ce_construction_customize_register' );
 
@@ -872,6 +902,21 @@ function ce_construction_sanitize_cta_icon( $value ) {
  */
 function ce_construction_sanitize_stats_items( $value ) {
 	$items = ce_construction_decode_stats_items( is_string( $value ) ? $value : '' );
+	return wp_json_encode( $items );
+}
+
+/**
+ * Sprint UX-7, Entregable UX-7.7 — sanitize_callback de
+ * `ce_trust_badges_items`. Mismo criterio exacto que
+ * ce_construction_sanitize_stats_items() (arriba): reutiliza
+ * ce_construction_decode_trust_badges() (inc/helpers.php) — la
+ * misma función que ya usan el render del control repeater y
+ * ce_construction_get_trust_badges() en el frontend — como única
+ * fuente de saneamiento, y vuelve a codificar el resultado como
+ * JSON. Ver DECISIONS.md D-071.
+ */
+function ce_construction_sanitize_trust_badges( $value ) {
+	$items = ce_construction_decode_trust_badges( is_string( $value ) ? $value : '' );
 	return wp_json_encode( $items );
 }
 
@@ -1318,3 +1363,166 @@ function ce_construction_stats_items_control_styles() {
 	<?php
 }
 add_action( 'customize_controls_print_styles', 'ce_construction_stats_items_control_styles' );
+
+/* =========================================================
+ * SPRINT UX-7, ENTREGABLE UX-7.7 — INSIGNIAS DE CONFIANZA.
+ * Ver DECISIONS.md D-071.
+ *
+ * Control custom del Customizer: repeater de insignias de
+ * confianza/licencias, mismo patrón estructural que
+ * CE_Customize_Stats_Items_Control (UX-7.6) — reordenamiento por
+ * botones "mover antes/después" (sin jQuery UI Sortable, mismo
+ * criterio ya fijado en D-055/D-070), serializado como JSON en un
+ * <input type="hidden">. La diferencia frente al control de
+ * Estadísticas es que cada fila admite, además de los campos de
+ * texto, una imagen opcional seleccionable vía `wp.media` (mismo
+ * mecanismo ya usado por CE_Customize_Hero_Slides_Control, UX-4.2,
+ * adaptado aquí de "una imagen por fila, sin más campos" a "una
+ * imagen opcional + 3 campos de texto por fila").
+ *
+ * El comportamiento de inicialización/serialización del control
+ * (añadir/quitar/reordenar filas, abrir `wp.media` para la imagen
+ * de una fila) vive en assets/js/admin-trust-badges.js (encolado
+ * desde inc/enqueue.php, mismo criterio que el resto de assets del
+ * proyecto — este archivo solo define el control, no encola nada
+ * directamente).
+ * ========================================================= */
+
+if ( class_exists( 'WP_Customize_Control' ) ) {
+
+	class CE_Customize_Trust_Badges_Control extends WP_Customize_Control {
+
+		public $type = 'ce_trust_badges_items';
+
+		public function render_content() {
+			$items = ce_construction_decode_trust_badges( $this->value() );
+			?>
+			<?php if ( ! empty( $this->label ) ) : ?>
+				<span class="customize-control-title"><?php echo esc_html( $this->label ); ?></span>
+			<?php endif; ?>
+			<?php if ( ! empty( $this->description ) ) : ?>
+				<span class="description customize-control-description"><?php echo wp_kses_post( $this->description ); ?></span>
+			<?php endif; ?>
+
+			<ul class="ce-trust-badges-items-list">
+				<?php foreach ( $items as $item ) : ?>
+					<li class="ce-trust-badges-items-item" data-image-id="<?php echo esc_attr( $item['image_id'] ); ?>">
+						<div class="ce-trust-badges-items-item__media">
+							<div class="ce-trust-badges-items-item__preview">
+								<?php if ( $item['image_id'] ) : ?>
+									<?php echo wp_get_attachment_image( $item['image_id'], 'thumbnail' ); ?>
+								<?php endif; ?>
+							</div>
+							<button type="button" class="button ce-trust-badges-items-item__select-image"><?php esc_html_e( 'Seleccionar imagen', 'ce-construction' ); ?></button>
+							<button type="button" class="button ce-trust-badges-items-item__remove-image" <?php echo $item['image_id'] ? '' : 'style="display:none;"'; ?>><?php esc_html_e( 'Quitar imagen', 'ce-construction' ); ?></button>
+						</div>
+						<label>
+							<?php esc_html_e( 'Etiqueta', 'ce-construction' ); ?>
+							<input type="text" maxlength="60" class="ce-trust-badges-items-item__label" value="<?php echo esc_attr( $item['label'] ); ?>">
+						</label>
+						<div class="ce-trust-badges-items-item__row">
+							<label>
+								<?php esc_html_e( 'Número de licencia (opcional)', 'ce-construction' ); ?>
+								<input type="text" maxlength="40" class="ce-trust-badges-items-item__license" value="<?php echo esc_attr( $item['license'] ); ?>">
+							</label>
+							<label>
+								<?php esc_html_e( 'Enlace de verificación (opcional)', 'ce-construction' ); ?>
+								<input type="url" class="ce-trust-badges-items-item__url" value="<?php echo esc_attr( $item['url'] ); ?>">
+							</label>
+						</div>
+						<div class="ce-trust-badges-items-item__actions">
+							<button type="button" class="button ce-trust-badges-items-item__up" aria-label="<?php esc_attr_e( 'Mover antes', 'ce-construction' ); ?>">&uarr;</button>
+							<button type="button" class="button ce-trust-badges-items-item__down" aria-label="<?php esc_attr_e( 'Mover después', 'ce-construction' ); ?>">&darr;</button>
+							<button type="button" class="button ce-trust-badges-items-item__remove" aria-label="<?php esc_attr_e( 'Quitar esta insignia', 'ce-construction' ); ?>"><?php esc_html_e( 'Quitar', 'ce-construction' ); ?></button>
+						</div>
+					</li>
+				<?php endforeach; ?>
+			</ul>
+
+			<button type="button" class="button button-secondary ce-trust-badges-items-add"><?php esc_html_e( 'Añadir insignia', 'ce-construction' ); ?></button>
+
+			<input type="hidden" class="ce-trust-badges-items-value" <?php $this->link(); ?> value="<?php echo esc_attr( $this->value() ); ?>">
+			<?php
+		}
+	}
+}
+
+/**
+ * Estilos del control custom `ce_trust_badges_items` dentro del
+ * admin del Customizer. Mismo criterio que
+ * ce_construction_stats_items_control_styles() (arriba): función
+ * separada, mismo hook (`customize_controls_print_styles`), `<style>`
+ * con id propio.
+ */
+function ce_construction_trust_badges_control_styles() {
+	?>
+	<style id="ce-trust-badges-items-control-styles">
+		.ce-trust-badges-items-list {
+			display: flex;
+			flex-direction: column;
+			gap: 10px;
+			margin: 8px 0 10px;
+			padding: 0;
+			list-style: none;
+		}
+		.ce-trust-badges-items-item {
+			border: 1px solid #dcdcde;
+			border-radius: 4px;
+			background: #fff;
+			padding: 10px;
+		}
+		.ce-trust-badges-items-item label {
+			display: block;
+			font-size: 11px;
+			font-weight: 600;
+			margin-bottom: 6px;
+			margin-top: 6px;
+		}
+		.ce-trust-badges-items-item input[type="text"],
+		.ce-trust-badges-items-item input[type="url"] {
+			display: block;
+			width: 100%;
+			margin-top: 2px;
+			box-sizing: border-box;
+		}
+		.ce-trust-badges-items-item__media {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			flex-wrap: wrap;
+		}
+		.ce-trust-badges-items-item__preview {
+			width: 40px;
+			height: 40px;
+			flex-shrink: 0;
+			background: #f0f0f1;
+			border-radius: 4px;
+			overflow: hidden;
+		}
+		.ce-trust-badges-items-item__preview img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			display: block;
+		}
+		.ce-trust-badges-items-item__row {
+			display: flex;
+			gap: 8px;
+			flex-wrap: wrap;
+		}
+		.ce-trust-badges-items-item__row label {
+			flex: 1;
+			min-width: 140px;
+		}
+		.ce-trust-badges-items-item__actions {
+			display: flex;
+			gap: 6px;
+			margin-top: 10px;
+		}
+		.ce-trust-badges-items-item__remove {
+			color: #b32d2e;
+		}
+	</style>
+	<?php
+}
+add_action( 'customize_controls_print_styles', 'ce_construction_trust_badges_control_styles' );
