@@ -28,6 +28,20 @@
  * mismo wrapper que ya usan los 2 sidebars para su card de contacto
  * fija — sin CSS nuevo.
  *
+ * Sprint UX-7, Entregable UX-7.4: icono y color de botón
+ * configurables desde el Customizer (`ce_cta_icon`/`ce_cta_btn_color`
+ * para la variante primaria — reutilizados también por la variante
+ * 'sidebar', igual que el resto de campos 'ce_cta_'—, y
+ * `ce_cta2_icon`/`ce_cta2_btn_color` para la secundaria). El icono
+ * SOLO se imprime en la variante de ancho completo (primaria/
+ * secundaria) — la variante 'sidebar' no llevaba icono en su botón
+ * antes de este Entregable y sigue sin llevarlo, para no alterar el
+ * diseño compacto ya aprobado en UX-7.3. El color, en cambio, se
+ * aplica vía CSS inyectado por `ce_construction_customizer_css()`
+ * (inc/customizer.php) con selectores propios (`#ce-cta`,
+ * `#ce-cta-secondary`, `.ce-sidebar__contact-card`) — este archivo
+ * no necesita leer el color, solo el icono. Ver DECISIONS.md D-068.
+ *
  * @package CE_Construction
  */
 
@@ -49,6 +63,7 @@ $text     = get_theme_mod( $ce_cta_prefix . 'text', $ce_cta_is_secondary
 	: __( 'Solicita una cotización gratuita y un asesor se pondrá en contacto contigo en menos de 24 horas.', 'ce-construction' )
 );
 $btn_text = get_theme_mod( $ce_cta_prefix . 'btn_text', __( 'Solicitar Cotización', 'ce-construction' ) );
+$btn_icon = get_theme_mod( $ce_cta_prefix . 'icon', 'fa-solid fa-paper-plane' );
 $btn_url  = get_theme_mod( $ce_cta_prefix . 'btn_url', '' );
 if ( '' === $btn_url ) {
 	// Mismo fix de D-050 (UX-3.1), ahora parametrizado por prefijo
@@ -89,7 +104,7 @@ if ( '' === $btn_url ) {
 					<div class="ce-cta__actions">
 						<?php if ( $btn_url ) : ?>
 							<a href="<?php echo esc_url( $btn_url ); ?>" class="ce-btn ce-btn--primary">
-								<i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
+								<i class="<?php echo esc_attr( $btn_icon ); ?>" aria-hidden="true"></i>
 								<?php echo esc_html( $btn_text ); ?>
 							</a>
 						<?php endif; ?>

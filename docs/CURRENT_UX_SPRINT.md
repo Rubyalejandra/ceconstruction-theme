@@ -243,8 +243,8 @@ Con el Sprint UX-6 cerrado, el usuario priorizó e inició el **Sprint UX-7** (C
 |---|---|---|
 | UX-7.1 | Unificación del Hero (Home + interior) | ✅ **Aprobado explícitamente por el usuario** en la sesión anterior, junto con la instrucción de iniciar UX-7.2. |
 | UX-7.2 | Layout de Hero de 1/2/3 columnas + Quote Form opcional en Hero | ✅ **Aprobado explícitamente por el usuario** en esta sesión (incluye el ajuste puntual D-065), junto con la instrucción de iniciar UX-7.3. Ver `docs/DECISIONS.md` D-066. |
-| UX-7.3 | Aprovechamiento de espacios vacíos en sidebars | 🟡 **Entregado — pendiente de tu aprobación explícita.** Ver nota debajo de esta tabla y `docs/DECISIONS.md` D-067. |
-| UX-7.4 | CTA: icono y color de botón configurables | Sin iniciar |
+| UX-7.3 | Aprovechamiento de espacios vacíos en sidebars | ✅ **Aprobado explícitamente por el usuario** en esta sesión, junto con la instrucción de iniciar UX-7.4 en modalidad Entregable por Entregable. Ver `docs/DECISIONS.md` D-067. |
+| UX-7.4 | CTA: icono y color de botón configurables | 🟡 **Entregado — pendiente de tu aprobación explícita.** Ver nota debajo de esta tabla y `docs/DECISIONS.md` D-068. |
 | UX-7.5 | Logo independiente Header/Footer | Sin iniciar |
 | UX-7.6 | Estadísticas configurables desde el Customizer | Sin iniciar |
 | UX-7.7 | Franja de insignias de confianza / licencias — 🆕 nota (D-065): una vez construido, el componente de insignias/bullets también debe quedar disponible para la tarjeta del Quote Form del Hero (`.ce-hero-quote-card`) | Sin iniciar |
@@ -252,26 +252,28 @@ Con el Sprint UX-6 cerrado, el usuario priorizó e inició el **Sprint UX-7** (C
 | UX-7.9 | Bloque de financiamiento / opciones de pago | Sin iniciar |
 | UX-7.10 🆕 | Popup de oferta / captura de leads al cargar la página — Entregable nuevo (D-065), no una extensión de UX-7.2. Preguntas abiertas antes de implementar: frecuencia de aparición (cada carga vs. limitada por cookie/transient), relación con el modal existente de Quote Form (`ce_quote_form_mode = 'modal'`) — ¿coexisten como 2 modales distintos, o se fusionan?, y contenido del popup (¿reutiliza el componente de insignias de UX-7.7, o es solo texto/CTA?) | ⬜ Propuesto, sin iniciar, sin aprobar |
 
-### 🆕 UX-7.3 entregado — pendiente de tu aprobación explícita
+### ✅ Cierre de UX-7.3 (esta sesión)
 
-Con los 3 archivos fuente ya recibidos (ZIP completo del tema), se implementó UX-7.3 conforme al alcance de `docs/UX_CONVERSION_ANALISIS_Y_PLAN.md` §8.4 y a las 3 decisiones que confirmaste antes de tocar código (CTA + testimonio alternables por Customizer, campos del CTA primario `ce_cta_*`, on/off independiente por sidebar). Detalle técnico completo: `docs/DECISIONS.md` D-067.
+UX-7.3 queda **aprobado explícitamente por el usuario** en esta sesión, junto con la instrucción de iniciar UX-7.4 en modalidad Entregable por Entregable (D-038). Ningún archivo de código adicional fue tocado en este cierre. Detalle: `docs/DECISIONS.md` D-067.
+
+### 🆕 UX-7.4 entregado — pendiente de tu aprobación explícita
+
+Se implementó UX-7.4 conforme al alcance de `docs/UX_CONVERSION_ANALISIS_Y_PLAN.md` §8.4 ("selector de icono FA acotado a una lista curada" + "color picker nativo del Customizer para el color primario del botón"), sin ambigüedad que requiriera detenerse a consultar (a diferencia de UX-7.2). Detalle técnico completo, incluidas las 5 decisiones tomadas y las alternativas descartadas: `docs/DECISIONS.md` D-068.
 
 **Resumen del comportamiento nuevo:**
-- Nueva sección del Customizer, "CE: Sidebars (Servicios/Proyectos)", con un control por sidebar (`Ninguno` / `CTA` / `Testimonio`). Por defecto ambos en `Ninguno` — **cero cambio visual hasta que actives alguno**.
-- Opción "CTA": card compacta al final del sidebar, reutilizando los mismos textos/botón del CTA principal del Home (nueva variante `'sidebar'` de `template-parts/cta.php`, sin theme_mods nuevos).
-- Opción "Testimonio": un testimonio al azar entre los publicados, con la misma card visual del slider del Home (ahora extraída a `template-parts/content-testimonio-card.php`, reutilizada en ambos contextos). Se oculta sola si aún no hay testimonios publicados.
+- Nuevo control "Icono del botón CTA" (`select`, 10 iconos curados de Font Awesome, todos ya usados en otras partes del tema) en "CE: Sección CTA" y en "CE: CTA Secundario" — reemplaza el icono fijo `fa-paper-plane`. Solo afecta al botón de la sección CTA de ancho completo; el botón de WhatsApp conserva su icono de marca fijo, y el botón del slot de CTA en los sidebars (UX-7.3) no lleva icono (diseño compacto sin cambios).
+- Nuevo color picker nativo "Color del botón CTA" en ambas secciones — sobrescribe el color de fondo del botón "Solicitar Cotización". El de la sección CTA primaria (`ce_cta_btn_color`) también sobrescribe el botón del slot de CTA en los sidebars, por compartir el mismo campo (mismo criterio de reutilización ya fijado en D-067). El estado `:hover` se calcula automáticamente (más oscuro) — no se pide un segundo color.
+- Por defecto (sin configurar nada): **cero cambio visual** — mismo icono de siempre, mismo color de siempre.
 
-### Archivos creados / modificados (Sprint UX-7, Entregable UX-7.3)
-- **Nuevo:** `template-parts/content-testimonio-card.php`
-- `inc/customizer.php` — sección + 2 controles select + sanitize
-- `inc/helpers.php` — helper `ce_get_random_testimonio()`
-- `template-parts/cta.php` — variante `'sidebar'`
-- `template-parts/testimonials.php` — delega en el nuevo partial, salida HTML sin cambios
-- `template-parts/sidebar-servicios.php` y `sidebar-proyectos.php` — slot nuevo al final de cada `<aside>`
-- `assets/css/main.css` — modificador `.ce-testimonial-card--compact`
+### Archivos creados / modificados (Sprint UX-7, Entregable UX-7.4)
+- **Nuevo:** ninguno.
+- `inc/customizer.php` — 4 controles nuevos (`ce_cta_icon`, `ce_cta_btn_color`, `ce_cta2_icon`, `ce_cta2_btn_color`), `sanitize_callback` nuevo `ce_construction_sanitize_cta_icon()`, `ce_construction_customizer_css()` extendida con 2 bloques CSS condicionales.
+- `inc/helpers.php` — nueva función `ce_construction_hex_darken()`.
+- `template-parts/cta.php` — icono dinámico en la rama de ancho completo (`$btn_icon`); sin cambios en la rama `'sidebar'`.
+- Sin cambios: `assets/css/main.css`, sidebars, Home Builder, sistema de cotización, Sprint 8, `style.css` (sin bump).
 
 ### Próximo paso
-Con UX-7.3 entregado, el Sprint UX-7 **no avanza a UX-7.4** sin tu aprobación explícita de UX-7.3 (D-038, modalidad Entregable por Entregable).
+Con UX-7.4 entregado, el Sprint UX-7 **no avanza a UX-7.5** sin tu aprobación explícita de UX-7.4 (D-038, modalidad Entregable por Entregable).
 
 ### Trabajo realizado (Entregable UX-7.2)
 

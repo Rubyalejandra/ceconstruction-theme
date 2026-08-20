@@ -545,6 +545,56 @@ function ce_construction_customize_register( $wp_customize ) {
 	}
 
 	/* -----------------------------------------------------------
+	 * 6 ter. CTA — icono y color de botón configurables
+	 * (Sprint UX-7, Entregable UX-7.4. Ver DECISIONS.md D-068.)
+	 *
+	 * `ce_cta_icon`/`ce_cta_btn_color` comparten el mismo prefijo
+	 * 'ce_cta_' que los 4 campos de texto de arriba — mismo criterio
+	 * ya aplicado por decisión explícita del usuario en UX-7.3
+	 * (D-067): la variante 'sidebar' de template-parts/cta.php
+	 * reutiliza estos campos, no se crea un tercer juego de
+	 * theme_mods. El color, por eso, también sobrescribe el botón
+	 * del slot de CTA en los sidebars (ver
+	 * ce_construction_customizer_css() más abajo); el icono NO —
+	 * la variante 'sidebar' no imprime icono en su botón (diseño
+	 * compacto de UX-7.3 sin cambios, ver template-parts/cta.php).
+	 * --------------------------------------------------------- */
+	$ce_cta_icon_choices = array(
+		'fa-solid fa-paper-plane'   => __( 'Avión de papel (envío) — por defecto', 'ce-construction' ),
+		'fa-solid fa-arrow-right'   => __( 'Flecha derecha', 'ce-construction' ),
+		'fa-solid fa-phone'         => __( 'Teléfono', 'ce-construction' ),
+		'fa-solid fa-envelope'      => __( 'Sobre / Email', 'ce-construction' ),
+		'fa-solid fa-calendar'      => __( 'Calendario', 'ce-construction' ),
+		'fa-solid fa-circle-check'  => __( 'Check en círculo', 'ce-construction' ),
+		'fa-solid fa-bolt'          => __( 'Rayo', 'ce-construction' ),
+		'fa-solid fa-handshake'     => __( 'Apretón de manos', 'ce-construction' ),
+		'fa-solid fa-headset'       => __( 'Auriculares (soporte)', 'ce-construction' ),
+		'fa-solid fa-shield-halved' => __( 'Escudo (confianza)', 'ce-construction' ),
+	);
+
+	$wp_customize->add_setting( 'ce_cta_icon', array(
+		'default'           => 'fa-solid fa-paper-plane',
+		'sanitize_callback' => 'ce_construction_sanitize_cta_icon',
+	) );
+	$wp_customize->add_control( 'ce_cta_icon', array(
+		'label'       => __( 'Icono del botón CTA', 'ce-construction' ),
+		'description' => __( 'Solo afecta al botón de la sección CTA de ancho completo (Home/páginas/archivos). El slot de CTA en los sidebars de Servicios/Proyectos (UX-7.3) no muestra icono en su botón — diseño compacto sin cambios.', 'ce-construction' ),
+		'section'     => 'ce_section_cta',
+		'type'        => 'select',
+		'choices'     => $ce_cta_icon_choices,
+	) );
+
+	$wp_customize->add_setting( 'ce_cta_btn_color', array(
+		'default'           => '',
+		'sanitize_callback' => 'sanitize_hex_color',
+	) );
+	$wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'ce_cta_btn_color', array(
+		'label'       => __( 'Color del botón CTA (incluye el slot de CTA en sidebars)', 'ce-construction' ),
+		'description' => __( 'Sobrescribe el color de fondo del botón "Solicitar Cotización" en la sección CTA y, por compartir el mismo campo (ver DECISIONS.md D-067), también en el slot de CTA de los sidebars de Servicios/Proyectos si está activado. El color al pasar el cursor se calcula automáticamente (más oscuro). Vacío = usa el color secundario de marca definido en "CE: Colores" (comportamiento actual, sin cambio).', 'ce-construction' ),
+		'section'     => 'ce_section_cta',
+	) ) );
+
+	/* -----------------------------------------------------------
 	 * 6 bis. CTA SECUNDARIO (Sprint UX-5, Entregable UX-5.1)
 	 * Contenido independiente para la sección 'cta_secondary' del
 	 * Home Builder — reutiliza el mismo template-parts/cta.php que
@@ -573,6 +623,38 @@ function ce_construction_customize_register( $wp_customize ) {
 			'type'    => 'text',
 		) );
 	}
+
+	/* -----------------------------------------------------------
+	 * 6 quater. CTA Secundario — icono y color de botón
+	 * (Sprint UX-7, Entregable UX-7.4. Ver DECISIONS.md D-068.)
+	 * Mismo mecanismo que 'ce_cta_icon'/'ce_cta_btn_color' de
+	 * arriba, con su propio prefijo 'ce_cta2_' independiente — el
+	 * CTA Secundario ya tenía su propio juego de theme_mods desde
+	 * UX-5.1 (D-056), y este Entregable respeta ese mismo criterio.
+	 * No hay sidebar asociado a este prefijo (la variante 'sidebar'
+	 * de cta.php solo reutiliza 'ce_cta_', no 'ce_cta2_' — ver
+	 * DECISIONS.md D-067).
+	 * --------------------------------------------------------- */
+	$wp_customize->add_setting( 'ce_cta2_icon', array(
+		'default'           => 'fa-solid fa-paper-plane',
+		'sanitize_callback' => 'ce_construction_sanitize_cta_icon',
+	) );
+	$wp_customize->add_control( 'ce_cta2_icon', array(
+		'label'       => __( 'Icono del botón CTA Secundario', 'ce-construction' ),
+		'section'     => 'ce_section_cta_secondary',
+		'type'        => 'select',
+		'choices'     => $ce_cta_icon_choices,
+	) );
+
+	$wp_customize->add_setting( 'ce_cta2_btn_color', array(
+		'default'           => '',
+		'sanitize_callback' => 'sanitize_hex_color',
+	) );
+	$wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'ce_cta2_btn_color', array(
+		'label'       => __( 'Color del botón CTA Secundario', 'ce-construction' ),
+		'description' => __( 'Igual que el color del CTA principal, pero independiente. El color al pasar el cursor se calcula automáticamente (más oscuro). Vacío = usa el color secundario de marca definido en "CE: Colores" (comportamiento actual, sin cambio).', 'ce-construction' ),
+		'section'     => 'ce_section_cta_secondary',
+	) ) );
 
 	/* -----------------------------------------------------------
 	 * 7. FOOTER
@@ -699,6 +781,30 @@ function ce_construction_sanitize_sidebar_slot( $value ) {
 }
 
 /**
+ * Sprint UX-7, Entregable UX-7.4 — sanitize_callback compartido por
+ * 'ce_cta_icon' y 'ce_cta2_icon'. Whitelist estricta (lista curada,
+ * no input libre — decisión de alcance ya fijada en
+ * UX_CONVERSION_ANALISIS_Y_PLAN.md §8.4 "por consistencia visual"):
+ * cualquier valor no reconocido cae al icono histórico del tema
+ * (fa-paper-plane), sin regresión visual. Ver DECISIONS.md D-068.
+ */
+function ce_construction_sanitize_cta_icon( $value ) {
+	$allowed = array(
+		'fa-solid fa-paper-plane',
+		'fa-solid fa-arrow-right',
+		'fa-solid fa-phone',
+		'fa-solid fa-envelope',
+		'fa-solid fa-calendar',
+		'fa-solid fa-circle-check',
+		'fa-solid fa-bolt',
+		'fa-solid fa-handshake',
+		'fa-solid fa-headset',
+		'fa-solid fa-shield-halved',
+	);
+	return in_array( $value, $allowed, true ) ? $value : 'fa-solid fa-paper-plane';
+}
+
+/**
  * Inyecta las variables CSS del Customizer (colores/tipografía)
  * de forma dinámica, sobreescribiendo los defaults de main.css.
  */
@@ -708,6 +814,26 @@ function ce_construction_customizer_css() {
 	$accent    = get_theme_mod( 'ce_color_accent', '#1E6F5C' );
 	$heading_font = get_theme_mod( 'ce_font_heading', 'Poppins' );
 	$body_font    = get_theme_mod( 'ce_font_body', 'Inter' );
+
+	/**
+	 * 🆕 Sprint UX-7, Entregable UX-7.4 — color de botón del CTA,
+	 * configurable e independiente por variante (primaria/
+	 * secundaria). A diferencia de las variables de arriba (globales,
+	 * siempre impresas), estos 2 overrides son deliberadamente
+	 * CONDICIONALES y van en reglas con selector propio, NO en
+	 * `:root` — no se toca `--ce-color-secondary` (usado por
+	 * `.ce-btn--primary` en TODO el tema: header, hero, cards, etc.),
+	 * así que ningún botón fuera del CTA cambia. `ce_cta_btn_color`
+	 * también sobrescribe el botón del slot de CTA en los sidebars
+	 * (`.ce-sidebar__contact-card`), porque esa variante reutiliza el
+	 * mismo theme_mod por decisión ya tomada en UX-7.3 (D-067). El
+	 * estado ':hover' se deriva automáticamente con
+	 * `ce_construction_hex_darken()` (inc/helpers.php) — el
+	 * administrador solo elige un color, no dos. Ver DECISIONS.md
+	 * D-068.
+	 */
+	$cta_btn_color  = get_theme_mod( 'ce_cta_btn_color', '' );
+	$cta2_btn_color = get_theme_mod( 'ce_cta2_btn_color', '' );
 	?>
 	<style id="ce-customizer-vars">
 		:root{
@@ -717,6 +843,24 @@ function ce_construction_customizer_css() {
 			--ce-font-heading: '<?php echo esc_html( $heading_font ); ?>', sans-serif;
 			--ce-font-body: '<?php echo esc_html( $body_font ); ?>', sans-serif;
 		}
+		<?php if ( $cta_btn_color ) : ?>
+		#ce-cta .ce-btn--primary,
+		.ce-sidebar__contact-card .ce-btn--primary {
+			background: <?php echo esc_html( $cta_btn_color ); ?>;
+		}
+		#ce-cta .ce-btn--primary:hover,
+		.ce-sidebar__contact-card .ce-btn--primary:hover {
+			background: <?php echo esc_html( ce_construction_hex_darken( $cta_btn_color, 15 ) ); ?>;
+		}
+		<?php endif; ?>
+		<?php if ( $cta2_btn_color ) : ?>
+		#ce-cta-secondary .ce-btn--primary {
+			background: <?php echo esc_html( $cta2_btn_color ); ?>;
+		}
+		#ce-cta-secondary .ce-btn--primary:hover {
+			background: <?php echo esc_html( ce_construction_hex_darken( $cta2_btn_color, 15 ) ); ?>;
+		}
+		<?php endif; ?>
 	</style>
 	<?php
 }

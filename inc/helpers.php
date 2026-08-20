@@ -558,3 +558,55 @@ function ce_construction_get_hero_media_state( $hero_type ) {
 		'slide_urls' => $is_slider ? $hero_slide_urls : array(),
 	);
 }
+
+/**
+ * Sprint UX-7, Entregable UX-7.4 ("CTA: icono y color de botón
+ * configurables").
+ *
+ * Oscurece un color hexadecimal un porcentaje fijo, para derivar
+ * automáticamente el estado ':hover' del color de botón que el
+ * administrador elige en el Customizer (`ce_cta_btn_color` /
+ * `ce_cta2_btn_color`, ver inc/customizer.php) — sin pedirle un
+ * segundo color solo para el hover. Mismo criterio de "un color
+ * base + una variante oscura derivada" que el tema ya aplica de
+ * forma fija a `--ce-color-primary`/`--ce-color-primary-dark` y
+ * `--ce-color-secondary`/`--ce-color-secondary-dark`, aquí
+ * calculado en tiempo real porque el color de entrada es dinámico.
+ *
+ * @param string $hex     Color hexadecimal ('#rrggbb' o '#rgb'; el '#' es opcional).
+ * @param int    $percent Porcentaje a oscurecer (0-100). Por defecto 15.
+ * @return string Color hexadecimal '#rrggbb' oscurecido. Si `$hex` no es un
+ *                hexadecimal válido, devuelve '#000000' como resguardo — no
+ *                debería alcanzarse en la práctica porque el valor ya pasó
+ *                por `sanitize_hex_color()` antes de guardarse en el
+ *                theme_mod (ver inc/customizer.php).
+ */
+function ce_construction_hex_darken( $hex, $percent = 15 ) {
+	$hex = ltrim( (string) $hex, '#' );
+
+	if ( 3 === strlen( $hex ) ) {
+		$hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+	}
+
+	if ( 6 !== strlen( $hex ) || ! ctype_xdigit( $hex ) ) {
+		return '#000000';
+	}
+
+	$percent = max( 0, min( 100, (int) $percent ) );
+	$rgb     = array_map( 'hexdec', str_split( $hex, 2 ) );
+
+	foreach ( $rgb as &$channel ) {
+		$channel = (int) max( 0, round( $channel * ( 1 - ( $percent / 100 ) ) ) );
+	}
+	unset( $channel );
+
+	return '#' . implode(
+		'',
+		array_map(
+			function ( $channel ) {
+				return str_pad( dechex( $channel ), 2, '0', STR_PAD_LEFT );
+			},
+			$rgb
+		)
+	);
+}
