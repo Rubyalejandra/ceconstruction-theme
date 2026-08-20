@@ -241,15 +241,37 @@ Con el Sprint UX-6 cerrado, el usuario priorizó e inició el **Sprint UX-7** (C
 
 | Entregable | Objetivo | Estado |
 |---|---|---|
-| UX-7.1 | Unificación del Hero (Home + interior) | ✅ **Aprobado explícitamente por el usuario** en esta sesión, junto con la instrucción de iniciar UX-7.2. |
-| UX-7.2 | Layout de Hero de 1/2/3 columnas + Quote Form opcional en Hero | 🟡 **Entregado — pendiente de tu aprobación explícita** |
-| UX-7.3 | Aprovechamiento de espacios vacíos en sidebars | Sin iniciar |
+| UX-7.1 | Unificación del Hero (Home + interior) | ✅ **Aprobado explícitamente por el usuario** en la sesión anterior, junto con la instrucción de iniciar UX-7.2. |
+| UX-7.2 | Layout de Hero de 1/2/3 columnas + Quote Form opcional en Hero | ✅ **Aprobado explícitamente por el usuario** en esta sesión (incluye el ajuste puntual D-065), junto con la instrucción de iniciar UX-7.3. Ver `docs/DECISIONS.md` D-066. |
+| UX-7.3 | Aprovechamiento de espacios vacíos en sidebars | 🟡 **Entregado — pendiente de tu aprobación explícita.** Ver nota debajo de esta tabla y `docs/DECISIONS.md` D-067. |
 | UX-7.4 | CTA: icono y color de botón configurables | Sin iniciar |
 | UX-7.5 | Logo independiente Header/Footer | Sin iniciar |
 | UX-7.6 | Estadísticas configurables desde el Customizer | Sin iniciar |
-| UX-7.7 | Franja de insignias de confianza / licencias | Sin iniciar |
+| UX-7.7 | Franja de insignias de confianza / licencias — 🆕 nota (D-065): una vez construido, el componente de insignias/bullets también debe quedar disponible para la tarjeta del Quote Form del Hero (`.ce-hero-quote-card`) | Sin iniciar |
 | UX-7.8 | Testimonio en video | Sin iniciar |
 | UX-7.9 | Bloque de financiamiento / opciones de pago | Sin iniciar |
+| UX-7.10 🆕 | Popup de oferta / captura de leads al cargar la página — Entregable nuevo (D-065), no una extensión de UX-7.2. Preguntas abiertas antes de implementar: frecuencia de aparición (cada carga vs. limitada por cookie/transient), relación con el modal existente de Quote Form (`ce_quote_form_mode = 'modal'`) — ¿coexisten como 2 modales distintos, o se fusionan?, y contenido del popup (¿reutiliza el componente de insignias de UX-7.7, o es solo texto/CTA?) | ⬜ Propuesto, sin iniciar, sin aprobar |
+
+### 🆕 UX-7.3 entregado — pendiente de tu aprobación explícita
+
+Con los 3 archivos fuente ya recibidos (ZIP completo del tema), se implementó UX-7.3 conforme al alcance de `docs/UX_CONVERSION_ANALISIS_Y_PLAN.md` §8.4 y a las 3 decisiones que confirmaste antes de tocar código (CTA + testimonio alternables por Customizer, campos del CTA primario `ce_cta_*`, on/off independiente por sidebar). Detalle técnico completo: `docs/DECISIONS.md` D-067.
+
+**Resumen del comportamiento nuevo:**
+- Nueva sección del Customizer, "CE: Sidebars (Servicios/Proyectos)", con un control por sidebar (`Ninguno` / `CTA` / `Testimonio`). Por defecto ambos en `Ninguno` — **cero cambio visual hasta que actives alguno**.
+- Opción "CTA": card compacta al final del sidebar, reutilizando los mismos textos/botón del CTA principal del Home (nueva variante `'sidebar'` de `template-parts/cta.php`, sin theme_mods nuevos).
+- Opción "Testimonio": un testimonio al azar entre los publicados, con la misma card visual del slider del Home (ahora extraída a `template-parts/content-testimonio-card.php`, reutilizada en ambos contextos). Se oculta sola si aún no hay testimonios publicados.
+
+### Archivos creados / modificados (Sprint UX-7, Entregable UX-7.3)
+- **Nuevo:** `template-parts/content-testimonio-card.php`
+- `inc/customizer.php` — sección + 2 controles select + sanitize
+- `inc/helpers.php` — helper `ce_get_random_testimonio()`
+- `template-parts/cta.php` — variante `'sidebar'`
+- `template-parts/testimonials.php` — delega en el nuevo partial, salida HTML sin cambios
+- `template-parts/sidebar-servicios.php` y `sidebar-proyectos.php` — slot nuevo al final de cada `<aside>`
+- `assets/css/main.css` — modificador `.ce-testimonial-card--compact`
+
+### Próximo paso
+Con UX-7.3 entregado, el Sprint UX-7 **no avanza a UX-7.4** sin tu aprobación explícita de UX-7.3 (D-038, modalidad Entregable por Entregable).
 
 ### Trabajo realizado (Entregable UX-7.2)
 
@@ -259,20 +281,30 @@ Antes de implementar se detectó una ambigüedad real: `docs/UX_CONVERSION_ANALI
 
 **Este Entregable no tocó** `inc/quote-form.php` (handler AJAX), el Home Builder (UX-1/UX-2), el shortcode/`page.php` (UX-6), el Hero interno (`template-parts/page-hero.php`, permanece de una columna por decisión explícita del usuario), ni el Sprint 8.
 
-### Archivos creados / modificados (Sprint UX-7, Entregable UX-7.2)
+### Archivos creados / modificados (Sprint UX-7, Entregable UX-7.2 — incluye el ajuste puntual D-065)
 - Creados: ninguno.
-- Modificados: `inc/customizer.php` (2 controles nuevos + 2 sanitize callbacks, dentro/después de la sección Hero ya existente), `template-parts/hero.php` (wrapper de layout condicional + slot de Quote Form), `template-parts/quote-form.php` (tercer contexto `'hero'`), `assets/css/main.css` (sección 28, aditiva).
+- Modificados: `inc/customizer.php` (2 controles nuevos + 2 sanitize callbacks, dentro/después de la sección Hero ya existente), `template-parts/hero.php` (wrapper de layout condicional + slot de Quote Form; 🆕 D-065: `.ce-hero--has-form` condicional + omisión de `.ce-hero__scroll`), `template-parts/quote-form.php` (tercer contexto `'hero'`; 🆕 D-065: badge de "Respuesta en 24h" en ese contexto), `assets/css/main.css` (sección 28, aditiva; 🆕 D-065: sección "28 bis", aditiva, con los 6 puntos del ajuste puntual).
 - Sin cambios: `inc/quote-form.php`, `template-parts/page-hero.php`, `assets/js/main.js`, Home Builder (UX-1/UX-2), shortcode (UX-6), Sprint 8, `style.css` (sin bump).
 - Eliminados: ninguno.
 
 ### Documentación actualizada (en este cierre)
-`DECISIONS.md` (D-064), este mismo archivo. **Diferido a un punto de cierre de Sprint más significativo (criterio D-034, mismo diferimiento ya aplicado en UX-7.1):** `CHANGELOG.md`, `TREE.md`.
+`DECISIONS.md` (D-064, D-065), `UX_CONVERSION_ANALISIS_Y_PLAN.md` (§8.4: nota en UX-7.7 + entrada UX-7.10), este mismo archivo (tabla de UX-7 + esta sección). **Diferido a un punto de cierre de Sprint más significativo (criterio D-034, mismo diferimiento ya aplicado en UX-7.1):** `CHANGELOG.md`, `TREE.md`.
 
 ### Validaciones ejecutadas
 Sin entorno WordPress/navegador real disponible (misma limitación metodológica documentada en Entregables anteriores): balance de tags `<?php`/llaves/paréntesis verificado en los 3 archivos PHP tocados y en `main.css` completo tras la inserción; trazado lógico manual de los 3 contextos de `quote-form.php` (normal/modal/hero) confirmando que ninguna combinación duplica un `id` en el DOM. **Pendiente de prueba funcional real en WordPress**, incluida la verificación visual de los 2 layouts de columnas en desktop/mobile.
 
+**🆕 Ajuste puntual D-065 (misma limitación metodológica):** balance de llaves/paréntesis/tags `<?php` reverificado en `template-parts/hero.php` y `template-parts/quote-form.php` tras los cambios, y balance de llaves `{}` reverificado en `assets/css/main.css` completo (401/401) tras la inserción de la sección "28 bis". **Pendiente de prueba funcional real en WordPress**, incluida la verificación visual del breakpoint intermedio 768–991.98px y de `.ce-hero--has-form` en los 3 tipos de fondo (imagen/video/slider).
+
+### 🆕 Ajuste puntual dentro de UX-7.2 (misma sesión, aún sin aprobar)
+
+Antes de recibir tu aprobación de UX-7.2, se ejecutó un ajuste puntual de bajo riesgo sobre los mismos archivos ya entregados (amparado por la excepción de `docs/UX_CONVERSION_ANALISIS_Y_PLAN.md` §8.2/§8.4): breakpoint intermedio 768–991.98px (`6fr/6fr`) para los layouts de 2 columnas, modificador `.ce-hero--has-form` (altura automática en vez de forzar `88vh`/`92vh`), omisión de `.ce-hero__scroll` con el formulario activo, franja de acento + badge corto ("Respuesta en 24h") en `.ce-hero-quote-card`, spacing compacto del formulario solo en ese contexto, y un breakpoint `max-width:575.98px` adicional para la tarjeta. **No se tocó** `inc/quote-form.php`, no se creó variante corta del formulario (D-056 vigente), y no se agregó ninguna animación de entrada. Ver `docs/DECISIONS.md` D-065 para el detalle técnico completo, incluidas 2 decisiones de alcance documentadas sin implementar (componente de insignias → absorbido en UX-7.7; popup de oferta → nuevo `UX-7.10`, fila añadida a la tabla de arriba).
+
+**Archivos adicionales tocados por este ajuste (sobre los ya listados arriba para UX-7.2):** `template-parts/quote-form.php` (badge en el contexto `'hero'`, ver D-065) — no estaba en la lista original de UX-7.2 porque en ese Entregable ese archivo solo ganó el contexto en sí, sin badge todavía.
+
+Este ajuste **no cambia el estado de aprobación de UX-7.2**: sigue "Entregado — pendiente de tu aprobación explícita", ahora incluyendo también este ajuste (D-038).
+
 ### Próximo Entregable
-Con UX-7.2 entregado, el Sprint UX-7 **no avanza a UX-7.3** sin tu aprobación explícita de UX-7.2 (D-038, modalidad Entregable por Entregable ya elegida por el usuario).
+Con UX-7.2 (D-064 + el ajuste D-065) entregado, el Sprint UX-7 **no avanza a UX-7.3** sin tu aprobación explícita de UX-7.2 completo (D-038, modalidad Entregable por Entregable ya elegida por el usuario).
 
 ### Trabajo realizado (Entregable UX-7.1)
 

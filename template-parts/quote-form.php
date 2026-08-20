@@ -30,6 +30,10 @@
  *     presentación integrada — mismo criterio que el modal (bare
  *     form + wrapper propio), pero con su propio wrapper visual
  *     pensado para convivir con el fondo oscuro del Hero.
+ *     🆕 Ajuste puntual dentro de UX-7.2 (D-065): la tarjeta gana un
+ *     badge corto ("Respuesta en 24h") como único elemento de
+ *     tratamiento de "oferta" en este ciclo — sin bullets de
+ *     confianza (eso se absorbe en UX-7.7, sin aprobar todavía).
  *
  * Modos de `ce_quote_form_mode` (theme_mod, `inc/customizer.php`) y
  * su efecto en ESTE archivo:
@@ -164,9 +168,18 @@ $servicios = get_posts( array(
 <?php if ( $ce_quote_is_hero ) : ?>
 <!-- 🆕 UX-7.2 (D-064): tarjeta compacta para el slot del Hero — sin
      <section>/eyebrow/lista de la presentación integrada, mismo
-     criterio de "bare form + wrapper propio" que el modal. -->
+     criterio de "bare form + wrapper propio" que el modal.
+     🆕 Ajuste puntual dentro de UX-7.2 (D-065): franja superior de
+     acento (`--ce-color-secondary`, vía CSS en `.ce-hero-quote-card`,
+     sección 28 de main.css) + badge corto de "oferta". Sin bullets de
+     confianza aquí — ese requisito se absorbe en UX-7.7 (sin aprobar,
+     ver D-065 y la nota añadida a UX-7.7 en este ciclo). -->
 <div class="ce-hero-quote-card ce-card">
 	<div class="ce-card__body">
+		<span class="ce-hero-quote-card__badge">
+			<i class="fa-solid fa-bolt" aria-hidden="true"></i>
+			<?php esc_html_e( 'Respuesta en 24h', 'ce-construction' ); ?>
+		</span>
 <?php elseif ( ! $ce_quote_is_modal ) : ?>
 <section class="ce-section ce-section--alt" id="ce-quote-form-section">
 	<div class="ce-container">

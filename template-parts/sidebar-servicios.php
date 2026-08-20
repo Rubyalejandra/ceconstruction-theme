@@ -63,4 +63,36 @@ $otros_servicios = get_posts( array(
 		</div>
 	</div>
 
+	<?php
+	/**
+	 * 🆕 Sprint UX-7, Entregable UX-7.3: slot opcional, desactivado
+	 * ('none') por defecto — control 'ce_sidebar_servicios_slot' en
+	 * el Customizer (ver inc/customizer.php). Reutiliza:
+	 * - 'cta'        → template-parts/cta.php, variant='sidebar'
+	 *                  (mismos campos que el CTA primario del Home,
+	 *                  ce_cta_*).
+	 * - 'testimonio' → template-parts/content-testimonio-card.php
+	 *                  (mismo partial que usa el slider de Home en
+	 *                  template-parts/testimonials.php), con un
+	 *                  testimonio al azar vía ce_get_random_testimonio()
+	 *                  (inc/helpers.php). Oculto si el CPT `testimonio`
+	 *                  no tiene contenido publicado.
+	 * Ver DECISIONS.md D-067.
+	 */
+	$ce_sidebar_slot = get_theme_mod( 'ce_sidebar_servicios_slot', 'none' );
+
+	if ( 'cta' === $ce_sidebar_slot ) :
+		get_template_part( 'template-parts/cta', null, array( 'variant' => 'sidebar' ) );
+	elseif ( 'testimonio' === $ce_sidebar_slot ) :
+		$ce_sidebar_testimonio = ce_get_random_testimonio();
+		if ( $ce_sidebar_testimonio ) :
+			while ( $ce_sidebar_testimonio->have_posts() ) :
+				$ce_sidebar_testimonio->the_post();
+				get_template_part( 'template-parts/content-testimonio-card', null, array( 'compact' => true ) );
+			endwhile;
+			wp_reset_postdata();
+		endif;
+	endif;
+	?>
+
 </aside>

@@ -627,6 +627,51 @@ function ce_construction_customize_register( $wp_customize ) {
 			'disabled'   => __( 'Desactivado (oculta todos los botones de cotización y el popup)', 'ce-construction' ),
 		),
 	) );
+
+	/* -----------------------------------------------------------
+	 * 🆕 Sprint UX-7, Entregable UX-7.3 ("Aprovechamiento de
+	 * espacios vacíos en sidebars"): slot opcional al final de
+	 * template-parts/sidebar-servicios.php y
+	 * sidebar-proyectos.php, independiente por sidebar. Ver
+	 * DECISIONS.md D-067.
+	 * --------------------------------------------------------- */
+	$wp_customize->add_section( 'ce_section_sidebars', array(
+		'title'       => __( 'CE: Sidebars (Servicios/Proyectos)', 'ce-construction' ),
+		'description' => __( 'Slot opcional al final de cada sidebar, debajo de la card de contacto fija. Desactivado por defecto — no cambia nada hasta que elijas una opción distinta de "Ninguno" en cada control.', 'ce-construction' ),
+		'priority'    => 38,
+	) );
+
+	$ce_sidebar_slot_choices = array(
+		'none'       => __( 'Ninguno (comportamiento actual, sin slot adicional)', 'ce-construction' ),
+		'cta'        => __( 'CTA (reutiliza el CTA principal del Home — mismos textos/botón configurados en "CE: Sección CTA")', 'ce-construction' ),
+		'testimonio' => __( 'Testimonio (uno al azar entre los ya publicados, con la misma card del Home)', 'ce-construction' ),
+	);
+
+	$wp_customize->add_setting( 'ce_sidebar_servicios_slot', array(
+		'default'           => 'none',
+		'sanitize_callback' => 'ce_construction_sanitize_sidebar_slot',
+		'transport'         => 'refresh',
+	) );
+	$wp_customize->add_control( 'ce_sidebar_servicios_slot', array(
+		'label'    => __( 'Slot del sidebar de Servicios', 'ce-construction' ),
+		'section'  => 'ce_section_sidebars',
+		'type'     => 'select',
+		'choices'  => $ce_sidebar_slot_choices,
+		'priority' => 10,
+	) );
+
+	$wp_customize->add_setting( 'ce_sidebar_proyectos_slot', array(
+		'default'           => 'none',
+		'sanitize_callback' => 'ce_construction_sanitize_sidebar_slot',
+		'transport'         => 'refresh',
+	) );
+	$wp_customize->add_control( 'ce_sidebar_proyectos_slot', array(
+		'label'    => __( 'Slot del sidebar de Proyectos', 'ce-construction' ),
+		'section'  => 'ce_section_sidebars',
+		'type'     => 'select',
+		'choices'  => $ce_sidebar_slot_choices,
+		'priority' => 20,
+	) );
 }
 add_action( 'customize_register', 'ce_construction_customize_register' );
 
@@ -641,6 +686,16 @@ add_action( 'customize_register', 'ce_construction_customize_register' );
 function ce_construction_sanitize_quote_form_mode( $value ) {
 	$allowed = array( 'integrated', 'modal', 'disabled' );
 	return in_array( $value, $allowed, true ) ? $value : 'integrated';
+}
+
+/**
+ * Sprint UX-7, Entregable UX-7.3 (continuación) — sanitize_callback
+ * compartido por 'ce_sidebar_servicios_slot' y
+ * 'ce_sidebar_proyectos_slot' (mismas 3 opciones para ambos).
+ */
+function ce_construction_sanitize_sidebar_slot( $value ) {
+	$allowed = array( 'none', 'cta', 'testimonio' );
+	return in_array( $value, $allowed, true ) ? $value : 'none';
 }
 
 /**

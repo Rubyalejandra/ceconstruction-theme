@@ -13,6 +13,21 @@
  * (Estrategias A/B del brief) solo con el Home Builder. Ver
  * DECISIONS.md D-056.
  *
+ * Sprint UX-7, Entregable UX-7.3: tercera variante, `$args['variant']
+ * = 'sidebar'`, para el slot opcional de
+ * template-parts/sidebar-servicios.php / sidebar-proyectos.php.
+ * Reutiliza los MISMOS campos que la variante primaria (prefijo
+ * 'ce_cta_' — decisión explícita del usuario: no se crea un tercer
+ * juego de theme_mods solo para esto) pero con un layout de card
+ * compacta en vez de la sección `.ce-cta` de ancho completo: esta
+ * última tiene `.ce-cta__content{max-width:640px}` y los botones en
+ * fila (`.ce-cta__actions{display:flex}`), pensada para el ancho
+ * completo del viewport — no cabe dentro de la columna de 1fr de
+ * `.ce-layout-with-sidebar` (ver main.css). La variante 'sidebar'
+ * reutiliza en su lugar `.ce-card.ce-sidebar__contact-card`, el
+ * mismo wrapper que ya usan los 2 sidebars para su card de contacto
+ * fija — sin CSS nuevo.
+ *
  * @package CE_Construction
  */
 
@@ -20,7 +35,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-$ce_cta_is_secondary = isset( $args['variant'] ) && 'secondary' === $args['variant'];
+$ce_cta_variant       = isset( $args['variant'] ) ? $args['variant'] : 'primary';
+$ce_cta_is_secondary  = 'secondary' === $ce_cta_variant;
+$ce_cta_is_sidebar    = 'sidebar' === $ce_cta_variant;
 $ce_cta_prefix        = $ce_cta_is_secondary ? 'ce_cta2_' : 'ce_cta_';
 
 $title    = get_theme_mod( $ce_cta_prefix . 'title', $ce_cta_is_secondary
@@ -47,27 +64,45 @@ if ( '' === $btn_url ) {
 	$btn_url = ce_get_quote_cta_url();
 }
 ?>
-<section class="ce-section" id="<?php echo esc_attr( $ce_cta_is_secondary ? 'ce-cta-secondary' : 'ce-cta' ); ?>">
-	<div class="ce-container">
-		<div class="ce-cta ce-animate-on-scroll<?php echo $ce_cta_is_secondary ? ' ce-cta--secondary' : ''; ?>">
-			<div class="ce-cta__content">
-				<h2 class="ce-text-white"><?php echo esc_html( $title ); ?></h2>
-				<p class="ce-text-white" style="opacity:.85;"><?php echo esc_html( $text ); ?></p>
-				<div class="ce-cta__actions">
-					<?php if ( $btn_url ) : ?>
-						<a href="<?php echo esc_url( $btn_url ); ?>" class="ce-btn ce-btn--primary">
-							<i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
-							<?php echo esc_html( $btn_text ); ?>
-						</a>
-					<?php endif; ?>
-					<?php if ( ce_get_whatsapp_number() ) : ?>
-						<a href="https://wa.me/<?php echo esc_attr( ce_get_whatsapp_number() ); ?>" target="_blank" rel="noopener noreferrer" class="ce-btn ce-btn--outline">
-							<i class="fa-brands fa-whatsapp" aria-hidden="true"></i>
-							<?php esc_html_e( 'Escríbenos', 'ce-construction' ); ?>
-						</a>
-					<?php endif; ?>
+<?php if ( $ce_cta_is_sidebar ) : ?>
+
+	<div class="ce-card ce-sidebar__contact-card">
+		<div class="ce-card__body ce-text-center">
+			<h4><?php echo esc_html( $title ); ?></h4>
+			<p class="ce-card__text"><?php echo esc_html( $text ); ?></p>
+			<?php if ( $btn_url ) : ?>
+				<a href="<?php echo esc_url( $btn_url ); ?>" class="ce-btn ce-btn--primary ce-btn--block">
+					<?php echo esc_html( $btn_text ); ?>
+				</a>
+			<?php endif; ?>
+		</div>
+	</div>
+
+<?php else : ?>
+
+	<section class="ce-section" id="<?php echo esc_attr( $ce_cta_is_secondary ? 'ce-cta-secondary' : 'ce-cta' ); ?>">
+		<div class="ce-container">
+			<div class="ce-cta ce-animate-on-scroll<?php echo $ce_cta_is_secondary ? ' ce-cta--secondary' : ''; ?>">
+				<div class="ce-cta__content">
+					<h2 class="ce-text-white"><?php echo esc_html( $title ); ?></h2>
+					<p class="ce-text-white" style="opacity:.85;"><?php echo esc_html( $text ); ?></p>
+					<div class="ce-cta__actions">
+						<?php if ( $btn_url ) : ?>
+							<a href="<?php echo esc_url( $btn_url ); ?>" class="ce-btn ce-btn--primary">
+								<i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
+								<?php echo esc_html( $btn_text ); ?>
+							</a>
+						<?php endif; ?>
+						<?php if ( ce_get_whatsapp_number() ) : ?>
+							<a href="https://wa.me/<?php echo esc_attr( ce_get_whatsapp_number() ); ?>" target="_blank" rel="noopener noreferrer" class="ce-btn ce-btn--outline">
+								<i class="fa-brands fa-whatsapp" aria-hidden="true"></i>
+								<?php esc_html_e( 'Escríbenos', 'ce-construction' ); ?>
+							</a>
+						<?php endif; ?>
+					</div>
 				</div>
 			</div>
 		</div>
-	</div>
-</section>
+	</section>
+
+<?php endif; ?>

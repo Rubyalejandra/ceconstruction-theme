@@ -49,6 +49,15 @@
  * Este layout NO aplica al Hero interno (`page-hero.php`) — decisión
  * explícita del usuario, ese Hero permanece de una sola columna.
  *
+ * 🆕 Ajuste puntual dentro de UX-7.2 (aún sin aprobar, amparado por
+ * la excepción de `docs/UX_CONVERSION_ANALISIS_Y_PLAN.md` §8.2/§8.4
+ * — ver DECISIONS.md D-065, que referencia D-064): con el formulario
+ * activo, `.ce-hero` gana el modificador `.ce-hero--has-form` (altura
+ * automática en vez de `min-height: 88vh` forzado) y se omite el
+ * indicador `.ce-hero__scroll` (se posiciona mal con contenido más
+ * largo). Sin cambios de comportamiento cuando el formulario está
+ * desactivado.
+ *
  * @package CE_Construction
  */
 
@@ -117,7 +126,18 @@ if ( '' === $btn1_url ) {
 $btn2_text = get_theme_mod( 'ce_hero_btn2_text', __( 'Ver Proyectos', 'ce-construction' ) );
 $btn2_url  = get_theme_mod( 'ce_hero_btn2_url', post_type_exists( 'proyecto' ) ? get_post_type_archive_link( 'proyecto' ) : '#proyectos' );
 ?>
-<section class="ce-hero" id="ce-hero" <?php echo ( ! $hero_is_video && ! $hero_is_slider && $hero_image_url ) ? 'style="background-image:url(\'' . esc_url( $hero_image_url ) . '\')"' : ''; ?>>
+<?php
+/* -----------------------------------------------------------
+ * 🆕 Ajuste puntual dentro de UX-7.2 (D-065, referencia D-064):
+ * con el formulario embebido activo, `.ce-hero` deja de forzar
+ * `min-height: 88vh` (sección 10) — el modificador
+ * `.ce-hero--has-form` (sección 28 de main.css) pasa a altura
+ * automática con padding vertical, especialmente relevante en
+ * móvil, donde el formulario ya aporta suficiente contenido.
+ * --------------------------------------------------------- */
+$hero_section_class = 'ce-hero' . ( $hero_show_quote_form ? ' ce-hero--has-form' : '' );
+?>
+<section class="<?php echo esc_attr( $hero_section_class ); ?>" id="ce-hero" <?php echo ( ! $hero_is_video && ! $hero_is_slider && $hero_image_url ) ? 'style="background-image:url(\'' . esc_url( $hero_image_url ) . '\')"' : ''; ?>>
 	<?php if ( $hero_is_video ) : ?>
 		<video class="ce-hero__video" autoplay muted loop playsinline aria-hidden="true">
 			<source src="<?php echo esc_url( $hero_video_url ); ?>" <?php echo $hero_video_mime ? 'type="' . esc_attr( $hero_video_mime ) . '"' : ''; ?>>
@@ -194,7 +214,20 @@ $btn2_url  = get_theme_mod( 'ce_hero_btn2_url', post_type_exists( 'proyecto' ) ?
 			</div>
 		<?php endif; ?>
 	</div>
-	<a href="#ce-about" class="ce-hero__scroll" aria-label="<?php esc_attr_e( 'Desplázate hacia abajo', 'ce-construction' ); ?>">
-		<i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
-	</a>
+	<?php
+	/* -----------------------------------------------------------
+	 * 🆕 Ajuste puntual dentro de UX-7.2 (D-065): el indicador de
+	 * scroll se posiciona mal (se superpone al formulario o queda
+	 * fuera de lugar) cuando el contenido del Hero es más largo por
+	 * el formulario embebido — se omite por completo en ese caso,
+	 * en vez de reposicionarlo con CSS adicional.
+	 * --------------------------------------------------------- */
+	if ( ! $hero_show_quote_form ) :
+		?>
+		<a href="#ce-about" class="ce-hero__scroll" aria-label="<?php esc_attr_e( 'Desplázate hacia abajo', 'ce-construction' ); ?>">
+			<i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+		</a>
+		<?php
+	endif;
+	?>
 </section>

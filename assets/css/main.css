@@ -570,6 +570,20 @@ body.ce-no-scroll { overflow: hidden; }
 .ce-testimonial-card__author img { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; }
 .ce-testimonial-card__name { font-weight: 700; color: var(--ce-color-primary); }
 .ce-testimonial-card__role { font-size: 0.85rem; color: var(--ce-color-neutral-600); }
+
+/* Sprint UX-7, Entregable UX-7.3: variante compacta de la card de
+   testimonio para el slot opcional de los sidebars de
+   Servicios/Proyectos (columna de 1fr en .ce-layout-with-sidebar,
+   ver más abajo) — mismo componente que el slider del Home
+   (template-parts/content-testimonio-card.php), sin el max-width de
+   720px pensado para ancho completo, y con la cita más pequeña para
+   no dominar visualmente una columna angosta. */
+.ce-testimonial-card--compact {
+  max-width: none;
+  padding: var(--ce-space-4);
+}
+.ce-testimonial-card--compact .ce-testimonial-card__quote { font-size: 0.95rem; margin-bottom: var(--ce-space-3); }
+.ce-testimonial-card--compact .ce-testimonial-card__author img { width: 40px; height: 40px; }
 .ce-slider-nav { display: flex; justify-content: center; gap: var(--ce-space-3); margin-top: var(--ce-space-4); }
 .ce-slider-dot {
   width: 10px; height: 10px; border-radius: 50%;
@@ -1453,4 +1467,110 @@ img[loading="lazy"] {
 @media (min-width: 992px) {
   .ce-hero__layout--2 { grid-template-columns: 7fr 5fr; }
   .ce-hero__layout--3 { grid-template-columns: 8fr 4fr; }
+}
+
+/* =============================================================
+   28 BIS. AJUSTE PUNTUAL DENTRO DE UX-7.2 (aún sin aprobar —
+   amparado por la excepción de UX_CONVERSION_ANALISIS_Y_PLAN.md
+   §8.2/§8.4 para correcciones de bajo riesgo dentro de un
+   Entregable ya entregado). Sección 100% aditiva, no modifica
+   ninguna regla de la sección 28 ni de la sección 10 (Hero) de
+   arriba. Ver DECISIONS.md D-065 (referencia D-064).
+   ============================================================= */
+
+/* -------------------------------------------------------------
+   1) Breakpoint intermedio (768px–991.98px): proporción más
+   angosta (6fr/6fr) que 7/5 y 8/4 (que solo aplican desde 992px)
+   para los layouts de 2 columnas, antes de caer a apilado por
+   debajo de 768px. En este rango de ancho, dar al formulario la
+   misma proporción que al contenido evita que la columna del
+   Quote Form quede demasiado angosta para sus 2 campos por fila
+   (`.ce-form__row--2`, sección 8) sin necesidad de forzar un
+   layout apilado tan pronto.
+   ------------------------------------------------------------- */
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .ce-hero__layout--2,
+  .ce-hero__layout--3 { grid-template-columns: 6fr 6fr; }
+}
+
+/* -------------------------------------------------------------
+   2) `.ce-hero--has-form`: altura automática (con padding
+   vertical) en vez de forzar `min-height: 88vh` (sección 10) o
+   `min-height: 92vh` (sección 19, `xl`) siempre — el formulario ya
+   aporta contenido suficiente, especialmente notorio en móvil,
+   donde forzar el viewport completo dejaba mucho espacio vacío o
+   forzaba scroll interno innecesario. Selector de igual
+   especificidad que `.ce-hero`; al declararse después en el
+   archivo, tiene prioridad en cascada sin necesidad de `!important`.
+   Ver template-parts/hero.php (aplica el modificador solo cuando
+   `ce_hero_show_quote_form` está activo).
+   ------------------------------------------------------------- */
+.ce-hero--has-form {
+  min-height: auto;
+  padding-block: var(--ce-space-8) var(--ce-space-7);
+}
+@media (min-width: 992px) {
+  .ce-hero--has-form { min-height: 70vh; padding-block: var(--ce-space-8); }
+}
+
+/* -------------------------------------------------------------
+   3) Tratamiento visual de "oferta" en `.ce-hero-quote-card`:
+   franja superior de acento + badge corto (ver el markup del badge
+   en template-parts/quote-form.php, contexto 'hero'). Sin bullets
+   de confianza — eso se absorbe en UX-7.7 (sin aprobar).
+   ------------------------------------------------------------- */
+.ce-hero-quote-card {
+  border-top: 4px solid var(--ce-color-secondary);
+}
+.ce-hero-quote-card__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(217,142,41,0.12);
+  color: var(--ce-color-secondary-text);
+  font-family: var(--ce-font-heading);
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.01em;
+  padding: 6px 14px;
+  border-radius: var(--ce-radius-pill);
+  margin-bottom: var(--ce-space-3);
+}
+
+/* -------------------------------------------------------------
+   4) Paddings/spacing compactos SOLO en el contexto del Hero
+   (selector `.ce-hero-quote-card .ce-form`) — `.ce-form` global
+   (sección 8) y las instancias normal/modal del formulario no se
+   tocan.
+   ------------------------------------------------------------- */
+.ce-hero-quote-card .ce-form {
+  gap: var(--ce-space-3);
+}
+.ce-hero-quote-card .ce-form__row {
+  gap: var(--ce-space-3);
+}
+.ce-hero-quote-card .ce-field input,
+.ce-hero-quote-card .ce-field select,
+.ce-hero-quote-card .ce-field textarea {
+  padding: 11px 14px;
+}
+.ce-hero-quote-card .ce-field textarea {
+  min-height: 90px;
+}
+
+/* -------------------------------------------------------------
+   5) Breakpoint `max-width: 575.98px`: padding/tipografía más
+   ceñidos para `.ce-hero-quote-card` en móvil pequeño.
+   ------------------------------------------------------------- */
+@media (max-width: 575.98px) {
+  .ce-hero-quote-card .ce-card__body {
+    padding: var(--ce-space-3);
+  }
+  .ce-hero-quote-card__badge {
+    font-size: 0.72rem;
+    padding: 5px 12px;
+  }
+  .ce-hero-quote-card .ce-field label {
+    font-size: 0.8rem;
+  }
 }

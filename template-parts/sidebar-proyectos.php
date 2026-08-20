@@ -63,4 +63,30 @@ $otros_proyectos = get_posts( array(
 		</div>
 	</div>
 
+	<?php
+	/**
+	 * 🆕 Sprint UX-7, Entregable UX-7.3: slot opcional, desactivado
+	 * ('none') por defecto — control 'ce_sidebar_proyectos_slot' en
+	 * el Customizer (ver inc/customizer.php). Mismo mecanismo que
+	 * template-parts/sidebar-servicios.php (ver ese archivo para el
+	 * detalle de cada opción) — control independiente, así que puede
+	 * quedar en 'none' aquí aunque el sidebar de Servicios sí lo use,
+	 * o viceversa. Ver DECISIONS.md D-067.
+	 */
+	$ce_sidebar_slot = get_theme_mod( 'ce_sidebar_proyectos_slot', 'none' );
+
+	if ( 'cta' === $ce_sidebar_slot ) :
+		get_template_part( 'template-parts/cta', null, array( 'variant' => 'sidebar' ) );
+	elseif ( 'testimonio' === $ce_sidebar_slot ) :
+		$ce_sidebar_testimonio = ce_get_random_testimonio();
+		if ( $ce_sidebar_testimonio ) :
+			while ( $ce_sidebar_testimonio->have_posts() ) :
+				$ce_sidebar_testimonio->the_post();
+				get_template_part( 'template-parts/content-testimonio-card', null, array( 'compact' => true ) );
+			endwhile;
+			wp_reset_postdata();
+		endif;
+	endif;
+	?>
+
 </aside>

@@ -387,6 +387,7 @@ Este hallazgo es el más prioritario de todo el roadmap ampliado: sin resolverlo
   - Contexto: no existe hoy ningún componente para mostrar insignias de confianza (licencias estatales, seguros, afiliaciones, certificaciones, ratings de plataformas externas) — hallazgo de la comparación con DayBrook Homes (Equal Housing Lender / BBB / Thumbtack) y Re-Bath. **Requisito explícito del usuario:** el cliente real de este proyecto cuenta con una licencia de contratista válida para operar en su estado, y necesita poder mostrarla — no es un elemento decorativo, es una insignia de credibilidad legal real.
   - Propuesta: nueva sección del Home Builder (`template-parts/trust-badges.php`, registrada en `inc/home-builder.php` junto al resto), con un control repeater de Customizer (mismo patrón que UX-7.6/UX-4.2: imagen o texto + número de licencia opcional + enlace de verificación opcional por insignia) — cantidad variable, sin límite fijo de insignias.
   - Requisito de reutilización (explícito del usuario, aplica a los 4 Entregables de este bloque): la sección se registra en `inc/home-builder.php` con el mismo mecanismo que ya usan `hero`/`about`/`services`/etc., para quedar automáticamente disponible vía `[ce_section key="trust_badges"]` en cuanto exista el shortcode de UX-6.2 — sin duplicar markup entre Home y páginas internas.
+  - 🆕 Nota añadida durante el ajuste puntual de UX-7.2 (ver `docs/DECISIONS.md` D-065): el requisito de bullets/insignias de oferta dentro de la tarjeta del Quote Form del Hero (`.ce-hero-quote-card`) se absorbe dentro de este Entregable, en vez de construirse como un componente separado en UX-7.2 — evita duplicar un sistema de insignias con el mismo propósito. Al ejecutar UX-7.7, debe evaluarse cómo integrar ese componente también en `.ce-hero-quote-card` (sin comprometerse todavía a la forma concreta de esa integración). Esta nota no cambia la prioridad, el alcance funcional principal, ni el estado ("Sin iniciar") de UX-7.7.
   - Clasificación: **D** (funcionalidad nueva).
 
 - **UX-7.8 — Testimonio en video** — Prioridad Media 🆕 (benchmark competitivo, §8.8)
@@ -397,6 +398,14 @@ Este hallazgo es el más prioritario de todo el roadmap ampliado: sin resolverlo
 - **UX-7.9 — Bloque de financiamiento / opciones de pago** — Prioridad Media 🆕 (benchmark competitivo, §8.8)
   - Contexto: ni DayBrook ni Re-Bath son constructoras generales, pero ambas destacan una franja de financiamiento con CTA propio ("0% interés 12 meses", "Pre-aprobación sin afectar tu crédito") — hallazgo aplicable a CE Construction independientemente del tipo de proyecto, si el cliente ofrece o desea comunicar opciones de pago/financiamiento.
   - Propuesta: nueva sección del Home Builder (`template-parts/financing.php`), campos vía Customizer (título, texto, texto de botón, URL de botón — mismo patrón exacto ya usado por `cta.php`/`cta_secondary`, UX-5.1, sin inventar un patrón nuevo). Registrada en `inc/home-builder.php` para quedar disponible vía shortcode (UX-6.2) igual que UX-7.7.
+  - Clasificación: **D** (funcionalidad nueva).
+
+- **UX-7.10 — Popup de oferta / captura de leads al cargar la página** — 🆕 Entregable nuevo, añadido durante el ajuste puntual de UX-7.2 (ver `docs/DECISIONS.md` D-065). Prioridad sin definir todavía. Estado: **propuesto, sin iniciar, sin aprobar.**
+  - Contexto: se planteó durante el ajuste puntual de UX-7.2 si el tratamiento de "oferta" de `.ce-hero-quote-card` debía extenderse a un popup/modal al cargar la página, cerrable por el usuario. Se decidió que excede el alcance de un ajuste aditivo de bajo riesgo: requiere lógica de frecuencia (cookie/transient de WP), un modal propio distinto del modal de Quote Form (UX-3.2), controles de administración y JS nuevo.
+  - Preguntas abiertas que deben resolverse (mismo criterio que D-064 para UX-7.2) antes de que este Entregable se implemente:
+    1. Frecuencia de aparición: ¿cada carga de página, o limitada por cookie/transient (y con qué duración)?
+    2. Relación con el modal existente de Quote Form (`ce_quote_form_mode = 'modal'`, UX-3.2): ¿coexisten como 2 modales distintos en la misma página, o se fusionan en un solo mecanismo?
+    3. Contenido del popup: ¿reutiliza el componente de insignias/bullets de UX-7.7 (una vez exista), o es solo texto/CTA?
   - Clasificación: **D** (funcionalidad nueva).
 
 ---

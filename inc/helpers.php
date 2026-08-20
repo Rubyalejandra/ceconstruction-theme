@@ -110,6 +110,46 @@ function ce_get_short_excerpt( $post_id, $words = 20 ) {
 	return wp_trim_words( wp_strip_all_tags( $excerpt ), $words );
 }
 
+/* =========================================================
+ * FASE "Optimización UX / Conversión", SPRINT UX-7, ENTREGABLE
+ * UX-7.3 — "Aprovechamiento de espacios vacíos en sidebars"
+ * (Servicios/Proyectos, template-parts/sidebar-servicios.php y
+ * template-parts/sidebar-proyectos.php).
+ *
+ * Único helper nuevo de este Entregable: ambos sidebars pueden
+ * mostrar, en su nuevo slot configurable desde el Customizer
+ * ('ce_sidebar_servicios_slot' / 'ce_sidebar_proyectos_slot', ver
+ * inc/customizer.php), un testimonio individual — se centraliza
+ * aquí la consulta en vez de duplicarla en los 2 archivos.
+ * ========================================================= */
+
+/**
+ * Un único testimonio publicado, elegido al azar en cada carga.
+ * Devuelve null si el CPT `testimonio` no tiene contenido (el
+ * llamador debe ocultar el slot en ese caso, mismo criterio que
+ * ce_cpt_has_posts() ya aplica en el resto del tema).
+ *
+ * `orderby => rand` es intencional y exclusivo de este helper: es
+ * una única fila (`posts_per_page => 1`) sobre un CPT pequeño
+ * (testimonios de clientes), así que el costo de no cachear la
+ * query es insignificante frente al beneficio de variar el
+ * testimonio mostrado en el sidebar entre visitas — a diferencia
+ * de template-parts/testimonials.php (sección del Home), que sí
+ * necesita orden estable porque muestra TODOS los testimonios en
+ * un slider, no uno solo.
+ */
+function ce_get_random_testimonio() {
+	$query = new WP_Query( array(
+		'post_type'      => 'testimonio',
+		'posts_per_page' => 1,
+		'post_status'    => 'publish',
+		'orderby'        => 'rand',
+		'no_found_rows'  => true,
+	) );
+
+	return $query->have_posts() ? $query : null;
+}
+
 /**
  * Devuelve true si existe al menos un post publicado del CPT dado.
  * Útil para ocultar secciones completas del home si el admin

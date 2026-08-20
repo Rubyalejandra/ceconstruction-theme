@@ -32,34 +32,19 @@ $testimonios_query = new WP_Query( array(
 			<div class="ce-testimonial-slider" data-autoplay="6000">
 				<div class="ce-testimonial-track">
 					<?php
+					// 🆕 Sprint UX-7, Entregable UX-7.3: la card individual
+					// (antes inline aquí) se extrajo a
+					// template-parts/content-testimonio-card.php para
+					// reutilizarla también en el slot opcional de los
+					// sidebars de Servicios/Proyectos, sin duplicar este
+					// markup — mismo patrón que content-faq-accordion.php
+					// (D-048). Este wrapper .ce-testimonial-slide y la
+					// query $testimonios_query de arriba no cambiaron.
 					while ( $testimonios_query->have_posts() ) :
 						$testimonios_query->the_post();
-						$nombre = get_post_meta( get_the_ID(), '_ce_testimonio_nombre', true );
-						$nombre = $nombre ? $nombre : get_the_title();
-						$cargo  = get_post_meta( get_the_ID(), '_ce_testimonio_cargo', true );
-						$rating = (int) get_post_meta( get_the_ID(), '_ce_testimonio_rating', true );
-						$rating = $rating ? $rating : 5;
 						?>
 						<div class="ce-testimonial-slide">
-							<div class="ce-testimonial-card">
-								<div class="ce-testimonial-card__rating">
-									<?php for ( $i = 1; $i <= 5; $i++ ) : ?>
-										<i class="fa-solid fa-star" aria-hidden="true" style="<?php echo $i > $rating ? 'opacity:.25;' : ''; ?>"></i>
-									<?php endfor; ?>
-								</div>
-								<p class="ce-testimonial-card__quote">&ldquo;<?php echo esc_html( wp_strip_all_tags( get_the_content() ) ); ?>&rdquo;</p>
-								<div class="ce-testimonial-card__author">
-									<?php if ( has_post_thumbnail() ) : ?>
-										<?php the_post_thumbnail( 'thumbnail', array( 'loading' => 'lazy', 'alt' => $nombre ) ); ?>
-									<?php endif; ?>
-									<div>
-										<div class="ce-testimonial-card__name"><?php echo esc_html( $nombre ); ?></div>
-										<?php if ( $cargo ) : ?>
-											<div class="ce-testimonial-card__role"><?php echo esc_html( $cargo ); ?></div>
-										<?php endif; ?>
-									</div>
-								</div>
-							</div>
+							<?php get_template_part( 'template-parts/content-testimonio-card' ); ?>
 						</div>
 						<?php
 					endwhile;
