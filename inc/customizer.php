@@ -663,6 +663,32 @@ function ce_construction_customize_register( $wp_customize ) {
 		'title'    => __( 'CE: Footer', 'ce-construction' ),
 		'priority' => 36,
 	) );
+
+	/* ---------------------------------------------------------
+	 * Sprint UX-7, Entregable UX-7.5 ("Logo independiente
+	 * Header/Footer"). Antes de este Entregable, header.php y
+	 * footer.php usaban idénticamente has_custom_logo()/
+	 * the_custom_logo() (logo nativo de WordPress) — un único
+	 * asset para ambos contextos, sin posibilidad de una variante
+	 * distinta para el fondo oscuro del footer. `ce_footer_logo`
+	 * es un theme_mod OPCIONAL (imagen): si no se configura, el
+	 * footer sigue exactamente igual que antes (fallback
+	 * automático al logo del sitio vía ce_render_footer_logo(),
+	 * inc/helpers.php). header.php no se modifica en este
+	 * Entregable — sigue usando exclusivamente el logo nativo del
+	 * sitio, conforme al alcance de UX_CONVERSION_ANALISIS_Y_PLAN.md
+	 * §8.4 ("extiende el mecanismo nativo, no lo reemplaza"). Ver
+	 * DECISIONS.md D-069.
+	 * --------------------------------------------------------- */
+	$wp_customize->add_setting( 'ce_footer_logo', array( 'sanitize_callback' => 'absint' ) );
+	$wp_customize->add_control( new WP_Customize_Media_Control( $wp_customize, 'ce_footer_logo', array(
+		'label'       => __( 'Logo del Footer (opcional)', 'ce-construction' ),
+		'description' => __( 'Variante del logo pensada para el fondo oscuro del footer (p. ej. una versión en blanco/clara del logo). Si no se configura, el footer usa automáticamente el mismo Logo del sitio definido en "Identidad del sitio" (comportamiento actual, sin cambio).', 'ce-construction' ),
+		'section'     => 'ce_section_footer',
+		'mime_type'   => 'image',
+		'priority'    => 5,
+	) ) );
+
 	$wp_customize->add_setting( 'ce_footer_about', array( 'sanitize_callback' => 'wp_kses_post' ) );
 	$wp_customize->add_control( 'ce_footer_about', array(
 		'label'   => __( 'Texto "Sobre nosotros" en footer', 'ce-construction' ),
@@ -754,6 +780,37 @@ function ce_construction_customize_register( $wp_customize ) {
 		'choices'  => $ce_sidebar_slot_choices,
 		'priority' => 20,
 	) );
+
+	/* -----------------------------------------------------------
+	 * 8. ESTADÍSTICAS (Sprint UX-7, Entregable UX-7.6)
+	 * Ver DECISIONS.md D-070. Control custom tipo repeater — mismo
+	 * patrón ya usado por CE_Customize_Hero_Slides_Control
+	 * (UX-4.2), adaptado de "lista de imágenes" a "lista de campos
+	 * de texto" (número/sufijo/etiqueta/icono), cantidad variable.
+	 * El `default` del setting es el JSON de las 4 estadísticas
+	 * que template-parts/stats.php ya tenía hardcodeadas, para que
+	 * el panel aparezca pre-poblado y editable, sin regresión
+	 * visual si el administrador no lo toca. El filtro
+	 * `ce_stats_items` ya existente (para desarrolladores) se
+	 * conserva sin eliminarlo — ver
+	 * ce_construction_get_stats_items() en inc/helpers.php.
+	 * --------------------------------------------------------- */
+	$wp_customize->add_section( 'ce_section_stats', array(
+		'title'       => __( 'CE: Estadísticas', 'ce-construction' ),
+		'description' => __( 'Contadores animados del Home (proyectos realizados, clientes, años de experiencia, etc.). Añade, quita o reordena estadísticas con los botones de cada fila. Si quitas todas, la sección se oculta por completo. Publica para aplicar los cambios.', 'ce-construction' ),
+		'priority'    => 37,
+	) );
+
+	$wp_customize->add_setting( 'ce_stats_custom_items', array(
+		'default'           => ce_construction_default_stats_items_json(),
+		'sanitize_callback' => 'ce_construction_sanitize_stats_items',
+		'transport'         => 'refresh',
+	) );
+	$wp_customize->add_control( new CE_Customize_Stats_Items_Control( $wp_customize, 'ce_stats_custom_items', array(
+		'label'       => __( 'Estadísticas', 'ce-construction' ),
+		'description' => __( 'El sufijo (ej. "+") se añade después del número al animarse. El icono usa el mismo formato que el resto del tema (ej. "fa-solid fa-building") — consulta la galería de Font Awesome 6 Free si necesitas otro nombre de icono.', 'ce-construction' ),
+		'section'     => 'ce_section_stats',
+	) ) );
 }
 add_action( 'customize_register', 'ce_construction_customize_register' );
 
@@ -802,6 +859,20 @@ function ce_construction_sanitize_cta_icon( $value ) {
 		'fa-solid fa-shield-halved',
 	);
 	return in_array( $value, $allowed, true ) ? $value : 'fa-solid fa-paper-plane';
+}
+
+/**
+ * Sprint UX-7, Entregable UX-7.6 — sanitize_callback de
+ * `ce_stats_custom_items`. Reutiliza `ce_construction_decode_stats_items()`
+ * (inc/helpers.php) — la misma función que ya usan el render del
+ * control repeater y `ce_construction_get_stats_items()` en el
+ * frontend — para parsear/sanear cada campo, y vuelve a codificar el
+ * resultado como JSON. Una sola fuente de saneamiento para las 3
+ * lecturas de este dato. Ver DECISIONS.md D-070.
+ */
+function ce_construction_sanitize_stats_items( $value ) {
+	$items = ce_construction_decode_stats_items( is_string( $value ) ? $value : '' );
+	return wp_json_encode( $items );
 }
 
 /**
@@ -1117,3 +1188,133 @@ function ce_construction_hero_slides_control_styles() {
 	<?php
 }
 add_action( 'customize_controls_print_styles', 'ce_construction_hero_slides_control_styles' );
+
+/* =========================================================
+ * SPRINT UX-7, ENTREGABLE UX-7.6 — Estadísticas configurables:
+ * control custom del Customizer. Ver DECISIONS.md D-070.
+ *
+ * Mismo criterio de estructura que CE_Customize_Hero_Slides_Control
+ * (UX-4.2, arriba): guardado en class_exists() porque
+ * WP_Customize_Control solo está disponible cuando WordPress ya
+ * cargó el core del Customizer. El JS real (añadir/quitar/reordenar
+ * + serialización del hidden input a JSON) vive en
+ * assets/js/admin-stats-items.js (encolado desde inc/enqueue.php,
+ * mismo criterio que el resto de assets del proyecto — este archivo
+ * solo define el control, no encola nada directamente).
+ *
+ * A diferencia de CE_Customize_Hero_Slides_Control (una lista de
+ * miniaturas de imagen ya seleccionadas), este control edita
+ * directamente 4 campos de texto por fila (número/sufijo/etiqueta/
+ * icono) — no hay selector de medios (`wp.media`) involucrado.
+ * ========================================================= */
+
+if ( class_exists( 'WP_Customize_Control' ) ) {
+
+	class CE_Customize_Stats_Items_Control extends WP_Customize_Control {
+
+		public $type = 'ce_stats_items';
+
+		public function render_content() {
+			$items = ce_construction_decode_stats_items( $this->value() );
+			?>
+			<?php if ( ! empty( $this->label ) ) : ?>
+				<span class="customize-control-title"><?php echo esc_html( $this->label ); ?></span>
+			<?php endif; ?>
+			<?php if ( ! empty( $this->description ) ) : ?>
+				<span class="description customize-control-description"><?php echo wp_kses_post( $this->description ); ?></span>
+			<?php endif; ?>
+
+			<ul class="ce-stats-items-list">
+				<?php foreach ( $items as $item ) : ?>
+					<li class="ce-stats-items-item">
+						<div class="ce-stats-items-item__row">
+							<label>
+								<?php esc_html_e( 'Número', 'ce-construction' ); ?>
+								<input type="number" min="0" step="1" class="ce-stats-items-item__count" value="<?php echo esc_attr( $item['count'] ); ?>">
+							</label>
+							<label>
+								<?php esc_html_e( 'Sufijo', 'ce-construction' ); ?>
+								<input type="text" maxlength="6" class="ce-stats-items-item__suffix" value="<?php echo esc_attr( $item['suffix'] ); ?>">
+							</label>
+						</div>
+						<label>
+							<?php esc_html_e( 'Etiqueta', 'ce-construction' ); ?>
+							<input type="text" maxlength="60" class="ce-stats-items-item__label" value="<?php echo esc_attr( $item['label'] ); ?>">
+						</label>
+						<label>
+							<?php esc_html_e( 'Icono (Font Awesome, ej. fa-solid fa-building)', 'ce-construction' ); ?>
+							<input type="text" class="ce-stats-items-item__icon" value="<?php echo esc_attr( $item['icon'] ); ?>">
+						</label>
+						<div class="ce-stats-items-item__actions">
+							<button type="button" class="button ce-stats-items-item__up" aria-label="<?php esc_attr_e( 'Mover antes', 'ce-construction' ); ?>">&uarr;</button>
+							<button type="button" class="button ce-stats-items-item__down" aria-label="<?php esc_attr_e( 'Mover después', 'ce-construction' ); ?>">&darr;</button>
+							<button type="button" class="button ce-stats-items-item__remove" aria-label="<?php esc_attr_e( 'Quitar esta estadística', 'ce-construction' ); ?>"><?php esc_html_e( 'Quitar', 'ce-construction' ); ?></button>
+						</div>
+					</li>
+				<?php endforeach; ?>
+			</ul>
+
+			<button type="button" class="button button-secondary ce-stats-items-add"><?php esc_html_e( 'Añadir estadística', 'ce-construction' ); ?></button>
+
+			<input type="hidden" class="ce-stats-items-value" <?php $this->link(); ?> value="<?php echo esc_attr( $this->value() ); ?>">
+			<?php
+		}
+	}
+}
+
+/**
+ * Estilos del control custom `ce_stats_items` dentro del admin del
+ * Customizer. Mismo criterio que
+ * ce_construction_hero_slides_control_styles() (arriba): función
+ * separada, mismo hook (`customize_controls_print_styles`), `<style>`
+ * con id propio — no se añade nada a ninguna función ya existente.
+ */
+function ce_construction_stats_items_control_styles() {
+	?>
+	<style id="ce-stats-items-control-styles">
+		.ce-stats-items-list {
+			display: flex;
+			flex-direction: column;
+			gap: 10px;
+			margin: 8px 0 10px;
+			padding: 0;
+			list-style: none;
+		}
+		.ce-stats-items-item {
+			border: 1px solid #dcdcde;
+			border-radius: 4px;
+			background: #fff;
+			padding: 10px;
+		}
+		.ce-stats-items-item label {
+			display: block;
+			font-size: 11px;
+			font-weight: 600;
+			margin-bottom: 6px;
+		}
+		.ce-stats-items-item input[type="text"],
+		.ce-stats-items-item input[type="number"] {
+			display: block;
+			width: 100%;
+			margin-top: 2px;
+			box-sizing: border-box;
+		}
+		.ce-stats-items-item__row {
+			display: flex;
+			gap: 8px;
+		}
+		.ce-stats-items-item__row label {
+			flex: 1;
+		}
+		.ce-stats-items-item__actions {
+			display: flex;
+			gap: 6px;
+			margin-top: 6px;
+		}
+		.ce-stats-items-item__remove {
+			color: #b32d2e;
+		}
+	</style>
+	<?php
+}
+add_action( 'customize_controls_print_styles', 'ce_construction_stats_items_control_styles' );

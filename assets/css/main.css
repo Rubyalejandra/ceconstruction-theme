@@ -1574,3 +1574,33 @@ img[loading="lazy"] {
     font-size: 0.8rem;
   }
 }
+
+/* =============================================================
+   29. SPRINT UX-7, ENTREGABLE UX-7.6 — ESTADÍSTICAS CONFIGURABLES
+   Nueva clase dedicada `.ce-stats-grid`, en vez de reutilizar
+   `.ce-grid--4` (sección 4): con una cantidad variable de
+   estadísticas (Customizer, ver inc/customizer.php "CE:
+   Estadísticas"), una clase pensada para "4 columnas fijas" ya no
+   describe el layout real. Mismos breakpoints/espaciado que
+   `.ce-grid--4` hasta tablet (1 columna en móvil, 2 desde 768px)
+   para no cambiar el aspecto por defecto con las 4 estadísticas de
+   siempre; desde escritorio (992px) se usa `auto-fit` con un mínimo
+   de 180px por columna, de forma que el layout se adapta
+   automáticamente sin importar cuántas estadísticas configure el
+   administrador (menos de 4: columnas más anchas; más de 4: se
+   ajustan más por fila, sin desbordar ni encogerse ilegiblemente).
+   Sección 100% aditiva — ninguna regla de `.ce-grid--4` (sección 4)
+   se modifica; sigue usándose sin cambios en el resto del tema.
+   Ver DECISIONS.md D-070.
+   ============================================================= */
+.ce-stats-grid {
+  display: grid;
+  gap: var(--ce-space-5);
+  grid-template-columns: 1fr;
+}
+@media (min-width: 768px) {
+  .ce-stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 992px) {
+  .ce-stats-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+}

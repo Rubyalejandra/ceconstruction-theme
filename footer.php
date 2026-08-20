@@ -6,11 +6,21 @@
 				<div class="ce-footer__grid">
 
 					<div class="ce-footer__brand">
-						<?php if ( has_custom_logo() ) : ?>
-							<?php the_custom_logo(); ?>
-						<?php else : ?>
-							<h3 class="ce-text-white"><?php bloginfo( 'name' ); ?></h3>
-						<?php endif; ?>
+						<?php
+						/**
+						 * Sprint UX-7, Entregable UX-7.5: antes de este
+						 * Entregable este bloque llamaba directamente a
+						 * has_custom_logo()/the_custom_logo() (idéntico a
+						 * header.php). Ahora delega en
+						 * ce_render_footer_logo() (inc/helpers.php), que
+						 * añade un primer nivel de fallback opcional
+						 * (`ce_footer_logo`) antes de esos mismos 2
+						 * fallbacks nativos — comportamiento idéntico al
+						 * anterior si ese theme_mod no está configurado.
+						 * Ver DECISIONS.md D-069.
+						 */
+						ce_render_footer_logo();
+						?>
 						<p class="ce-footer__about">
 							<?php
 							echo wp_kses_post(

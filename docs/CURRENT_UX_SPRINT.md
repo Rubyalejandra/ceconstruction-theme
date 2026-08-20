@@ -244,36 +244,65 @@ Con el Sprint UX-6 cerrado, el usuario priorizó e inició el **Sprint UX-7** (C
 | UX-7.1 | Unificación del Hero (Home + interior) | ✅ **Aprobado explícitamente por el usuario** en la sesión anterior, junto con la instrucción de iniciar UX-7.2. |
 | UX-7.2 | Layout de Hero de 1/2/3 columnas + Quote Form opcional en Hero | ✅ **Aprobado explícitamente por el usuario** en esta sesión (incluye el ajuste puntual D-065), junto con la instrucción de iniciar UX-7.3. Ver `docs/DECISIONS.md` D-066. |
 | UX-7.3 | Aprovechamiento de espacios vacíos en sidebars | ✅ **Aprobado explícitamente por el usuario** en esta sesión, junto con la instrucción de iniciar UX-7.4 en modalidad Entregable por Entregable. Ver `docs/DECISIONS.md` D-067. |
-| UX-7.4 | CTA: icono y color de botón configurables | 🟡 **Entregado — pendiente de tu aprobación explícita.** Ver nota debajo de esta tabla y `docs/DECISIONS.md` D-068. |
-| UX-7.5 | Logo independiente Header/Footer | Sin iniciar |
-| UX-7.6 | Estadísticas configurables desde el Customizer | Sin iniciar |
+| UX-7.4 | CTA: icono y color de botón configurables | ✅ **Aprobado explícitamente por el usuario** en esta sesión, junto con la instrucción de iniciar UX-7.5 en modalidad Entregable por Entregable. Ver `docs/DECISIONS.md` D-068. |
+| UX-7.5 | Logo independiente Header/Footer | ✅ **Aprobado explícitamente por el usuario** en esta sesión, junto con la instrucción de iniciar UX-7.6 en modalidad Entregable por Entregable. Ver `docs/DECISIONS.md` D-069. |
+| UX-7.6 | Estadísticas configurables desde el Customizer | 🟡 **Entregado — pendiente de tu aprobación explícita.** Ver nota debajo de esta tabla y `docs/DECISIONS.md` D-070. |
 | UX-7.7 | Franja de insignias de confianza / licencias — 🆕 nota (D-065): una vez construido, el componente de insignias/bullets también debe quedar disponible para la tarjeta del Quote Form del Hero (`.ce-hero-quote-card`) | Sin iniciar |
 | UX-7.8 | Testimonio en video | Sin iniciar |
 | UX-7.9 | Bloque de financiamiento / opciones de pago | Sin iniciar |
 | UX-7.10 🆕 | Popup de oferta / captura de leads al cargar la página — Entregable nuevo (D-065), no una extensión de UX-7.2. Preguntas abiertas antes de implementar: frecuencia de aparición (cada carga vs. limitada por cookie/transient), relación con el modal existente de Quote Form (`ce_quote_form_mode = 'modal'`) — ¿coexisten como 2 modales distintos, o se fusionan?, y contenido del popup (¿reutiliza el componente de insignias de UX-7.7, o es solo texto/CTA?) | ⬜ Propuesto, sin iniciar, sin aprobar |
 
-### ✅ Cierre de UX-7.3 (esta sesión)
+### ✅ Cierre de UX-7.5 (esta sesión)
 
-UX-7.3 queda **aprobado explícitamente por el usuario** en esta sesión, junto con la instrucción de iniciar UX-7.4 en modalidad Entregable por Entregable (D-038). Ningún archivo de código adicional fue tocado en este cierre. Detalle: `docs/DECISIONS.md` D-067.
+UX-7.5 queda **aprobado explícitamente por el usuario** en esta sesión, junto con la instrucción de iniciar UX-7.6 en modalidad Entregable por Entregable (D-038). Ningún archivo de código adicional fue tocado en este cierre. Detalle: `docs/DECISIONS.md` D-069.
 
-### 🆕 UX-7.4 entregado — pendiente de tu aprobación explícita
+### 🆕 UX-7.6 entregado — pendiente de tu aprobación explícita
 
-Se implementó UX-7.4 conforme al alcance de `docs/UX_CONVERSION_ANALISIS_Y_PLAN.md` §8.4 ("selector de icono FA acotado a una lista curada" + "color picker nativo del Customizer para el color primario del botón"), sin ambigüedad que requiriera detenerse a consultar (a diferencia de UX-7.2). Detalle técnico completo, incluidas las 5 decisiones tomadas y las alternativas descartadas: `docs/DECISIONS.md` D-068.
+**Verificación previa de coherencia documental (paso obligatorio antes de tocar código):** se releyó `docs/CURRENT_UX_SPRINT.md` (esta tabla) y `docs/UX_CONVERSION_ANALISIS_Y_PLAN.md` §8.4/§8.8 (alcance de UX-7.6 y su origen en el benchmark competitivo). Se verificó por lectura de código que `template-parts/stats.php` seguía exactamente como describe el plan: 4 estadísticas hardcodeadas en un array de PHP, cantidad fija, sin `theme_mod`. **No se encontró ninguna discrepancia** entre la documentación y el código recibido — no fue necesario detenerse a consultar.
+
+Se implementó UX-7.6 conforme al alcance de `docs/UX_CONVERSION_ANALISIS_Y_PLAN.md` §8.4: nuevo control repeater del Customizer ("CE: Estadísticas") — mismo patrón ya usado por `CE_Customize_Hero_Slides_Control` (UX-4.2, añadir/quitar/reordenar), adaptado de "lista de imágenes" a "lista de campos de texto" (número/sufijo/etiqueta/icono por fila), cantidad variable. El filtro `ce_stats_items` ya existente se conserva sin eliminarlo, tal como exige el plan. Detalle técnico completo, incluidas las 7 decisiones tomadas y las alternativas descartadas: `docs/DECISIONS.md` D-070.
 
 **Resumen del comportamiento nuevo:**
-- Nuevo control "Icono del botón CTA" (`select`, 10 iconos curados de Font Awesome, todos ya usados en otras partes del tema) en "CE: Sección CTA" y en "CE: CTA Secundario" — reemplaza el icono fijo `fa-paper-plane`. Solo afecta al botón de la sección CTA de ancho completo; el botón de WhatsApp conserva su icono de marca fijo, y el botón del slot de CTA en los sidebars (UX-7.3) no lleva icono (diseño compacto sin cambios).
-- Nuevo color picker nativo "Color del botón CTA" en ambas secciones — sobrescribe el color de fondo del botón "Solicitar Cotización". El de la sección CTA primaria (`ce_cta_btn_color`) también sobrescribe el botón del slot de CTA en los sidebars, por compartir el mismo campo (mismo criterio de reutilización ya fijado en D-067). El estado `:hover` se calcula automáticamente (más oscuro) — no se pide un segundo color.
-- Por defecto (sin configurar nada): **cero cambio visual** — mismo icono de siempre, mismo color de siempre.
+- Nueva sección "CE: Estadísticas" en el Customizer, con un repeater: cada fila tiene Número, Sufijo, Etiqueta e Icono (Font Awesome, texto libre saneado — no un selector curado como UX-7.4/D-068, ver Decisión 4 de D-070), más botones para mover antes/después y quitar la fila, y un botón "Añadir estadística" al final.
+- Por defecto (sin tocar nada): el panel aparece **ya poblado** con las 4 estadísticas que el Home mostraba antes de este Entregable (`350+`/`280+`/`12+`/`60+`) — editables directamente, sin tener que recrearlas desde cero. El Home renderiza exactamente lo mismo que antes — **cero cambio visual por defecto**.
+- Si el administrador quita todas las estadísticas y publica, la sección de Estadísticas se oculta por completo del Home (igual que otras secciones basadas en contenido, ej. Servicios/Proyectos cuando no hay posts publicados).
+- El filtro de desarrollador `ce_stats_items` (ya existente antes de este Entregable) sigue funcionando exactamente igual, ahora aplicado sobre el resultado del theme_mod en vez de sobre el array hardcodeado.
 
-### Archivos creados / modificados (Sprint UX-7, Entregable UX-7.4)
-- **Nuevo:** ninguno.
-- `inc/customizer.php` — 4 controles nuevos (`ce_cta_icon`, `ce_cta_btn_color`, `ce_cta2_icon`, `ce_cta2_btn_color`), `sanitize_callback` nuevo `ce_construction_sanitize_cta_icon()`, `ce_construction_customizer_css()` extendida con 2 bloques CSS condicionales.
-- `inc/helpers.php` — nueva función `ce_construction_hex_darken()`.
-- `template-parts/cta.php` — icono dinámico en la rama de ancho completo (`$btn_icon`); sin cambios en la rama `'sidebar'`.
-- Sin cambios: `assets/css/main.css`, sidebars, Home Builder, sistema de cotización, Sprint 8, `style.css` (sin bump).
+### Archivos creados / modificados (Sprint UX-7, Entregable UX-7.6)
+- **Nuevo:** `assets/js/admin-stats-items.js`.
+- `inc/helpers.php` — 4 funciones nuevas (`ce_construction_default_stats_items()`, `ce_construction_default_stats_items_json()`, `ce_construction_decode_stats_items()`, `ce_construction_get_stats_items()`).
+- `inc/customizer.php` — nueva sección "CE: Estadísticas" + 1 `add_setting`/`add_control` (control custom `CE_Customize_Stats_Items_Control`), `sanitize_callback` nuevo, y la definición de la clase del control + estilos admin (mismo patrón estructural que el bloque de `ce_hero_slides`).
+- `inc/enqueue.php` — nueva función de encolado del script admin (`customize_controls_enqueue_scripts`).
+- `template-parts/stats.php` — reemplaza el array hardcodeado por `ce_construction_get_stats_items()`, añade guarda de sección vacía, cambia la clase de grid a `ce-stats-grid`.
+- `assets/css/main.css` — sección 29, aditiva (`.ce-stats-grid`).
+- Sin cambios: Home Builder (el registro de la clave `stats` ya existía desde UX-1.1, sin tocar), sistema de cotización, CTA, sidebars, Hero, logo Header/Footer, Sprint 8, `style.css` (sin bump).
 
 ### Próximo paso
-Con UX-7.4 entregado, el Sprint UX-7 **no avanza a UX-7.5** sin tu aprobación explícita de UX-7.4 (D-038, modalidad Entregable por Entregable).
+Con UX-7.6 entregado, el Sprint UX-7 **no avanza a UX-7.7** sin tu aprobación explícita de UX-7.6 (D-038, modalidad Entregable por Entregable ya elegida por el usuario).
+
+### ✅ Cierre de UX-7.4 (esta sesión)
+
+UX-7.4 queda **aprobado explícitamente por el usuario** en esta sesión, junto con la instrucción de iniciar UX-7.5 en modalidad Entregable por Entregable (D-038). Ningún archivo de código adicional fue tocado en este cierre. Detalle: `docs/DECISIONS.md` D-068.
+
+### 🆕 UX-7.5 entregado — pendiente de tu aprobación explícita (histórico — ya aprobado, ver más arriba)
+
+Se implementó UX-7.5 conforme al alcance de `docs/UX_CONVERSION_ANALISIS_Y_PLAN.md` §8.4 (nuevo theme_mod opcional `ce_footer_logo`, con fallback automático al logo del sitio si no se configura), sin ambigüedad que requiriera detenerse a consultar. Detalle técnico completo, incluidas las 5 decisiones tomadas y las alternativas descartadas: `docs/DECISIONS.md` D-069.
+
+**Resumen del comportamiento nuevo:**
+- Nuevo campo "Logo del Footer (opcional)" en "CE: Footer" (Customizer) — pensado para una variante de logo distinta para el fondo oscuro del footer (p. ej. una versión en blanco/clara).
+- Si no se configura: el footer sigue mostrando el logo nativo del sitio ("Identidad del sitio"), exactamente igual que antes de este Entregable — **cero cambio visual por defecto**.
+- `header.php` **no fue tocado** — sigue usando exclusivamente el logo nativo del sitio, conforme al alcance explícito del plan.
+- Nuevo helper `ce_render_footer_logo()` (`inc/helpers.php`) centraliza los 3 niveles de fallback (logo del footer → logo nativo del sitio → nombre del sitio en texto).
+
+### Archivos creados / modificados (Sprint UX-7, Entregable UX-7.5)
+- **Nuevo:** ninguno.
+- `inc/customizer.php` — 1 control nuevo (`ce_footer_logo`, `WP_Customize_Media_Control`) en la sección "CE: Footer" ya existente.
+- `inc/helpers.php` — nueva función `ce_render_footer_logo()`.
+- `footer.php` — bloque de logo reemplazado por una llamada a la nueva función; resto del archivo sin cambios.
+- Sin cambios: `header.php`, `assets/css/main.css` (la regla `.ce-footer__brand img` ya existente cubre el nuevo markup), sidebars, Home Builder, CTA, sistema de cotización, Sprint 8, `style.css` (sin bump).
+
+### Próximo paso (histórico — superado, ver estado vigente arriba)
+~~Con UX-7.5 entregado, el Sprint UX-7 no avanza a UX-7.6 sin tu aprobación explícita de UX-7.5~~ — **resuelto:** UX-7.5 aprobado explícitamente por el usuario en la sesión siguiente, junto con la instrucción de iniciar UX-7.6. UX-7.6 ya fue entregado (ver sección de arriba) y es ahora el que está pendiente de aprobación.
 
 ### Trabajo realizado (Entregable UX-7.2)
 

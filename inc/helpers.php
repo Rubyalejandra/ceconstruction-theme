@@ -610,3 +610,210 @@ function ce_construction_hex_darken( $hex, $percent = 15 ) {
 		)
 	);
 }
+
+/**
+ * Sprint UX-7, Entregable UX-7.5 ("Logo independiente Header/Footer").
+ *
+ * Imprime el logo del footer, con 3 niveles de fallback, en este
+ * orden:
+ *   1. `ce_footer_logo` (theme_mod nuevo de este Entregable) — si el
+ *      administrador subió una variante de logo específica para el
+ *      footer, se usa esa, envuelta en el MISMO markup
+ *      (`a.custom-logo-link > img.custom-logo`) que ya produce
+ *      `the_custom_logo()` nativo — así el footer conserva el
+ *      enlace a portada y ninguna regla CSS nueva es necesaria
+ *      (`.ce-footer__brand img`, main.css, ya aplica).
+ *   2. `has_custom_logo()` / `the_custom_logo()` — el logo nativo del
+ *      sitio ("Identidad del sitio"), igual que antes de este
+ *      Entregable si no se configura `ce_footer_logo`.
+ *   3. Nombre del sitio en texto (`bloginfo( 'name' )`) — igual que
+ *      antes de este Entregable si no hay ningún logo configurado.
+ *
+ * Centraliza en un único helper la lógica que antes vivía inline en
+ * footer.php, siguiendo el mismo criterio ya aplicado en el resto
+ * del tema (p. ej. `ce_render_social_icons()`) de no duplicar
+ * markup condicional directamente en los templates. `header.php` NO
+ * usa este helper — sigue llamando a `has_custom_logo()`/
+ * `the_custom_logo()` directamente, sin cambios (alcance de UX-7.5,
+ * ver DECISIONS.md D-069).
+ */
+function ce_render_footer_logo() {
+	$footer_logo_id = get_theme_mod( 'ce_footer_logo' );
+
+	if ( $footer_logo_id ) {
+		$image = wp_get_attachment_image(
+			$footer_logo_id,
+			'full',
+			false,
+			array( 'class' => 'custom-logo' )
+		);
+
+		if ( $image ) {
+			printf(
+				'<a href="%1$s" class="custom-logo-link" rel="home">%2$s</a>',
+				esc_url( home_url( '/' ) ),
+				$image // Ya escapado por wp_get_attachment_image().
+			);
+			return;
+		}
+		// $footer_logo_id apunta a un adjunto inexistente/borrado:
+		// wp_get_attachment_image() devuelve '' — cae a los
+		// fallbacks de abajo en vez de imprimir un <a> vacío.
+	}
+
+	if ( has_custom_logo() ) {
+		the_custom_logo();
+		return;
+	}
+	?>
+	<h3 class="ce-text-white"><?php bloginfo( 'name' ); ?></h3>
+	<?php
+}
+
+/* =========================================================
+ * Sprint UX-7, Entregable UX-7.6 ("Estadísticas configurables
+ * desde el Customizer"). Ver docs/DECISIONS.md D-070.
+ *
+ * template-parts/stats.php tenía sus 4 estadísticas (número,
+ * sufijo, etiqueta, icono) escritas directamente en un array de
+ * PHP, con cantidad fija. Este bloque reemplaza esa fuente por un
+ * theme_mod editable (control repeater custom del Customizer, ver
+ * inc/customizer.php "CE: Estadísticas"), conservando el filtro
+ * `ce_stats_items` ya existente como mecanismo de fallback/
+ * extensión para desarrolladores — sin eliminarlo, tal como pide
+ * explícitamente el plan (UX_CONVERSION_ANALISIS_Y_PLAN.md §8.4).
+ * ========================================================= */
+
+/**
+ * Valores por defecto — idénticos a los 4 que
+ * template-parts/stats.php tenía hardcodeados antes de este
+ * Entregable. Se usan como `default` del setting
+ * `ce_stats_custom_items` (para que el panel del Customizer
+ * aparezca ya poblado y editable, en vez de vacío) y como
+ * comportamiento efectivo mientras el administrador no lo toque:
+ * cero cambio visual por defecto.
+ *
+ * @return array<int,array{count:int,suffix:string,label:string,icon:string}>
+ */
+function ce_construction_default_stats_items() {
+	return array(
+		array(
+			'count'  => 350,
+			'suffix' => '+',
+			'label'  => __( 'Proyectos realizados', 'ce-construction' ),
+			'icon'   => 'fa-solid fa-building',
+		),
+		array(
+			'count'  => 280,
+			'suffix' => '+',
+			'label'  => __( 'Clientes satisfechos', 'ce-construction' ),
+			'icon'   => 'fa-solid fa-face-smile',
+		),
+		array(
+			'count'  => 12,
+			'suffix' => '+',
+			'label'  => __( 'Años de experiencia', 'ce-construction' ),
+			'icon'   => 'fa-solid fa-award',
+		),
+		array(
+			'count'  => 60,
+			'suffix' => '+',
+			'label'  => __( 'Empleados', 'ce-construction' ),
+			'icon'   => 'fa-solid fa-helmet-safety',
+		),
+	);
+}
+
+/**
+ * Versión JSON de ce_construction_default_stats_items(), usada
+ * como `default` del setting `ce_stats_custom_items`
+ * (inc/customizer.php) y como respaldo de
+ * ce_construction_get_stats_items() si el theme_mod no se ha
+ * guardado nunca.
+ */
+function ce_construction_default_stats_items_json() {
+	return wp_json_encode( ce_construction_default_stats_items() );
+}
+
+/**
+ * Decodifica y normaliza el JSON guardado en `ce_stats_custom_items`.
+ * Única fuente de saneamiento para este dato: la usan tanto el
+ * `sanitize_callback` del setting (`ce_construction_sanitize_stats_items()`,
+ * inc/customizer.php) como el `render_content()` del control repeater
+ * (`CE_Customize_Stats_Items_Control`) como `ce_construction_get_stats_items()`
+ * (frontend) — evita que el panel de administración y el resultado
+ * renderizado puedan divergir por sanear cada uno a su manera.
+ *
+ * Tolerante a datos corruptos/vacíos: cualquier item sin `label` (el
+ * único campo obligatorio) se descarta en silencio. El icono se sanea
+ * con la misma whitelist de caracteres ya usada por
+ * `ce_render_service_icon()` (solo letras/números/guiones/espacios,
+ * válido para clases Font Awesome) — a diferencia del selector
+ * curado de UX-7.4/D-068 (un único icono, alta visibilidad), aquí se
+ * mantiene texto libre saneado, el mismo criterio que ya usa el
+ * campo "Clase de icono Font Awesome" del metabox de Servicio
+ * (inc/meta-boxes.php), consistente con que este es un repeater de
+ * cantidad variable, no un único selector.
+ *
+ * Límite defensivo de 12 estadísticas (no exigido por el plan, que
+ * solo pide "cantidad variable, no fija en 4"): protege el layout de
+ * un número no realista de items sin bloquear el caso de uso real
+ * del benchmark competitivo que originó este Entregable (D-058).
+ *
+ * @param string $json Valor guardado (JSON) o cadena vacía/corrupta.
+ * @return array<int,array{count:int,suffix:string,label:string,icon:string}>
+ */
+function ce_construction_decode_stats_items( $json ) {
+	$items = json_decode( (string) $json, true );
+	if ( ! is_array( $items ) ) {
+		return array();
+	}
+
+	$normalized = array();
+	foreach ( $items as $item ) {
+		if ( ! is_array( $item ) ) {
+			continue;
+		}
+
+		$label = isset( $item['label'] ) ? sanitize_text_field( $item['label'] ) : '';
+		if ( '' === $label ) {
+			continue; // La etiqueta es el único campo obligatorio: sin ella, la fila se descarta.
+		}
+
+		$icon = isset( $item['icon'] ) ? preg_replace( '/[^a-zA-Z0-9\-\s]/', '', $item['icon'] ) : '';
+		$icon = trim( (string) $icon );
+		if ( '' === $icon ) {
+			$icon = 'fa-solid fa-chart-line';
+		}
+
+		$normalized[] = array(
+			'count'  => isset( $item['count'] ) ? absint( $item['count'] ) : 0,
+			'suffix' => isset( $item['suffix'] ) ? sanitize_text_field( mb_substr( (string) $item['suffix'], 0, 6 ) ) : '',
+			'label'  => mb_substr( $label, 0, 60 ),
+			'icon'   => $icon,
+		);
+
+		if ( count( $normalized ) >= 12 ) {
+			break;
+		}
+	}
+
+	return $normalized;
+}
+
+/**
+ * Devuelve las estadísticas efectivas a renderizar en
+ * template-parts/stats.php: decodifica el theme_mod
+ * `ce_stats_custom_items` (con el JSON por defecto de arriba si el
+ * administrador nunca lo tocó) y aplica el filtro `ce_stats_items`
+ * ya existente antes de este Entregable — se conserva sin
+ * eliminarlo, tal como exige el plan, para no romper ninguna
+ * extensión de desarrollador que ya lo estuviera usando.
+ *
+ * @return array
+ */
+function ce_construction_get_stats_items() {
+	$raw   = get_theme_mod( 'ce_stats_custom_items', ce_construction_default_stats_items_json() );
+	$items = ce_construction_decode_stats_items( $raw );
+	return apply_filters( 'ce_stats_items', $items );
+}

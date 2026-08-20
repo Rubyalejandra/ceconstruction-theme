@@ -202,3 +202,44 @@ function ce_construction_enqueue_hero_slides_control_script() {
 	) );
 }
 add_action( 'customize_controls_enqueue_scripts', 'ce_construction_enqueue_hero_slides_control_script' );
+
+/* =========================================================
+ * SPRINT UX-7, ENTREGABLE UX-7.6 — Estadísticas configurables:
+ * script del control custom `CE_Customize_Stats_Items_Control`
+ * (ver inc/customizer.php). Mismo criterio de ubicación/hook que
+ * ce_construction_enqueue_hero_slides_control_script() (arriba):
+ * este archivo es "el único archivo válido de encolado de assets"
+ * del proyecto (ver docs/TREE.md) — inc/customizer.php define el
+ * control, este archivo se limita a encolar su JS.
+ *
+ * Sin dependencia de 'media-editor': el control no usa `wp.media`
+ * (son campos de texto, no imágenes). Sin 'jquery-ui-sortable': el
+ * reordenamiento es por botones "mover antes/después", mismo
+ * criterio ya usado por admin-hero-slides.js (ver DECISIONS.md
+ * D-055, aplicado aquí también — ver D-070).
+ *
+ * Localización: los textos de las etiquetas de cada fila nueva
+ * (creada por JS al pulsar "Añadir estadística") se pasan vía
+ * wp_localize_script(), mismo patrón ya usado para
+ * `ceHeroSlidesData` arriba — ningún string se hardcodea en el JS.
+ *
+ * Ver DECISIONS.md D-070.
+ * ========================================================= */
+function ce_construction_enqueue_stats_items_control_script() {
+	wp_enqueue_script(
+		'ce-admin-stats-items',
+		CE_THEME_URI . '/assets/js/admin-stats-items.js',
+		array( 'jquery', 'customize-controls' ),
+		ce_construction_asset_version( 'assets/js/admin-stats-items.js' ),
+		true
+	);
+
+	wp_localize_script( 'ce-admin-stats-items', 'ceStatsItemsData', array(
+		'labelCount'  => __( 'Número', 'ce-construction' ),
+		'labelSuffix' => __( 'Sufijo', 'ce-construction' ),
+		'labelLabel'  => __( 'Etiqueta', 'ce-construction' ),
+		'labelIcon'   => __( 'Icono (Font Awesome, ej. fa-solid fa-building)', 'ce-construction' ),
+		'labelRemove' => __( 'Quitar', 'ce-construction' ),
+	) );
+}
+add_action( 'customize_controls_enqueue_scripts', 'ce_construction_enqueue_stats_items_control_script' );
