@@ -870,6 +870,54 @@ function ce_construction_customize_register( $wp_customize ) {
 		'section' => 'ce_section_testimonials',
 		'type'    => 'url',
 	) );
+
+	/* -----------------------------------------------------------
+	 * 11. GOOGLE REVIEWS — TRUSTINDEX (Sprint UX-10, Entregable
+	 * UX-10.3). Ver DECISIONS.md D-075 (corrige la premisa funcional
+	 * de D-072/D-073: Trustindex no se normaliza hacia
+	 * content-testimonio-card.php, se embebe tal cual como sección
+	 * independiente del Home Builder) y D-076 (implementación).
+	 *
+	 * Un único campo: el código de embed/shortcode que el propio
+	 * Trustindex genera para la cuenta del cliente (típicamente un
+	 * <script class="ti-widget" ...></script>, o un <div>/<iframe>
+	 * según el tipo de widget elegido en su dashboard). El tema NO
+	 * se conecta a ninguna API ni reformatea esas reseñas — Trustindex
+	 * sigue siendo el proveedor y presentador visual completo. Sin
+	 * este campo configurado, la sección se oculta por completo
+	 * (mismo criterio de auto-ocultado que "CE: Insignias de
+	 * Confianza", D-071).
+	 *
+	 * sanitize_callback dedicado (ce_construction_sanitize_google_reviews_embed,
+	 * definida más abajo): ni sanitize_text_field() ni wp_kses_post()
+	 * sirven aquí porque ambas eliminarían el <script> que Trustindex
+	 * requiere. Se usa wp_kses() con una lista explícita y cerrada de
+	 * etiquetas/atributos (script/div/iframe/span/a) — igual de
+	 * restrictivo que el resto de campos del proyecto en espíritu
+	 * (nunca "sin sanitizar"), pero ajustado a los formatos de embed
+	 * reales que Trustindex documenta. El campo solo es alcanzable por
+	 * un administrador con la capacidad 'edit_theme_options' (la que
+	 * ya exige WordPress para llegar al Customizer) — mismo nivel de
+	 * confianza que WordPress deposita en un administrador para, p.
+	 * ej., el editor de CSS adicional o los propios archivos del tema.
+	 * --------------------------------------------------------- */
+	$wp_customize->add_section( 'ce_section_google_reviews', array(
+		'title'       => __( 'CE: Google Reviews (Trustindex)', 'ce-construction' ),
+		'description' => __( 'Pega aquí el código de embed/shortcode que tu cuenta de Trustindex genera para mostrar tus reseñas de Google (script, div o iframe, según el widget que elijas en su dashboard). El tema no se conecta a Trustindex ni reformatea las reseñas: solo imprime este código tal cual, en su propia sección del Home. Sin este campo, la sección no se muestra. Publica para aplicar los cambios.', 'ce-construction' ),
+		'priority'    => 41,
+	) );
+
+	$wp_customize->add_setting( 'ce_google_reviews_embed', array(
+		'default'           => '',
+		'sanitize_callback' => 'ce_construction_sanitize_google_reviews_embed',
+		'transport'         => 'refresh',
+	) );
+	$wp_customize->add_control( 'ce_google_reviews_embed', array(
+		'label'       => __( 'Código de embed de Trustindex', 'ce-construction' ),
+		'description' => __( 'Cópialo tal cual desde tu cuenta de Trustindex (Dashboard → Widgets → Embed). Admite script, div e iframe; cualquier otra etiqueta se elimina por seguridad.', 'ce-construction' ),
+		'section'     => 'ce_section_google_reviews',
+		'type'        => 'textarea',
+	) );
 }
 add_action( 'customize_register', 'ce_construction_customize_register' );
 
@@ -1143,6 +1191,81 @@ function ce_construction_sanitize_checkbox( $value ) {
 function ce_construction_sanitize_hero_slides( $value ) {
 	$ids = ce_get_hero_slide_ids( is_string( $value ) ? $value : '' );
 	return implode( ',', $ids );
+}
+
+/* =========================================================
+ * SPRINT UX-10, ENTREGABLE UX-10.3 — Google Reviews (Trustindex),
+ * embebido tal cual como sección independiente del Home Builder.
+ * Ver DECISIONS.md D-075 (corrección de premisa funcional) y D-076
+ * (implementación de este Entregable).
+ * ========================================================= */
+
+/**
+ * `sanitize_callback` de `ce_google_reviews_embed`.
+ *
+ * Ni `sanitize_text_field()` ni `wp_kses_post()` sirven aquí: ambas
+ * eliminarían el `<script>` que los widgets de Trustindex suelen
+ * requerir para funcionar. Se usa `wp_kses()` con una lista blanca
+ * explícita y cerrada de etiquetas/atributos — cubre los 3 formatos
+ * de embed que Trustindex documenta en su dashboard (script "ti-widget"
+ * asíncrono, contenedor <div> con atributos data-*, o <iframe> para
+ * el modo de widget alojado) sin abrir la puerta a HTML/JS arbitrario
+ * fuera de esa lista. Cualquier otra etiqueta/atributo se descarta en
+ * silencio (comportamiento estándar de wp_kses(), sin errores ni
+ * avisos) — el administrador puede ver el resultado de inmediato en
+ * el propio campo tras guardar.
+ *
+ * El campo solo es alcanzable por un administrador con la capacidad
+ * 'edit_theme_options' (ya exigida por WordPress para llegar al
+ * Customizer) — no se añade una verificación de capacidad adicional
+ * aquí porque sería redundante con la que el propio Customizer ya
+ * aplica antes de invocar este callback.
+ */
+function ce_construction_sanitize_google_reviews_embed( $value ) {
+	$value = is_string( $value ) ? wp_unslash( $value ) : '';
+
+	$allowed_html = array(
+		'script' => array(
+			'class' => true,
+			'id'    => true,
+			'src'   => true,
+			'async' => true,
+			'defer' => true,
+			'type'  => true,
+		),
+		'div'    => array(
+			'class'  => true,
+			'id'     => true,
+			'data-*' => true,
+		),
+		'span'   => array(
+			'class' => true,
+			'id'    => true,
+		),
+		'a'      => array(
+			'class'  => true,
+			'id'     => true,
+			'href'   => true,
+			'target' => true,
+			'rel'    => true,
+		),
+		'iframe' => array(
+			'class'           => true,
+			'id'              => true,
+			'src'             => true,
+			'width'           => true,
+			'height'          => true,
+			'frameborder'     => true,
+			'scrolling'       => true,
+			'style'           => true,
+			'loading'         => true,
+			'allow'           => true,
+			'allowfullscreen' => true,
+			'referrerpolicy'  => true,
+		),
+	);
+
+	return wp_kses( $value, $allowed_html );
 }
 
 /**

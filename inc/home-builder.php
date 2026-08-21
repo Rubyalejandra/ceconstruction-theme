@@ -191,6 +191,35 @@ function ce_construction_home_sections() {
 			'label'    => __( 'Insignias de Confianza', 'ce-construction' ),
 			'template' => 'template-parts/trust-badges',
 		),
+		// 🆕 Sprint UX-10, Entregable UX-10.3: "Google Reviews (Trustindex)"
+		// (ver DECISIONS.md D-075 y D-076). Registrada aquí, junto al
+		// resto, por el mismo requisito explícito ya aplicado a
+		// team/clients/faq/cta_secondary/trust_badges: queda disponible
+		// automáticamente vía [ce_section key="google_reviews"] (UX-6.2)
+		// en cuanto exista contenido, sin arquitectura paralela.
+		// Deliberadamente NO extiende ni reutiliza 'testimonials' /
+		// 'testimonials_full' — ambas fuentes (CPT propio vía
+		// content-testimonio-card.php, y Google Reviews vía el widget/
+		// shortcode que el propio Trustindex genera) se mantienen
+		// conceptualmente separadas, sin normalización de datos entre
+		// ellas (D-075 corrige la premisa original de D-072/D-073, que
+		// asumía "mismo componente visual para ambas fuentes" como un
+		// requisito que en realidad nunca fue independiente). NO forma
+		// parte del orden activo por defecto (mismo criterio que
+		// team/clients/faq/trust_badges, ver
+		// ce_construction_default_home_order()): además de no estar
+		// activada, no tiene ningún embed configurado por defecto — el
+		// propio contenido vacío ya la oculta (ver
+		// template-parts/google-reviews.php). Con 'testimonials' y
+		// 'google_reviews' como dos claves independientes del mismo
+		// registro, activar/desactivar/reordenar cada una desde el panel
+		// "CE: Home Builder" resuelve por sí solo las 4 combinaciones
+		// (solo CPT / solo Trustindex / ambos / ninguno) sin que UX-10.4
+		// necesite un selector de fuente propio (D-075, Decisión 2).
+		'google_reviews' => array(
+			'label'    => __( 'Google Reviews (Trustindex)', 'ce-construction' ),
+			'template' => 'template-parts/google-reviews',
+		),
 	) );
 }
 
@@ -215,6 +244,15 @@ function ce_construction_home_sections() {
  * grid completo pensada para una Página dedicada vía
  * [ce_section key="testimonials_full"], no para el Home (que sigue
  * mostrando el teaser/slider de la clave 'testimonials', sin cambios).
+ *
+ * 🆕 Sprint UX-10, Entregable UX-10.3 (D-075/D-076): 'google_reviews'
+ * también queda fuera de este array por el mismo criterio — activarla
+ * en el Home es una decisión explícita del administrador (requiere
+ * además que configure su propio embed de Trustindex desde el
+ * Customizer), no algo que deba aparecer automáticamente. Con
+ * 'testimonials' y 'google_reviews' como claves independientes, el
+ * administrador decide desde este mismo panel si el Home muestra
+ * testimonios propios, Google Reviews, ambos o ninguno.
  *
  * @return string[] Claves de ce_construction_home_sections(), en orden.
  */

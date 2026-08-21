@@ -1715,3 +1715,29 @@ a.ce-trust-badge--compact:hover {
 a.ce-trust-badge--compact:hover .ce-trust-badge__label {
   color: var(--ce-color-secondary-text);
 }
+
+/* =============================================================
+   31. SPRINT UX-10, ENTREGABLE UX-10.3 — GOOGLE REVIEWS (TRUSTINDEX).
+   Sección añadida sin modificar ninguna regla anterior. Ver
+   DECISIONS.md D-075 (corrige la premisa funcional de D-072/D-073)
+   y D-076 (implementación de este Entregable).
+
+   Deliberadamente mínima: el widget de Trustindex trae su propio
+   diseño interno (tarjetas, carrusel, tipografía) — este tema no lo
+   reproduce ni lo sobreescribe (D-075: ambas fuentes se mantienen
+   conceptualmente separadas, sin normalización visual entre ellas).
+   Esta única clase solo resuelve el contenedor donde se imprime ese
+   embed dentro de `.ce-container`:
+     - Ancho completo (no `.ce-max-w-content`, a diferencia del
+       encabezado de la sección): los widgets de Trustindex suelen
+       ser carruseles/grids de varias reseñas que necesitan más
+       espacio horizontal que un párrafo de texto centrado.
+     - `overflow-x: auto` como defensa ante un embed que imponga un
+       ancho mínimo mayor al viewport en móvil (ej. un <iframe> de
+       ancho fijo) — evita que desborde el layout general de la
+       página en vez de solo scrollear su propio contenido.
+   ============================================================= */
+.ce-google-reviews-embed {
+  width: 100%;
+  overflow-x: auto;
+}

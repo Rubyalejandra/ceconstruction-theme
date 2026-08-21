@@ -298,10 +298,12 @@ Con UX-7.7 ya aprobado (ver arriba), el usuario solicitó evaluar — como **req
 
 | Entregable | Objetivo | Estado |
 |---|---|---|
-| UX-10.1 | Página dedicada de Testimonios: `page.php` + `[ce_section key="testimonials_full"]` (decisión de diseño confirmada por el usuario: Página + shortcode, no `archive-testimonio.php` nativo), grid completo con paginación, solo CPT propio `testimonio` | 🟡 **Entregado — pendiente de tu aprobación explícita.** Ver `docs/DECISIONS.md` D-073. |
-| UX-10.2 | CTA "Ver todos los testimonios" en el teaser del Home, enlazando a la página de UX-10.1 | 🟡 **Entregado — pendiente de tu aprobación explícita.** Cerrado en el mismo Entregable que UX-10.1 (mismo enlace de destino, por instrucción explícita del usuario). Ver `docs/DECISIONS.md` D-073. |
-| UX-10.3 | Integración de Google Reviews vía Trustindex (proveedor confirmado por el usuario, debe soportar cualquier plan contratado) | ⬜ **No inicia sin tu aprobación explícita de UX-10.1 + UX-10.2** (instrucción explícita del usuario). |
-| UX-10.4 | Selector de fuente en el Customizer (propios/Google/ambos) | ⬜ No iniciado — depende de UX-10.1 y UX-10.3. |
+| UX-10.1 | Página dedicada de Testimonios: `page.php` + `[ce_section key="testimonials_full"]` (decisión de diseño confirmada por el usuario: Página + shortcode, no `archive-testimonio.php` nativo), grid completo con paginación, solo CPT propio `testimonio` | ✅ **Aprobado explícitamente por el usuario.** Protegido explícitamente sin cambios por D-075. Ver `docs/DECISIONS.md` D-073. |
+| UX-10.2 | CTA "Ver todos los testimonios" en el teaser del Home, enlazando a la página de UX-10.1 | ✅ **Aprobado explícitamente por el usuario**, junto con UX-10.1 (mismo enlace de destino). Protegido explícitamente sin cambios por D-075. Ver `docs/DECISIONS.md` D-073. |
+| UX-10.3 | ~~Integración de Google Reviews vía Trustindex, normalizada hacia `content-testimonio-card.php`~~ → **Nueva sección independiente `google_reviews` en el Home Builder**, que embebe el widget/shortcode de Trustindex tal cual (sin normalización de datos, sin tocar `content-testimonio-card.php`) | ✅ **Aprobado explícitamente por el usuario. Implementado.** Ver `docs/DECISIONS.md` D-075 (alcance) y D-076 (implementación). |
+| UX-10.4 | ~~Selector de fuente `ce_testimonials_source` (propios/Google/ambos)~~ → **Absorbido por el Home Builder existente**: con `testimonials` y `google_reviews` como claves independientes, activar/desactivar/reordenar desde "CE: Home Builder" ya resuelve las 4 combinaciones (solo CPT / solo Trustindex / ambos / ninguno), sin mecanismo nuevo | ✅ **Sin backlog pendiente bajo este nombre — absorbido por el Home Builder. Ver D-075, Decisión 2, y D-076.** |
+
+**🎉 Sprint UX-10 completo** (UX-10.1, UX-10.2, UX-10.3 aprobados; UX-10.4 sin Entregable propio) — se cumple la condición fijada en D-072: el Sprint UX-7 puede retomarse en UX-7.8.
 
 ### Trabajo realizado (Entregables UX-10.1 + UX-10.2)
 
@@ -325,8 +327,38 @@ Detalle técnico completo (5 decisiones + alternativas descartadas): `docs/DECIS
 ### Validaciones ejecutadas
 Sin entorno WordPress/navegador real disponible (misma limitación metodológica de Entregables anteriores): balance de tags `<?php`/llaves/paréntesis verificado en los 3 archivos PHP tocados/creados. Trazado lógico manual del flujo del shortcode contra el registro nuevo (misma ruta que ya resuelve `[ce_section key="trust_badges"]`) y de la paginación del `WP_Query` secundario (`get_query_var('paged')`/`get_query_var('page')` + `paginate_links()` con `base`/`format` explícitos). **Pendiente de prueba funcional real en WordPress**, incluida: crear la Página de Testimonios con el shortcode y confirmar el hero heredado, la paginación con más de 9 testimonios publicados, y la aparición del CTA en el Home tras configurar `ce_testimonials_page_url`.
 
+### 🔴→🟢 Bloqueo de UX-10.3 y corrección de su premisa funcional (esta sesión) — ver D-074 y D-075
+
+Con UX-10.1 + UX-10.2 ya **aprobados explícitamente por el usuario**, se verificó la factibilidad real de UX-10.3 antes de escribir código (paso obligatorio de esta sesión) y se encontró que **Trustindex no ofrece API pública** — confirmado contra su propia base de conocimiento oficial: *"Trustindex does not currently offer a public API... all integrations are available directly through the dashboard and widgets."* Solo expone un **widget embebido** (su propia interfaz visual, vía `<script>`/shortcode del propio Trustindex) — no hay reseñas como datos consultables que se puedan normalizar hacia `content-testimonio-card.php`. Esto rompía el criterio de aceptación de UX-10 ("mismo componente visual para ambas fuentes") tal como estaba escrito en D-072/D-073. Registrado como **D-074**, sin fabricar ninguna integración simulada.
+
+**Corrección posterior (D-075):** el usuario planteó, antes de elegir entre las 3 opciones de repliegue de D-074, que "mismo componente visual para ambas fuentes" nunca fue un requisito funcional explícito e independiente — se coló como detalle de implementación dentro de la redacción de "Opción C (Híbrida)" en D-072, sin que existiera nunca una "Opción A" documentada (embeber el widget tal cual) que el usuario hubiera podido comparar y descartar conscientemente. Se revisó el código real (`content-testimonio-card.php`, `inc/home-builder.php`, `inc/section-shortcode.php`) y no se encontró ninguna decisión previa e independiente que exigiera la normalización como objetivo en sí — **el usuario confirmó esta corrección explícitamente.**
+
+**Nueva interpretación aprobada (D-075):** Trustindex se incorpora como una **sección nueva e independiente del Home Builder** (`google_reviews`), que embebe su widget/shortcode tal cual, sin normalizar datos ni tocar `content-testimonio-card.php`. La combinatoria "solo CPT / solo Trustindex / ambos / ninguno" (antes prevista como UX-10.4, un selector `ce_testimonials_source`) queda **absorbida por el propio Home Builder ya existente** (activar/desactivar/reordenar cada sección de forma independiente), sin necesidad de un mecanismo de selección nuevo.
+
+**UX-10.1 y UX-10.2 quedan explícitamente protegidos y sin cambios** por esta corrección — ver el bloque de protección en D-075.
+
+### ✅ Implementación de UX-10.3 (esta sesión, tras tu aprobación explícita del alcance de D-075) — ver D-076
+
+Nueva clave `google_reviews` registrada en `inc/home-builder.php` (fuera del orden activo por defecto, mismo criterio que `team`/`clients`/`faq`/`trust_badges`) — disponible de inmediato vía `[ce_section key="google_reviews"]` y en el panel "CE: Home Builder". Nueva sección "CE: Google Reviews (Trustindex)" en `inc/customizer.php` (`priority = 41`): un único campo `textarea` (`ce_google_reviews_embed`) donde el administrador pega el embed/shortcode que su cuenta de Trustindex genera, saneado con un nuevo `ce_construction_sanitize_google_reviews_embed()` (lista blanca vía `wp_kses()` para `script`/`div`/`iframe`/`span`/`a` — resuelve la Decisión 3 de D-075, ya que ni `sanitize_text_field()` ni `wp_kses_post()` habrían servido sin destruir el `<script>` que Trustindex requiere). Nuevo `template-parts/google-reviews.php`: wrapper de sección (`ce-section ce-section--alt`, mismo criterio visual que `trust-badges.php`), oculto por completo si el campo está vacío, que imprime el embed ya saneado tal cual. Nueva clase CSS mínima `.ce-google-reviews-embed` (sección 31 de `assets/css/main.css`, aditiva).
+
+**Ni `content-testimonio-card.php` ni `template-parts/testimonials.php`/`testimonials-full.php` fueron tocados** — las dos fuentes (CPT propio y Trustindex) permanecen conceptualmente separadas, sin ninguna normalización de datos entre ellas, tal como confirmó el usuario en D-075. Tampoco se tocó `inc/cpt-testimonios.php`, `inc/section-shortcode.php` (ya genérico), el sistema de cotización, ni el Sprint 8.
+
+Detalle técnico completo (5 decisiones + alternativas descartadas): `docs/DECISIONS.md` D-076.
+
+### Archivos creados / modificados (Entregable UX-10.3)
+- **Creado:** `template-parts/google-reviews.php`.
+- **Modificados:** `inc/home-builder.php` (registro aditivo de la clave `google_reviews` + nota en el docblock de `ce_construction_default_home_order()`), `inc/customizer.php` (nueva sección "CE: Google Reviews (Trustindex)", 1 `add_setting`/`add_control` tipo `textarea`, y la función `ce_construction_sanitize_google_reviews_embed()`), `assets/css/main.css` (sección 31, aditiva).
+- **Sin cambios:** `template-parts/content-testimonio-card.php`, `template-parts/testimonials.php`, `template-parts/testimonials-full.php`, `inc/cpt-testimonios.php`, `inc/section-shortcode.php`, `assets/js/admin-home-builder.js`, todo lo entregado en UX-10.1/UX-10.2, todo el sistema de cotización, todo el Sprint 8, `style.css` (sin bump).
+- Eliminados: ninguno.
+
+### Documentación actualizada (en este cierre)
+`docs/DECISIONS.md` (D-076), este mismo archivo (tabla de UX-10.3/UX-10.4 cerrada, este bloque de trabajo realizado). **Diferido a un punto de cierre de Sprint más significativo (criterio D-034):** `docs/UX_CONVERSION_ANALISIS_Y_PLAN.md`, `CHANGELOG.md`, `TREE.md`, `TODO.md`, `PROJECT_STATUS.md`, `HANDOFF.md` — se actualizarán en el cierre formal del Sprint UX-10 (ya alcanzado funcionalmente aquí) o al retomar UX-7.8, lo que ocurra primero. Sin cambios en `ARCHITECTURE.md` (sin cambio de arquitectura: reutiliza el registro central del Home Builder ya documentado desde UX-1.1).
+
+### Validaciones ejecutadas (Entregable UX-10.3)
+Sin entorno WordPress/navegador real disponible (misma limitación metodológica de Entregables anteriores): balance de `<?php`/llaves/paréntesis verificado en los 3 archivos PHP tocados/creados (`inc/home-builder.php`, `inc/customizer.php`, `template-parts/google-reviews.php`). Trazado lógico manual de `wp_kses()` contra los 3 formatos de embed documentados por Trustindex (script asíncrono / div con `data-*` / iframe alojado) y del criterio de auto-ocultado (comprobación sobre la cadena en crudo, no despojada de tags, para no dar un falso vacío ante un embed que sea solo `<script src="...">`). **Pendiente de prueba funcional real en WordPress**, incluida: pegar un embed real de Trustindex y confirmar que ningún atributo necesario es eliminado por `wp_kses()`, activar la sección desde "CE: Home Builder" y confirmar posición/fondo alterno, y probar `[ce_section key="google_reviews"]` en una Página.
+
 ### Próximo paso
-Con UX-10.1 + UX-10.2 entregados, **UX-10.3 (integración de Google Reviews vía Trustindex) no inicia sin tu aprobación explícita de ambos** (D-038, instrucción explícita del usuario en esta misma sesión). El proveedor concreto ya está confirmado (Trustindex, compatible con cualquier plan contratado) — al aprobar, el siguiente paso natural es que indiques las credenciales/plan concretos de la cuenta para poder iniciar UX-10.3.
+**Con UX-10.3 entregado, el Sprint UX-10 queda completo, pendiente únicamente de tu aprobación explícita de este Entregable (D-038).** Al aprobarlo, se cumple la condición fijada en D-072 ("UX-7 se retoma en UX-7.8 solo después de que UX-10 esté completo") y el siguiente paso natural es retomar el Sprint UX-7 en **UX-7.8 ("Testimonio en video")** — con la advertencia ya documentada en `docs/UX_CONVERSION_ANALISIS_Y_PLAN.md` §8.4 de que ese Entregable toca los mismos 3 archivos que UX-10 tocó parcialmente (`inc/cpt-testimonios.php`, `template-parts/testimonials.php`, `content-testimonio-card.php`) — ninguno de los tres fue modificado por UX-10.1/10.2/10.3, así que el conflicto de secuencia original de D-072 sigue sin materializarse, pero deberá revisarse al iniciar UX-7.8. Ver la sección "Prompt documental para el siguiente Entregable" al final de este documento.
 
 ### ✅ Cierre de UX-7.4 (esta sesión)
 
@@ -406,32 +438,38 @@ Sin entorno WordPress/navegador real disponible (misma limitación metodológica
 ### Próximo Entregable (histórico — superado, ver estado vigente arriba)
 ~~Con UX-7.1 entregado, el Sprint UX-7 no avanza a UX-7.2 sin tu aprobación explícita de UX-7.1~~ — **resuelto:** UX-7.1 aprobado explícitamente por el usuario en la sesión siguiente, junto con la instrucción de iniciar UX-7.2 directamente. UX-7.2 ya fue entregado (ver sección de arriba) y es ahora el que está pendiente de aprobación.
 
-### Prompt documental para el siguiente Sprint UX (preparado, sin ejecutar)
+### Prompt documental para el siguiente Entregable (preparado, sin ejecutar) — actualizado tras la implementación de UX-10.3 (D-076): Sprint UX-10 completo, siguiente paso es UX-7.8
 
 ```
-CE Construction — Sprint UX-6 CERRADO Y APROBADO (UX-6.1 + UX-6.2 + UX-6.3),
-ver docs/CURRENT_UX_SPRINT.md y docs/DECISIONS.md D-062.
+CE Construction — Sprint UX-10 COMPLETO Y APROBADO:
+  - UX-10.1 + UX-10.2 (Página de Testimonios + CTA del teaser) — D-073.
+  - UX-10.3 (Google Reviews vía Trustindex, embebido tal cual como
+    sección independiente `google_reviews` del Home Builder, sin
+    normalización hacia content-testimonio-card.php) — D-075/D-076.
+  - UX-10.4 sin Entregable propio, absorbido por el Home Builder
+    existente (activar/desactivar/reordenar `testimonials` y
+    `google_reviews` de forma independiente) — D-075, Decisión 2.
 
 Te adjunto el ZIP con el estado actual del tema y docs/CURRENT_UX_SPRINT.md,
-docs/DECISIONS.md, docs/CHANGELOG.md, docs/TREE.md,
-docs/UX_CONVERSION_ANALISIS_Y_PLAN.md para el detalle completo.
+docs/DECISIONS.md para el detalle completo.
 
-Quiero continuar la fase "Optimización UX / Conversión" con:
-[elige uno — ninguno está aprobado todavía]
-  (a) Sprint UX-5.2 — Documentación de "objetivo de plantilla"
-      (landing/corporativo/construcción/remodelación/servicios).
-  (b) Sprint UX-7 — Consistencia y configurabilidad (Hero Home/interior,
-      columnas + Quote Form en Hero, sidebars, CTA icono/color, logo
-      independiente Header/Footer, + UX-7.6 a UX-7.9 del benchmark
-      competitivo DayBrook Homes / Re-Bath — ver DECISIONS.md D-058).
-      Indica si apruebas el Sprint completo o quieres aprobarlo
-      Entregable por Entregable (UX-7.1, UX-7.2, ...).
+Con UX-10 completo, se cumple la condición fijada en D-072: retomo el
+Sprint UX-7 en UX-7.8 ("Testimonio en video"). Antes de iniciar:
 
-Antes de implementar: analiza la documentación .md relevante y confirma
-coherencia con CURRENT_UX_SPRINT.md. Si encuentras documentación
-desactualizada, actualízala. Si hay discrepancia, detente y consúltame.
-Si aparece alguna decisión fuera del alcance indicado arriba, detente y
-consúltame antes de tocar código. Aplica D-038 (aprobación explícita
-obligatoria por Entregable) en todo momento. Entrega archivos completos
-con ruta exacta, no diffs.
+  - Revisa docs/UX_CONVERSION_ANALISIS_Y_PLAN.md (sección del Sprint
+    UX-7, alcance de UX-7.8) y confirma que sigue vigente tras el
+    tiempo transcurrido y los cambios de UX-10.
+  - Verifica el conflicto de secuencia advertido en D-072: UX-7.8 toca
+    inc/cpt-testimonios.php, template-parts/testimonials.php y
+    content-testimonio-card.php — ningún Entregable de UX-10 modificó
+    esos 3 archivos, así que confirma que siguen exactamente como
+    estaban antes de proponer los cambios de UX-7.8.
+  - Presenta el alcance concreto de UX-7.8 (qué añade el CPT, qué
+    cambia en la card, cómo se integra con el video) ANTES de escribir
+    código, para mi aprobación explícita (D-038).
+
+Si aparece alguna decisión fuera de lo indicado arriba, o si encuentras
+documentación desactualizada, detente y consúltame antes de tocar
+código o documentación. Entrega archivos completos con ruta exacta, no
+diffs.
 ```
