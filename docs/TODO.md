@@ -39,6 +39,7 @@
 - 🟡 Sprint UX-7 "Consistencia y configurabilidad" (Hero Home/interior, columnas + Quote Form en Hero, sidebars, CTA icono/color, logo independiente + UX-7.6 a UX-7.9 del benchmark) — **propuesto, pendiente de tu aprobación explícita** (`DECISIONS.md` D-058).
 - 🟡 Sprint UX-8 "Video en Proyectos" (YouTube/TikTok/oEmbed) — propuesto, futuro, prioridad baja.
 - ⬜ Sprint UX-9 (renumerado del "UX-6" original) — registro de backlog formal de Responsive, documental, sin código — no iniciado.
+- 🆕 Sprint UX-10 "Página de Testimonios: CPT propio + Google Reviews (Opción Híbrida C)" — requerimiento urgente de producción, fuera del catálogo original — propuesto, factibilidad confirmada sin conflicto de fondo, **secuencia pendiente de decisión del usuario** por solapamiento de archivos con UX-7.8 (ver `DECISIONS.md` D-072).
 - Ver `docs/CURRENT_UX_SPRINT.md` (seguimiento vigente) y `docs/UX_CONVERSION_ANALISIS_Y_PLAN.md` (plan completo) para el detalle de alcance de cada Entregable.
 
 *(La sección 23, Backlog — Sprint 8, permanece sin cambios: el Sprint 8 está pausado, no cerrado, y se retoma en el Entregable 8.3 una vez apruebes el 8.2 y esta fase paralela lo permita.)*

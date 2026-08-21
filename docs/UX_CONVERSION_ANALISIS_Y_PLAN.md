@@ -431,6 +431,29 @@ Este hallazgo es el más prioritario de todo el roadmap ampliado: sin resolverlo
   - Alcance: nueva entrada en `TODO.md`/`PROJECT_STATUS.md` ("Sprint Responsive — propuesto, no iniciado") listando explícitamente los 10 puntos del brief original (header superior, espaciados, nav móvil, iconos, Hero móvil, CTA, formularios, grids, imágenes, tipografía, footer). Sin tocar CSS.
   - Nota (sin cambios respecto al plan original): si algún punto de los Sprints UX-6/UX-7/UX-8 requiere un ajuste responsive puntual e indispensable para que la funcionalidad nueva funcione, se resuelve dentro de ese Entregable específico y se documenta como excepción puntual — no como inicio adelantado de este Sprint completo.
 
+---
+
+#### 🆕 Sprint UX-10 — "Página de Testimonios: CPT propio + Google Reviews (Opción Híbrida C)" — 🟡 **Propuesto — secuencia pendiente de tu decisión (ver `DECISIONS.md` D-072).**
+
+**Origen:** requerimiento nuevo, solicitado explícitamente por el usuario como **urgente para producción**, fuera del catálogo original del benchmark competitivo (D-058). No es una extensión de UX-7.7 (insignias) ni de UX-7.8 (video) — es un Sprint independiente, aunque comparte archivos con UX-7.8 (ver nota de secuencia abajo).
+
+**Fuente de datos externa confirmada por el usuario: Opción C (Híbrida).** Un proveedor tipo Trustindex (u homólogo) actúa como gestor de la relación con la API de Google (conexión vía Place ID, import y refresco de reseñas, cumplimiento de términos de uso de Google) — el tema no reimplementa esa capa. El resultado se normaliza al mismo formato de datos que ya usa `content-testimonio-card.php` para un testimonio propio (nombre, texto, rating, foto), y se cachea en un `transient` de WordPress (mismo mecanismo de caché ya usado por `inc/quote-form.php` para el rate-limiting, sin patrón nuevo). Si no hay presupuesto para el plan de pago del proveedor elegido, la alternativa de repliegue es la Opción B (llamada directa a la API oficial de Google Places con API key propia — límite de 5 reseñas por Place ID, cuota gratuita amplia).
+
+**⚠️ Nota de secuencia (ver `DECISIONS.md` D-072 para el análisis completo):** UX-7.8 ("Testimonio en video", todavía sin iniciar) toca los mismos 3 archivos que este Sprint necesita modificar (`inc/cpt-testimonios.php`, `template-parts/testimonials.php`, `content-testimonio-card.php`). **Este Sprint no inicia su primer Entregable hasta que el usuario elija una de las 3 opciones de secuencia registradas en D-072** (después de UX-7 completo / en paralelo ahora con UX-7 pausado en UX-7.7 / intercalado entre UX-7.8 y UX-7.9-7.10).
+
+**Dependencias:** ninguna sobre el sistema de cotización, el Home Builder existente (fuera del registro aditivo estándar) o el Sprint 8 pausado. Sí depende, para su Entregable UX-10.3, de la decisión del usuario sobre el proveedor concreto de Google Reviews a contratar (nombre del servicio, plan, credenciales) — no se puede iniciar ese Entregable en concreto sin esa información.
+
+| Entregable | Objetivo | Riesgo | Estado |
+|---|---|---|---|
+| UX-10.1 | Página dedicada de Testimonios: `archive-testimonio.php` (o `page.php` + `[ce_section key="testimonials"]`, a confirmar cuál patrón — ver Decisión de diseño abajo) con hero interno, grid completo con paginación, usando exclusivamente el CPT propio `testimonio` (sin Google todavía). Requiere activar `has_archive` en `inc/cpt-testimonios.php` si se opta por el archivo nativo. | Bajo — reutiliza patrones ya probados (`archive-clientes.php`, UX-6) | ⬜ No iniciado |
+| UX-10.2 | CTA "Ver todos los testimonios" en el teaser del Home (`template-parts/testimonials.php`), enlazando a la página de UX-10.1 | Bajo | ⬜ No iniciado |
+| UX-10.3 | Integración de Google Reviews (Opción Híbrida C): conexión con el proveedor elegido, normalización de cada reseña al formato de `content-testimonio-card.php`, cacheo vía `transient` | Medio — depende de credenciales/plan del proveedor, primera integración externa del tema | ⬜ No iniciado — requiere que el usuario indique el proveedor/plan concreto antes de comenzar |
+| UX-10.4 | Selector de fuente en el Customizer (`ce_testimonials_source`: propios / Google / ambos), aplicado tanto al teaser del Home como a la página completa de UX-10.1 | Bajo — mismo patrón de `theme_mod` ya usado en UX-7.4/7.5/7.6/7.7 | ⬜ No iniciado — depende de UX-10.1 y UX-10.3 |
+
+**Decisión de diseño pendiente de confirmar antes de UX-10.1:** ¿página vía `archive-testimonio.php` nativo (requiere activar `has_archive` en el CPT, URL amigable tipo `/testimonios/`) o vía una Página de WordPress normal con `[ce_section key="testimonials_full"]` (patrón UX-6.2, más flexible para que el administrador agregue contenido adicional alrededor)? Ambas son viables; se confirmará al iniciar UX-10.1 si no se indica antes.
+
+**Criterios de aceptación del Sprint completo:** (a) la página de Testimonios muestra reseñas propias y/o de Google según el selector del Customizer, con el mismo componente visual para ambas fuentes; (b) el teaser del Home muestra un subconjunto destacado con botón "Ver todos"; (c) responsive verificado en los 3 breakpoints estándar del proyecto; (d) por defecto (Google no configurado, selector en "propios"), cero cambio de comportamiento respecto al testimonials.php actual.
+
 ### 8.5 Clasificación bug/QA vs. funcionalidad UX nueva
 
 La auditoría distinguió explícitamente qué hallazgos son correcciones de algo ya roto frente a funcionalidad nueva:
