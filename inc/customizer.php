@@ -841,6 +841,35 @@ function ce_construction_customize_register( $wp_customize ) {
 		'description' => __( 'La imagen es opcional: sin ella, la insignia se muestra como un icono genérico + la etiqueta de texto. El número de licencia y el enlace de verificación también son opcionales.', 'ce-construction' ),
 		'section'     => 'ce_section_trust_badges',
 	) ) );
+
+	/* -----------------------------------------------------------
+	 * 10. TESTIMONIOS — URL de la página completa (Sprint UX-10,
+	 * Entregable UX-10.2). Ver DECISIONS.md D-073.
+	 *
+	 * Un único campo de texto: la URL de la Página que el propio
+	 * administrador crea con [ce_section key="testimonials_full"]
+	 * (UX-10.1, patrón Página + shortcode ya existente desde UX-6.2,
+	 * NO un archivo nativo con URL auto-generada). El teaser del
+	 * Home (template-parts/testimonials.php) usa este valor para el
+	 * CTA "Ver todos los testimonios"; sin configurar, ese CTA no se
+	 * imprime — mismo criterio de auto-ocultado ya usado por
+	 * "CE: Insignias de Confianza" (D-071).
+	 * --------------------------------------------------------- */
+	$wp_customize->add_section( 'ce_section_testimonials', array(
+		'title'       => __( 'CE: Testimonios', 'ce-construction' ),
+		'description' => __( 'Crea una Página normal de WordPress con el contenido [ce_section key="testimonials_full"] (grid completo de Testimonios con paginación) y pega aquí su URL. El botón "Ver todos los testimonios" del Home no aparece hasta que configures este campo.', 'ce-construction' ),
+		'priority'    => 40,
+	) );
+
+	$wp_customize->add_setting( 'ce_testimonials_page_url', array(
+		'default'           => '',
+		'sanitize_callback' => 'esc_url_raw',
+	) );
+	$wp_customize->add_control( 'ce_testimonials_page_url', array(
+		'label'   => __( 'URL de la página de Testimonios', 'ce-construction' ),
+		'section' => 'ce_section_testimonials',
+		'type'    => 'url',
+	) );
 }
 add_action( 'customize_register', 'ce_construction_customize_register' );
 

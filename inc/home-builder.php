@@ -88,6 +88,31 @@ function ce_construction_home_sections() {
 			'label'    => __( 'Testimonios', 'ce-construction' ),
 			'template' => 'template-parts/testimonials',
 		),
+		// 🆕 Sprint UX-10, Entregable UX-10.1: "Página de Testimonios"
+		// (ver DECISIONS.md D-072 y D-073). Registrada aquí junto al
+		// resto por el mismo requisito ya aplicado a team/clients/faq/
+		// cta_secondary/trust_badges: queda disponible automáticamente
+		// vía [ce_section key="testimonials_full"] (UX-6.2), sin
+		// arquitectura paralela. Deliberadamente NO es una extensión
+		// de la clave 'testimonials' de arriba (esa sigue siendo el
+		// teaser/slider del Home, sin cambios de comportamiento): es
+		// una plantilla nueva e independiente (grid completo +
+		// paginación) porque el layout, la query (paginada, no
+		// limitada a 8) y el propósito (página dedicada, no teaser)
+		// son distintos — mismo criterio que ya separa 'cta' de
+		// 'cta_secondary' (D-056: reutilizar solo cuando el propósito
+		// también coincide, no solo el CPT de origen).
+		// NO forma parte del orden activo por defecto (mismo criterio
+		// que team/clients/faq/trust_badges, ver
+		// ce_construction_default_home_order()): esta sección está
+		// pensada para una Página dedicada de Testimonios (patrón
+		// UX-6.2: Página normal + shortcode, confirmado explícitamente
+		// por el usuario para UX-10.1 — NO archivo nativo
+		// `archive-testimonio.php`), no para el Home.
+		'testimonials_full' => array(
+			'label'    => __( 'Testimonios (página completa)', 'ce-construction' ),
+			'template' => 'template-parts/testimonials-full',
+		),
 		'gallery'      => array(
 			'label'    => __( 'Galería', 'ce-construction' ),
 			'template' => 'template-parts/gallery',
@@ -184,6 +209,12 @@ function ce_construction_home_sections() {
  * administrador, no algo que deba ocurrir en silencio con solo crear
  * el archivo — se activan explícitamente desde el panel "CE: Home
  * Builder" del Customizer (ver DECISIONS.md D-047 y D-048).
+ *
+ * 🆕 Sprint UX-10, Entregable UX-10.1 (D-073): 'testimonials_full'
+ * queda fuera de este array por el mismo criterio — es la sección de
+ * grid completo pensada para una Página dedicada vía
+ * [ce_section key="testimonials_full"], no para el Home (que sigue
+ * mostrando el teaser/slider de la clave 'testimonials', sin cambios).
  *
  * @return string[] Claves de ce_construction_home_sections(), en orden.
  */

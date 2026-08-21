@@ -4,6 +4,20 @@
  * El slider (autoplay, dots, flechas, swipe) es manejado por
  * ModuleTestimonialSlider en assets/js/main.js.
  *
+ * 🆕 Sprint UX-10, Entregable UX-10.2 (ver DECISIONS.md D-073): CTA
+ * "Ver todos los testimonios" al cierre de este teaser, enlazando a
+ * la Página de Testimonios de UX-10.1
+ * ([ce_section key="testimonials_full"]). El destino es un theme_mod
+ * de texto (`ce_testimonials_page_url`, nueva sección "CE:
+ * Testimonios" en el Customizer) porque esa Página la crea el propio
+ * administrador (no existe una URL predecible/auto-generada, a
+ * diferencia de `get_post_type_archive_link()` que ya usan
+ * `projects.php`/`services.php` para sus CPTs con archivo nativo).
+ * Sin configurar: el CTA no se imprime (mismo criterio de
+ * auto-ocultado ya usado por `trust-badges.php`, D-071, Decisión 1)
+ * — cero cambio visual hasta que el administrador cree esa Página y
+ * pegue su URL.
+ *
  * @package CE_Construction
  */
 
@@ -14,6 +28,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 if ( ! ce_cpt_has_posts( 'testimonio' ) ) {
 	return;
 }
+
+$ce_testimonials_page_url = get_theme_mod( 'ce_testimonials_page_url', '' );
 
 $testimonios_query = new WP_Query( array(
 	'post_type'      => 'testimonio',
@@ -61,5 +77,13 @@ $testimonios_query = new WP_Query( array(
 			</div>
 			<div class="ce-slider-nav"></div>
 		</div>
+
+		<?php if ( $ce_testimonials_page_url ) : ?>
+			<div class="ce-text-center ce-mt-5">
+				<a href="<?php echo esc_url( $ce_testimonials_page_url ); ?>" class="ce-btn ce-btn--dark">
+					<?php esc_html_e( 'Ver todos los testimonios', 'ce-construction' ); ?>
+				</a>
+			</div>
+		<?php endif; ?>
 	</div>
 </section>
