@@ -724,6 +724,16 @@
 							$$('.ce-field', this.form).forEach((f) => f.classList.remove('is-valid', 'is-invalid'));
 							if (this.parentModalOverlay) ModuleModals.close(this.parentModalOverlay);
 							ModuleModals.open('ce-modal-success');
+							// 🆕 Sprint UX-7, Entregable UX-7.10 (D-079): evento
+							// desacoplado de "envío exitoso", sin tocar la lógica
+							// de validación/AJAX/nonce de este módulo. Lo escucha
+							// ModuleOfferPopup para saber si ESTE envío en
+							// particular corresponde a una conversión originada
+							// por su propio CTA (ver ModuleOfferPopup.pendingConversion
+							// más abajo) — cualquier otro envío del Formulario de
+							// Cotización en el sitio dispara el mismo evento sin
+							// ningún efecto adicional si nadie lo escucha.
+							document.dispatchEvent(new CustomEvent('ce:quoteFormSuccess'));
 						} else {
 							const msg = (data.data && data.data.message) || CE.i18n.error;
 							this.showStatus(msg, 'error');
@@ -863,6 +873,153 @@
 	};
 
 	/* ============================================================
+	 * MÓDULO: POPUP DE OFERTA (Sprint UX-7, Entregable UX-7.10, D-079/D-081)
+	 *
+	 * Componente independiente del Formulario de Cotización: reutiliza
+	 * `ModuleModals.open()`/`close()` tal cual para la mecánica de
+	 * apertura/cierre (mismo overlay `.ce-modal-overlay`, así que el
+	 * botón de cerrar, el clic en el fondo y la tecla Escape ya
+	 * funcionan gratis vía `ModuleModals.init()` — no se reimplementa
+	 * nada de eso aquí). Este módulo solo añade:
+	 *   1) el temporizador de aparición (retraso configurable);
+	 *   2) las 2 cookies de supresión (cierre/clic-sin-conversión, y
+	 *      conversión exitosa) y su comprobación al cargar la página;
+	 *   3) cerrar el popup ANTES de que un clic en su CTA abra el
+	 *      modal de Cotización (nunca deben quedar 2 overlays
+	 *      abiertos a la vez — mismo criterio ya usado por
+	 *      `parentModalOverlay` en ModuleQuoteForm);
+	 *   4) escuchar `ce:quoteFormSuccess` (evento nuevo, ver el envío
+	 *      exitoso dentro de ModuleQuoteForm más arriba) para saber si
+	 *      la conversión pertenece a este popup;
+	 *   5) (D-081) el efecto de movimiento de `show()`: rebote de
+	 *      entrada del modal + 2 nudges acotados del icono — ambos
+	 *      disparados una única vez por apertura, nunca en bucle, y
+	 *      omitidos por completo si `prefers-reduced-motion: reduce`
+	 *      está activo.
+	 * ============================================================ */
+	const ModuleOfferPopup = {
+		init() {
+			this.overlay = document.getElementById('ce-offer-popup');
+			// Sin marcado en la página: el popup está desactivado o mal
+			// configurado (ce_get_offer_popup_data() no imprimió nada,
+			// ver template-parts/offer-popup.php) — nada que hacer.
+			if (!this.overlay) return;
+
+			// Ya convertido o ya cerrado dentro de la ventana de
+			// supresión vigente: no se arma el temporizador. Se
+			// comprueba primero la conversión y luego el cierre simple,
+			// tal como se especificó (D-079).
+			if (this.getCookie('ce_offer_popup_converted') !== null) return;
+			if (this.getCookie('ce_offer_popup_dismissed') !== null) return;
+
+			this.delaySeconds   = parseInt(this.overlay.dataset.delay, 10) || 6;
+			this.dismissMinutes = parseInt(this.overlay.dataset.dismissMinutes, 10) || 1440;
+			this.convertMinutes = parseInt(this.overlay.dataset.convertMinutes, 10) || 10080;
+			this.pendingConversion = false;
+			this.shown = false;
+
+			this.ctaLink = $('#ce-offer-popup-cta', this.overlay);
+			on(this.ctaLink, 'click', () => this.handleCtaClick());
+
+			// Detecta cualquier cierre (X, clic en el fondo, Escape —
+			// los 3 ya resueltos por ModuleModals) observando la propia
+			// clase del overlay, en vez de reimplementar esos 3
+			// mecanismos de cierre en este módulo.
+			this.observer = new MutationObserver(() => {
+				if (this.shown && !this.overlay.classList.contains('is-open')) {
+					this.onClosed();
+				}
+			});
+			this.observer.observe(this.overlay, { attributes: true, attributeFilter: ['class'] });
+
+			on(document, 'ce:quoteFormSuccess', () => {
+				if (this.pendingConversion) {
+					this.setCookie('ce_offer_popup_converted', '1', this.convertMinutes);
+					this.pendingConversion = false;
+				}
+			});
+
+			this.timer = window.setTimeout(() => this.show(), this.delaySeconds * 1000);
+		},
+		show() {
+			this.shown = true;
+			ModuleModals.open('ce-offer-popup');
+
+			// 🆕 Sprint UX-7, Entregable UX-7.10 (D-081): efecto de
+			// movimiento vía JS, ligado al instante exacto de apertura
+			// — no un bucle infinito adicional (para no sobrecargar,
+			// ver D-081). Se omite por completo si el visitante tiene
+			// activada la preferencia de sistema "reducir movimiento".
+			const prefersReducedMotion = window.matchMedia
+				&& window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+			if (prefersReducedMotion) return;
+
+			// Rebote de entrada del modal completo (una sola vez, ~0.6s,
+			// ver @keyframes ce-offer-modal-bounce-in en main.css). La
+			// clase se retira sola; no depende de que nada más la limpie.
+			this.overlay.classList.add('ce-offer-popup--bounce-in');
+			window.setTimeout(() => this.overlay.classList.remove('ce-offer-popup--bounce-in'), 700);
+
+			// 2 "nudges" (meneo breve) del icono, acotados en el tiempo
+			// — no infinitos — para reforzar la llamada de atención sin
+			// sumar un tercer movimiento continuo junto al pulso ya
+			// existente del botón CTA.
+			const icon = $('.ce-offer-popup__icon', this.overlay);
+			if (icon) {
+				[4000, 9000].forEach((delay) => {
+					window.setTimeout(() => {
+						// Si ya se cerró mientras tanto, no animar en
+						// segundo plano sobre un popup invisible.
+						if (!this.overlay.classList.contains('is-open')) return;
+						icon.classList.add('is-nudging');
+						window.setTimeout(() => icon.classList.remove('is-nudging'), 650);
+					}, delay);
+				});
+			}
+		},
+		handleCtaClick() {
+			// Un clic en el CTA nunca es, por sí mismo, la conversión
+			// (respuesta explícita del usuario, D-079): si el destino es
+			// el modal de Cotización, la conversión real llega después,
+			// vía `ce:quoteFormSuccess`; si el destino es una URL, no
+			// existe ninguna señal de conversión fiable disponible en
+			// esta página tras la navegación — limitación documentada
+			// en D-079, no se fabrica una señal falsa. En ambos casos
+			// `onClosed()` (más abajo) ya aplica la supresión corta.
+			const href = this.ctaLink.getAttribute('href') || '';
+			const opensModal = href.startsWith('#')
+				&& document.getElementById(href.slice(1))
+				&& document.getElementById(href.slice(1)).classList.contains('ce-modal-overlay');
+
+			if (opensModal) {
+				this.pendingConversion = true;
+			}
+
+			// Cierra ESTE overlay antes de que el listener delegado de
+			// ModuleSmoothScroll (que también reacciona a este mismo
+			// clic, ver arriba en el archivo) abra `#ce-quote-modal` —
+			// nunca deben coexistir los 2 overlays abiertos.
+			ModuleModals.close(this.overlay);
+		},
+		onClosed() {
+			this.shown = false;
+			this.setCookie('ce_offer_popup_dismissed', '1', this.dismissMinutes);
+			if (this.observer) {
+				this.observer.disconnect();
+				this.observer = null;
+			}
+		},
+		setCookie(name, value, minutes) {
+			const expires = new Date(Date.now() + minutes * 60 * 1000).toUTCString();
+			document.cookie = `${name}=${value}; expires=${expires}; path=/; SameSite=Lax`;
+		},
+		getCookie(name) {
+			const match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+			return match ? decodeURIComponent(match[1]) : null;
+		},
+	};
+
+	/* ============================================================
 	 * BOOTSTRAP: inicializa todos los módulos cuando el DOM
 	 * está listo. Cada módulo es responsable de verificar si
 	 * su marcado existe antes de operar.
@@ -882,5 +1039,6 @@
 		ModuleLazyLoading.init();
 		ModuleScrollReveal.init();
 		ModuleAccordion.init();
+		ModuleOfferPopup.init(); // 🆕 Sprint UX-7, Entregable UX-7.10 (ver DECISIONS.md D-079). Después de ModuleModals.init() para que su overlay ya esté registrado (cierre por fondo/Escape).
 	});
 })();

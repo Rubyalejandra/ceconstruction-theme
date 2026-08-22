@@ -213,6 +213,16 @@
 	endif;
 	?>
 
+	<?php
+	// 🆕 Sprint UX-7, Entregable UX-7.10 (D-079): Popup de Oferta —
+	// componente independiente del modal de arriba (no lo modifica).
+	// template-parts/offer-popup.php decide internamente (vía
+	// ce_get_offer_popup_data(), inc/helpers.php) si hay algo que
+	// imprimir; con el popup desactivado o sin configurar, esta
+	// llamada no genera ningún HTML.
+	get_template_part( 'template-parts/offer-popup' );
+	?>
+
 <?php wp_footer(); ?>
 </body>
 </html>

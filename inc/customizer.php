@@ -949,6 +949,139 @@ function ce_construction_customize_register( $wp_customize ) {
 			'type'    => 'text',
 		) );
 	}
+
+	/* -----------------------------------------------------------
+	 * 13. POPUP DE OFERTA (Sprint UX-7, Entregable UX-7.10 — ÚLTIMO
+	 * Entregable del Sprint UX-7). Ver DECISIONS.md D-079 y
+	 * docs/UX_CONVERSION_ANALISIS_Y_PLAN.md §8.4.
+	 *
+	 * A diferencia de 'financing'/'cta'/'testimonials', este NO es
+	 * una sección del Home Builder: es un overlay de página completa
+	 * (mismo tipo de componente que el modal de Cotización, UX-3.2),
+	 * disponible en todas las páginas del sitio si está activado —
+	 * por eso no tiene control de "orden"/posición, solo activar/
+	 * desactivar + su contenido, igual que `ce_section_quote_form`.
+	 * --------------------------------------------------------- */
+	$wp_customize->add_section( 'ce_section_offer_popup', array(
+		'title'       => __( 'CE: Popup de Oferta', 'ce-construction' ),
+		'description' => __( 'Popup independiente del Formulario de Cotización (no lo reemplaza ni lo modifica): se muestra una sola vez tras el tiempo de espera configurado, respeta cookies de supresión tras cerrarse o convertir, y su botón puede abrir el Formulario de Cotización existente o llevar a una URL propia. Ver docs/DECISIONS.md D-079 para el detalle técnico completo (incluida la limitación documentada sobre destinos tipo URL).', 'ce-construction' ),
+		'priority'    => 43,
+	) );
+
+	$wp_customize->add_setting( 'ce_offer_popup_enabled', array(
+		'default'           => false,
+		'sanitize_callback' => 'wp_validate_boolean',
+	) );
+	$wp_customize->add_control( 'ce_offer_popup_enabled', array(
+		'label'   => __( 'Activar el Popup de Oferta', 'ce-construction' ),
+		'section' => 'ce_section_offer_popup',
+		'type'    => 'checkbox',
+	) );
+
+	$wp_customize->add_setting( 'ce_offer_popup_title', array( 'sanitize_callback' => 'sanitize_text_field' ) );
+	$wp_customize->add_control( 'ce_offer_popup_title', array(
+		'label'   => __( 'Título de la oferta', 'ce-construction' ),
+		'section' => 'ce_section_offer_popup',
+		'type'    => 'text',
+	) );
+
+	$wp_customize->add_setting( 'ce_offer_popup_badge_text', array(
+		'default'           => __( 'Oferta por tiempo limitado', 'ce-construction' ),
+		'sanitize_callback' => 'sanitize_text_field',
+	) );
+	$wp_customize->add_control( 'ce_offer_popup_badge_text', array(
+		'label'       => __( 'Texto de la insignia superior (opcional)', 'ce-construction' ),
+		'description' => __( 'Etiqueta corta encima del título (ej. "Oferta por tiempo limitado", "Solo esta semana"). Déjalo vacío para no mostrar ninguna.', 'ce-construction' ),
+		'section'     => 'ce_section_offer_popup',
+		'type'        => 'text',
+	) );
+
+	$wp_customize->add_setting( 'ce_offer_popup_icon', array(
+		'default'           => 'fa-solid fa-tags',
+		'sanitize_callback' => 'sanitize_text_field',
+	) );
+	$wp_customize->add_control( 'ce_offer_popup_icon', array(
+		'label'       => __( 'Icono (clase Font Awesome)', 'ce-construction' ),
+		'description' => __( 'Mismo mecanismo ya usado por el icono del botón de "CE: Sección CTA" (UX-7.4) — ej. fa-solid fa-tags, fa-solid fa-gift, fa-solid fa-percent.', 'ce-construction' ),
+		'section'     => 'ce_section_offer_popup',
+		'type'        => 'text',
+	) );
+
+	$wp_customize->add_setting( 'ce_offer_popup_text', array( 'sanitize_callback' => 'sanitize_text_field' ) );
+	$wp_customize->add_control( 'ce_offer_popup_text', array(
+		'label'   => __( 'Texto/descripción de la oferta', 'ce-construction' ),
+		'section' => 'ce_section_offer_popup',
+		'type'    => 'textarea',
+	) );
+
+	$wp_customize->add_setting( 'ce_offer_popup_btn_text', array(
+		'default'           => __( 'Quiero mi cotización', 'ce-construction' ),
+		'sanitize_callback' => 'sanitize_text_field',
+	) );
+	$wp_customize->add_control( 'ce_offer_popup_btn_text', array(
+		'label'   => __( 'Texto del botón', 'ce-construction' ),
+		'section' => 'ce_section_offer_popup',
+		'type'    => 'text',
+	) );
+
+	$wp_customize->add_setting( 'ce_offer_popup_action', array(
+		'default'           => 'quote_form',
+		'sanitize_callback' => 'ce_construction_sanitize_offer_popup_action',
+	) );
+	$wp_customize->add_control( 'ce_offer_popup_action', array(
+		'label'       => __( 'Destino del botón', 'ce-construction' ),
+		'description' => __( '"Abrir Formulario de Cotización" reutiliza el popup de cotización ya existente del sitio (no crea uno nuevo). "Ir a una URL" usa el campo de abajo — puede ser una página interna o una dirección externa.', 'ce-construction' ),
+		'section'     => 'ce_section_offer_popup',
+		'type'        => 'radio',
+		'choices'     => array(
+			'quote_form' => __( 'Abrir el Formulario de Cotización existente', 'ce-construction' ),
+			'url'        => __( 'Ir a una URL específica', 'ce-construction' ),
+		),
+	) );
+
+	$wp_customize->add_setting( 'ce_offer_popup_url', array( 'sanitize_callback' => 'esc_url_raw' ) );
+	$wp_customize->add_control( 'ce_offer_popup_url', array(
+		'label'       => __( 'URL del botón (solo si el destino es "Ir a una URL específica")', 'ce-construction' ),
+		'description' => __( 'Se ignora si el destino elegido arriba es "Abrir el Formulario de Cotización".', 'ce-construction' ),
+		'section'     => 'ce_section_offer_popup',
+		'type'        => 'url',
+	) );
+
+	$wp_customize->add_setting( 'ce_offer_popup_delay', array(
+		'default'           => 6,
+		'sanitize_callback' => 'absint',
+	) );
+	$wp_customize->add_control( 'ce_offer_popup_delay', array(
+		'label'       => __( 'Retraso antes de mostrarse (segundos)', 'ce-construction' ),
+		'description' => __( 'Valor fijo (no aleatorio). Recomendado entre 5 y 8 segundos.', 'ce-construction' ),
+		'section'     => 'ce_section_offer_popup',
+		'type'        => 'number',
+		'input_attrs' => array( 'min' => 1, 'max' => 120, 'step' => 1 ),
+	) );
+
+	$wp_customize->add_setting( 'ce_offer_popup_dismiss_minutes', array(
+		'default'           => 1440,
+		'sanitize_callback' => 'ce_construction_sanitize_offer_popup_duration',
+	) );
+	$wp_customize->add_control( 'ce_offer_popup_dismiss_minutes', array(
+		'label'       => __( 'Supresión al cerrar / al hacer clic sin convertir', 'ce-construction' ),
+		'description' => __( 'Durante este tiempo, el popup no volverá a aparecer para ese visitante en ninguna página del sitio (cookie de navegador).', 'ce-construction' ),
+		'section'     => 'ce_section_offer_popup',
+		'type'        => 'select',
+		'choices'     => ce_construction_offer_popup_duration_choices(),
+	) );
+
+	$wp_customize->add_setting( 'ce_offer_popup_convert_minutes', array(
+		'default'           => 10080,
+		'sanitize_callback' => 'ce_construction_sanitize_offer_popup_duration',
+	) );
+	$wp_customize->add_control( 'ce_offer_popup_convert_minutes', array(
+		'label'       => __( 'Supresión tras conversión exitosa', 'ce-construction' ),
+		'description' => __( 'Se aplica únicamente cuando el destino es "Abrir el Formulario de Cotización" y ese formulario se envía con éxito. Con destino a una URL no es posible detectar la conversión de forma fiable (ver docs/DECISIONS.md D-079); en ese caso se aplica siempre la supresión de arriba.', 'ce-construction' ),
+		'section'     => 'ce_section_offer_popup',
+		'type'        => 'select',
+		'choices'     => ce_construction_offer_popup_duration_choices(),
+	) );
 }
 add_action( 'customize_register', 'ce_construction_customize_register' );
 
@@ -973,6 +1106,48 @@ function ce_construction_sanitize_quote_form_mode( $value ) {
 function ce_construction_sanitize_sidebar_slot( $value ) {
 	$allowed = array( 'none', 'cta', 'testimonio' );
 	return in_array( $value, $allowed, true ) ? $value : 'none';
+}
+
+/**
+ * Sprint UX-7, Entregable UX-7.10 — Popup de Oferta. Opciones fijas
+ * de duración (minutos) reutilizadas por las 2 supresiones (cierre/
+ * clic-sin-conversión y conversión exitosa) — mismo menú para ambas,
+ * conforme a lo confirmado por el usuario: 30 min / 1 h / 6 h / 24 h
+ * / 3 días / 7 días. Centralizada en una sola función para que las 2
+ * llamadas a add_control() (arriba) y el sanitize_callback (abajo)
+ * no puedan desincronizarse con listas distintas.
+ */
+function ce_construction_offer_popup_duration_choices() {
+	return array(
+		'30'    => __( '30 minutos', 'ce-construction' ),
+		'60'    => __( '1 hora', 'ce-construction' ),
+		'360'   => __( '6 horas', 'ce-construction' ),
+		'1440'  => __( '24 horas', 'ce-construction' ),
+		'4320'  => __( '3 días', 'ce-construction' ),
+		'10080' => __( '7 días', 'ce-construction' ),
+	);
+}
+
+/**
+ * Sprint UX-7, Entregable UX-7.10 — valida que el valor (minutos,
+ * recibido como string desde un control 'select') sea una de las
+ * opciones de ce_construction_offer_popup_duration_choices(); devuelve
+ * int. Cualquier otro valor cae a 1440 (24 h), el mismo default que
+ * ya tiene el setting 'ce_offer_popup_dismiss_minutes'.
+ */
+function ce_construction_sanitize_offer_popup_duration( $value ) {
+	$allowed = array_keys( ce_construction_offer_popup_duration_choices() );
+	return in_array( (string) $value, $allowed, true ) ? (int) $value : 1440;
+}
+
+/**
+ * Sprint UX-7, Entregable UX-7.10 — destino del botón del Popup de
+ * Oferta: 'quote_form' (reutiliza el modal existente de Cotización,
+ * UX-3.2) o 'url' (campo propio 'ce_offer_popup_url').
+ */
+function ce_construction_sanitize_offer_popup_action( $value ) {
+	$allowed = array( 'quote_form', 'url' );
+	return in_array( $value, $allowed, true ) ? $value : 'quote_form';
 }
 
 /**

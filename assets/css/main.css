@@ -1858,3 +1858,167 @@ a.ce-trust-badge--compact:hover .ce-trust-badge__label {
     font-size: 1rem;
   }
 }
+
+/* =============================================================
+   33. SPRINT UX-7, ENTREGABLE UX-7.10 — POPUP DE OFERTA.
+   Ver DECISIONS.md D-079 (base), D-080 (refuerzo visual: icono/
+   imagen, colores más "de oferta", efectos, responsive explícito)
+   y D-081 (efecto de movimiento vía JS: rebote de entrada + nudge
+   acotado del icono, disparados por ModuleOfferPopup.show() en
+   assets/js/main.js — reemplazan el brillo infinito del icono de
+   D-080 para no acumular un 3er bucle continuo junto al pulso del
+   botón).
+
+   Reutiliza `.ce-modal-overlay`/`.ce-modal`/`.ce-modal__close` tal
+   cual (misma sección "Lightbox/Modales" de arriba, sin tocar
+   ninguna de sus reglas) — este bloque solo añade el modificador
+   `.ce-modal--offer` + los elementos nuevos del markup (icono y
+   badge, ver template-parts/offer-popup.php) + las clases que
+   dispara JS (`.is-nudging`, `.ce-offer-popup--bounce-in`).
+   ============================================================= */
+.ce-modal--offer {
+  max-width: 420px;
+  max-height: 92vh;
+  overflow-y: auto;
+  padding-top: calc(var(--ce-space-6) + 6px);
+  position: relative;
+  overflow-x: hidden;
+}
+/* Franja superior de acento — mismo espíritu de "oferta" que ya usa
+   `.ce-hero-quote-card` (border-top de UX-7.2), aquí como degradado
+   para reforzar el tratamiento visual pedido. */
+.ce-modal--offer::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 6px;
+  background: linear-gradient(90deg, var(--ce-color-secondary), var(--ce-color-secondary-dark));
+}
+.ce-modal--offer .ce-modal__text {
+  margin-bottom: var(--ce-space-4);
+}
+
+/* -- Icono circular con degradado (campo `ce_offer_popup_icon`) -- */
+.ce-offer-popup__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  margin: 0 auto var(--ce-space-3);
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--ce-color-secondary), var(--ce-color-secondary-dark));
+  color: var(--ce-color-white);
+  font-size: 1.9rem;
+  box-shadow: 0 8px 20px rgba(217, 142, 41, 0.35);
+  animation: ce-offer-pop 0.45s ease both;
+}
+.ce-offer-popup__icon.is-nudging {
+  /* Meneo acotado (2 veces, disparado por JS — ver ModuleOfferPopup.show()
+     en assets/js/main.js), no un bucle infinito: refuerza la llamada de
+     atención justo cuando aparece, sin sumar un tercer movimiento
+     continuo al del botón CTA. */
+  animation: ce-offer-icon-nudge 0.6s ease-in-out;
+}
+
+/* -- Insignia corta encima del título (campo `ce_offer_popup_badge_text`),
+   mismo lenguaje visual que `.ce-hero-quote-card__badge` (UX-7.2). -- */
+.ce-offer-popup__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(217, 142, 41, 0.12);
+  color: var(--ce-color-secondary-text);
+  font-family: var(--ce-font-heading);
+  font-weight: 700;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 5px 12px;
+  border-radius: var(--ce-radius-pill);
+  margin-bottom: var(--ce-space-2);
+}
+
+/* -- CTA con leve pulso para llamar la atención, sin ser intrusivo:
+   se pausa al pasar el mouse/foco para no distraer mientras se lee
+   el botón, y respeta prefers-reduced-motion más abajo. -- */
+.ce-offer-popup__cta {
+  animation: ce-offer-cta-pulse 2.2s ease-in-out 1s infinite;
+}
+.ce-offer-popup__cta:hover,
+.ce-offer-popup__cta:focus-visible {
+  animation-play-state: paused;
+}
+
+@keyframes ce-offer-pop {
+  from { transform: scale(0.6); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+/* Meneo acotado del icono (2 veces, vía JS) — ver
+   `.ce-offer-popup__icon.is-nudging` arriba. */
+@keyframes ce-offer-icon-nudge {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  20%      { transform: rotate(-8deg) scale(1.06); }
+  40%      { transform: rotate(8deg) scale(1.06); }
+  60%      { transform: rotate(-5deg) scale(1.02); }
+  80%      { transform: rotate(5deg) scale(1.02); }
+}
+/* Entrada con rebote del modal completo, disparada una sola vez por
+   `ModuleOfferPopup.show()` (assets/js/main.js) al añadir la clase
+   `.ce-offer-popup--bounce-in` al overlay — reemplaza, mientras dura,
+   la transición simple ya existente de `.ce-modal-overlay.is-open
+   .ce-modal` (que sigue ahí como base/fallback). No es un bucle: la
+   clase se retira sola a los ~700ms. */
+@keyframes ce-offer-modal-bounce-in {
+  0%   { transform: scale(0.7) translateY(24px); opacity: 0; }
+  55%  { transform: scale(1.04) translateY(-4px); opacity: 1; }
+  75%  { transform: scale(0.98) translateY(2px); }
+  100% { transform: scale(1) translateY(0); }
+}
+.ce-offer-popup--bounce-in .ce-modal {
+  animation: ce-offer-modal-bounce-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes ce-offer-cta-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(217, 142, 41, 0.45); }
+  50%      { box-shadow: 0 0 0 9px rgba(217, 142, 41, 0); }
+}
+
+/* Accesibilidad: sin animación para quien la tenga desactivada a
+   nivel de sistema operativo/navegador — el popup sigue siendo
+   perfectamente usable sin ella. `ModuleOfferPopup` (JS) también
+   comprueba `prefers-reduced-motion` antes de disparar el rebote de
+   entrada y los nudges del icono, así que con esta preferencia
+   activada no se añaden siquiera esas clases. */
+@media (prefers-reduced-motion: reduce) {
+  .ce-offer-popup__icon,
+  .ce-offer-popup__icon.is-nudging,
+  .ce-offer-popup--bounce-in .ce-modal,
+  .ce-offer-popup__cta {
+    animation: none;
+  }
+}
+
+/* -- Responsive: tablet/móvil (mismo criterio ya usado en el resto
+   del tema — ver `.ce-hero-quote-card` en 575.98px, y los triggers
+   de video de UX-7.8 en 480px). El overlay/`.ce-modal` base ya son
+   fluidos (`width:100%` + `padding` del overlay); esto solo ajusta
+   proporciones para que el icono/insignia no dominen pantallas
+   pequeñas. -- */
+@media (max-width: 575.98px) {
+  .ce-modal--offer {
+    padding: var(--ce-space-5) var(--ce-space-4);
+    padding-top: calc(var(--ce-space-5) + 6px);
+  }
+}
+@media (max-width: 480px) {
+  .ce-offer-popup__icon {
+    width: 56px;
+    height: 56px;
+    font-size: 1.5rem;
+    margin-bottom: var(--ce-space-2);
+  }
+  .ce-offer-popup__badge {
+    font-size: 0.66rem;
+    padding: 4px 10px;
+  }
+}

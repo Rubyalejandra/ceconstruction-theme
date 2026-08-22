@@ -239,6 +239,71 @@ function ce_get_testimonio_video( $post_id ) {
 }
 
 /**
+ * Sprint UX-7, Entregable UX-7.10 (D-079): resuelve el contenido y la
+ * configuración del Popup de Oferta a partir de sus theme_mods (ver
+ * inc/customizer.php, sección `ce_section_offer_popup`).
+ *
+ * Centraliza aquí la condición de "no mostrar nada" (desactivado, o
+ * mal configurado — sin título o sin URL de botón resoluble) para que
+ * `template-parts/offer-popup.php` no tenga que repetir esa lógica ni
+ * `footer.php` decidir por su cuenta si incluir el template-part.
+ *
+ * Cuando `ce_offer_popup_action` es 'quote_form', reutiliza
+ * `ce_get_quote_cta_url()` (mismo helper ya usado por
+ * cta.php/financing.php) en vez de leer `ce_quote_form_mode`
+ * directamente — así, si el Formulario de Cotización está
+ * globalmente desactivado (`ce_quote_form_mode = 'disabled'`), ese
+ * helper devuelve '' y este popup se desactiva solo (no tiene sentido
+ * un popup cuyo único destino configurado ya no existe en el sitio).
+ *
+ * 🆕 Ajuste puntual (mismo Entregable UX-7.10, ver DECISIONS.md D-080):
+ * `icon` (clase Font Awesome, mismo mecanismo que `ce_cta_icon` de
+ * UX-7.4) y `badge_text` (insignia corta opcional encima del título,
+ * mismo patrón visual que `.ce-hero-quote-card__badge` de UX-7.2/D-065)
+ * se agregaron para dar al popup un tratamiento visual más propio de
+ * una oferta — ninguno de los dos es obligatorio para que el popup se
+ * muestre: `icon` siempre tiene un valor por defecto, y `badge_text`
+ * simplemente no imprime la insignia si se deja vacío.
+ *
+ * @return array|null Null si el popup no debe imprimirse.
+ */
+function ce_get_offer_popup_data() {
+	if ( ! get_theme_mod( 'ce_offer_popup_enabled', false ) ) {
+		return null;
+	}
+
+	$title = get_theme_mod( 'ce_offer_popup_title', '' );
+	$text  = get_theme_mod( 'ce_offer_popup_text', '' );
+	if ( ! $title ) {
+		// Sin título no hay oferta que mostrar; se trata como "no
+		// configurado todavía" en vez de imprimir un popup vacío.
+		return null;
+	}
+
+	$action = get_theme_mod( 'ce_offer_popup_action', 'quote_form' );
+	if ( 'url' === $action ) {
+		$btn_url = get_theme_mod( 'ce_offer_popup_url', '' );
+	} else {
+		$btn_url = ce_get_quote_cta_url();
+	}
+	if ( ! $btn_url ) {
+		return null;
+	}
+
+	return array(
+		'title'            => $title,
+		'text'             => $text,
+		'badge_text'       => get_theme_mod( 'ce_offer_popup_badge_text', '' ),
+		'icon'             => get_theme_mod( 'ce_offer_popup_icon', 'fa-solid fa-tags' ),
+		'btn_text'         => get_theme_mod( 'ce_offer_popup_btn_text', __( 'Quiero mi cotización', 'ce-construction' ) ),
+		'btn_url'          => $btn_url,
+		'delay_seconds'    => (int) get_theme_mod( 'ce_offer_popup_delay', 6 ),
+		'dismiss_minutes'  => (int) get_theme_mod( 'ce_offer_popup_dismiss_minutes', 1440 ),
+		'convert_minutes'  => (int) get_theme_mod( 'ce_offer_popup_convert_minutes', 10080 ),
+	);
+}
+
+/**
  * Devuelve true si existe al menos un post publicado del CPT dado.
  * Útil para ocultar secciones completas del home si el admin
  * aún no ha cargado contenido (mejor UX que mostrar una sección vacía).
