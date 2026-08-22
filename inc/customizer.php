@@ -918,6 +918,37 @@ function ce_construction_customize_register( $wp_customize ) {
 		'section'     => 'ce_section_google_reviews',
 		'type'        => 'textarea',
 	) );
+
+	/* -----------------------------------------------------------
+	 * 12. FINANCIAMIENTO / OPCIONES DE PAGO (Sprint UX-7, Entregable
+	 * UX-7.9). Ver DECISIONS.md D-078 y
+	 * docs/UX_CONVERSION_ANALISIS_Y_PLAN.md §8.4/§8.8.
+	 *
+	 * Contenido de la sección 'financing' del Home Builder — mismo
+	 * patrón EXACTO de 4 campos de texto ya usado por 'cta'/
+	 * 'cta_secondary' (UX-5.1, D-056), sin icono ni color de botón
+	 * configurables (esas son extensiones de UX-7.4, fuera del
+	 * alcance citado por el plan para este Entregable).
+	 * --------------------------------------------------------- */
+	$wp_customize->add_section( 'ce_section_financing', array(
+		'title'       => __( 'CE: Financiamiento', 'ce-construction' ),
+		'description' => __( 'Contenido de la sección "Financiamiento" del Home Builder — mismo componente visual que "CE: Sección CTA", con su propio texto y botón independientes. Actívala y posiciónala desde el panel "CE: Home Builder".', 'ce-construction' ),
+		'priority'    => 42,
+	) );
+	$financing_fields = array(
+		'ce_financing_title'    => __( 'Título de Financiamiento', 'ce-construction' ),
+		'ce_financing_text'     => __( 'Texto de Financiamiento', 'ce-construction' ),
+		'ce_financing_btn_text' => __( 'Texto del botón de Financiamiento', 'ce-construction' ),
+		'ce_financing_btn_url'  => __( 'URL del botón de Financiamiento', 'ce-construction' ),
+	);
+	foreach ( $financing_fields as $id => $label ) {
+		$wp_customize->add_setting( $id, array( 'sanitize_callback' => 'sanitize_text_field' ) );
+		$wp_customize->add_control( $id, array(
+			'label'   => $label,
+			'section' => 'ce_section_financing',
+			'type'    => 'text',
+		) );
+	}
 }
 add_action( 'customize_register', 'ce_construction_customize_register' );
 

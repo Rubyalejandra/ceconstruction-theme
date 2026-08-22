@@ -220,6 +220,22 @@ function ce_construction_home_sections() {
 			'label'    => __( 'Google Reviews (Trustindex)', 'ce-construction' ),
 			'template' => 'template-parts/google-reviews',
 		),
+		// 🆕 Sprint UX-7, Entregable UX-7.9: "Bloque de financiamiento /
+		// opciones de pago" (ver DECISIONS.md D-078 y
+		// docs/UX_CONVERSION_ANALISIS_Y_PLAN.md §8.4/§8.8). Registrada
+		// aquí, junto al resto, por el mismo requisito explícito ya
+		// aplicado a team/clients/faq/cta_secondary/trust_badges/
+		// google_reviews: queda disponible automáticamente vía
+		// [ce_section key="financing"] (UX-6.2), sin arquitectura
+		// paralela. NO forma parte del orden activo por defecto (mismo
+		// criterio que las secciones anteriores, ver
+		// ce_construction_default_home_order()): el administrador la
+		// activa y posiciona explícitamente desde "CE: Home Builder"
+		// una vez configure su propio contenido en "CE: Financiamiento".
+		'financing' => array(
+			'label'    => __( 'Financiamiento', 'ce-construction' ),
+			'template' => 'template-parts/financing',
+		),
 	) );
 }
 

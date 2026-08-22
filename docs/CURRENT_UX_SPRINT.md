@@ -248,10 +248,35 @@ Con el Sprint UX-6 cerrado, el usuario priorizó e inició el **Sprint UX-7** (C
 | UX-7.4 | CTA: icono y color de botón configurables | ✅ **Aprobado explícitamente por el usuario** en esta sesión, junto con la instrucción de iniciar UX-7.5 en modalidad Entregable por Entregable. Ver `docs/DECISIONS.md` D-068. |
 | UX-7.5 | Logo independiente Header/Footer | ✅ **Aprobado explícitamente por el usuario** en esta sesión, junto con la instrucción de iniciar UX-7.6 en modalidad Entregable por Entregable. Ver `docs/DECISIONS.md` D-069. |
 | UX-7.6 | Estadísticas configurables desde el Customizer | ✅ **Aprobado explícitamente por el usuario** en esta sesión, junto con la instrucción de iniciar UX-7.7 en modalidad Entregable por Entregable. Ver `docs/DECISIONS.md` D-070. |
-| UX-7.7 | Franja de insignias de confianza / licencias — 🆕 nota (D-065): una vez construido, el componente de insignias/bullets también debe quedar disponible para la tarjeta del Quote Form del Hero (`.ce-hero-quote-card`) | 🟡 **Entregado — pendiente de tu aprobación explícita.** Ver nota debajo de esta tabla y `docs/DECISIONS.md` D-071. |
-| UX-7.8 | Testimonio en video | Sin iniciar |
-| UX-7.9 | Bloque de financiamiento / opciones de pago | Sin iniciar |
+| UX-7.7 | Franja de insignias de confianza / licencias — 🆕 nota (D-065): una vez construido, el componente de insignias/bullets también debe quedar disponible para la tarjeta del Quote Form del Hero (`.ce-hero-quote-card`) | ✅ **Aprobado explícitamente por el usuario.** Ver `docs/DECISIONS.md` D-071. |
+| UX-7.8 | Testimonio en video (página completa) | ✅ **Aprobado explícitamente por el usuario** ("Aprobado Entregable UX-7.8"), junto con la instrucción de continuar con UX-7.9. Ver `docs/DECISIONS.md` D-077. |
+| UX-7.9 | Bloque de financiamiento / opciones de pago | 🟡 **Entregado — pendiente de tu aprobación explícita.** Ver `docs/DECISIONS.md` D-078. |
 | UX-7.10 🆕 | Popup de oferta / captura de leads al cargar la página — Entregable nuevo (D-065), no una extensión de UX-7.2. Preguntas abiertas antes de implementar: frecuencia de aparición (cada carga vs. limitada por cookie/transient), relación con el modal existente de Quote Form (`ce_quote_form_mode = 'modal'`) — ¿coexisten como 2 modales distintos, o se fusionan?, y contenido del popup (¿reutiliza el componente de insignias de UX-7.7, o es solo texto/CTA?) | ⬜ Propuesto, sin iniciar, sin aprobar |
+
+### ✅ Cierre de UX-7.8 (esta sesión)
+
+UX-7.8 ("Testimonio en video") queda **aprobado explícitamente por el usuario** en esta sesión, junto con la instrucción de continuar directamente con UX-7.9 (bloque de financiamiento), conforme al orden recomendado de `docs/UX_CONVERSION_ANALISIS_Y_PLAN.md` §6/§8.4. Ningún archivo de código adicional fue tocado como parte de este cierre — el código de UX-7.8 (D-077) ya estaba entregado en el ZIP revisado. Detalle: `docs/DECISIONS.md` D-077.
+
+### 🆕 UX-7.9 entregado — pendiente de tu aprobación explícita
+
+**Verificación previa de coherencia documental (paso obligatorio antes de tocar código):** se releyó esta tabla y `docs/UX_CONVERSION_ANALISIS_Y_PLAN.md` §8.4/§8.8 (alcance de UX-7.9). El alcance ya estaba definido con precisión ("nueva sección del Home Builder (`template-parts/financing.php`), campos vía Customizer — mismo patrón exacto ya usado por `cta.php`/`cta_secondary`, UX-5.1"). **No se encontró ninguna discrepancia ni ambigüedad que requiriera detenerse a consultar.**
+
+Se implementó UX-7.9 conforme a ese alcance: nuevo `template-parts/financing.php` (archivo propio, no una tercera variante de `cta.php`), con 4 campos de texto vía una nueva sección "CE: Financiamiento" en el Customizer (`ce_financing_title`, `ce_financing_text`, `ce_financing_btn_text`, `ce_financing_btn_url`) — mismo patrón exacto de `cta_secondary` (UX-5.1), sin icono ni color de botón configurables (esas son extensiones de UX-7.4, fuera del alcance citado por el plan para este Entregable). Reutiliza tal cual el componente visual `.ce-cta` ya existente (sin CSS nuevo) y el mismo fallback de URL de botón (`ce_get_quote_cta_url()`) que `cta.php`. Registrada como nueva clave `financing` en `inc/home-builder.php`, fuera del orden activo por defecto (mismo criterio que team/clients/faq/trust_badges/google_reviews) y disponible de inmediato vía `[ce_section key="financing"]` (UX-6.2), sin ningún cambio en `front-page.php` ni `inc/section-shortcode.php`. Detalle técnico completo, incluidas las decisiones y alternativas descartadas: `docs/DECISIONS.md` D-078.
+
+**Resumen del comportamiento nuevo:**
+- Nueva sección "CE: Financiamiento" en el Customizer, con 4 campos de texto (título, texto, texto de botón, URL de botón).
+- Por defecto (sin tocar nada): la sección tiene copys por defecto orientados a financiamiento, pero **no se muestra en ningún punto del sitio** hasta que el administrador la active desde "CE: Home Builder" — mismo criterio que el resto de secciones opcionales.
+- Si se activa sin configurar la URL del botón: el botón usa el mismo fallback que el resto de CTA del sitio (`ce_get_quote_cta_url()`), nunca queda "muerto".
+- Visualmente idéntica a la sección CTA existente (mismo gradiente, tipografía, botones), con un icono fijo de financiamiento (`fa-hand-holding-dollar`) en el botón principal.
+
+### Archivos creados / modificados (Sprint UX-7, Entregable UX-7.9)
+- **Nuevo:** `template-parts/financing.php`.
+- `inc/home-builder.php` — registro aditivo de la clave `financing`.
+- `inc/customizer.php` — nueva sección "CE: Financiamiento" (`priority => 42`) + 4 `add_setting`/`add_control` tipo `text`.
+- Sin cambios: `front-page.php`, `inc/section-shortcode.php`, `template-parts/cta.php`, `assets/css/main.css` (reutiliza `.ce-cta` tal cual), `assets/js/main.js`, sistema de cotización, resto del Home Builder, Sprint 8, `style.css` (sin bump).
+
+### Próximo paso
+Con UX-7.9 entregado, el Sprint UX-7 **no avanza a UX-7.10** sin tu aprobación explícita de UX-7.9 (D-038, modalidad Entregable por Entregable ya elegida por el usuario). `docs/CHANGELOG.md`, `docs/TREE.md`, `docs/TODO.md` y `docs/PROJECT_STATUS.md` **no se actualizaron en este cierre** — mismo criterio D-034 ya aplicado a lo largo de esta fase (se difieren a un punto de cierre de Sprint más significativo, p. ej. el cierre formal completo del Sprint UX-7).
 
 ### ✅ Cierre de UX-7.6 (esta sesión)
 
