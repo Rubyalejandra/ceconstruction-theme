@@ -151,6 +151,94 @@ function ce_get_random_testimonio() {
 }
 
 /**
+ * Sprint UX-7, Entregable UX-7.8 (D-077): resuelve el video opcional
+ * de un testimonio a partir de sus metadatos (`_ce_testimonio_video_id`
+ * / `_ce_testimonio_video_url`, ver inc/meta-boxes.php), validando el
+ * recurso antes de devolverlo.
+ *
+ * Prioridad: video local (Biblioteca de Medios) sobre URL externa, si
+ * ambos estuvieran guardados — evita ambigüedad sin necesitar un
+ * tercer campo de "tipo de fuente". Video local inválido en el
+ * momento de leerlo (adjunto borrado después de guardarse, o ya no
+ * es un mime `video/*`) se trata como "sin video local" y la función
+ * continúa evaluando la URL externa guardada, si existe; si tampoco
+ * hay URL externa válida, devuelve null (testimonio sin video, mismo
+ * comportamiento que si el campo nunca se hubiera rellenado).
+ *
+ * URL externa: se resuelve exclusivamente vía `wp_oembed_get()`
+ * (soporte nativo de WordPress). Si el proveedor no es compatible con
+ * oEmbed, `wp_oembed_get()` devuelve `false` y esta función también
+ * devuelve null — conforme al alcance de UX-7.8, sin integración
+ * externa propia ni iframe fabricado a mano.
+ *
+ * El poster/miniatura NO se resuelve aquí a partir de la imagen
+ * destacada del testimonio (eso es responsabilidad de
+ * `content-testimonio-card.php`, que ya tiene esa imagen disponible
+ * vía `has_post_thumbnail()`/`the_post_thumbnail()` dentro de su
+ * propio loop, ver punto 7 del alcance de UX-7.8). Esta función solo
+ * añade, para 'video-embed', el `thumbnail_url` que el propio
+ * proveedor devuelve como parte de su respuesta oEmbed (mismo
+ * mecanismo nativo ya usado por `wp_oembed_get()`, vía
+ * `_wp_oembed_get_object()->get_data()` — función pública de
+ * WordPress core, no una integración externa nueva) — el llamador la
+ * usa solo como fallback si no hay imagen destacada. Para
+ * 'video-local' no existe en WordPress core ningún mecanismo fiable
+ * de generación automática de miniatura de video sin dependencias
+ * externas (ffmpeg u otro servicio); por eso 'poster' viene vacío en
+ * ese caso, y el llamador debe usar una alternativa visual (punto 7).
+ *
+ * @param int $post_id ID del testimonio.
+ * @return array|null {
+ *     @type string $type   'video-local' o 'video-embed'.
+ *     @type string $src    URL directa del archivo (solo 'video-local').
+ *     @type string $mime   Mime type del adjunto (solo 'video-local').
+ *     @type string $html   Marcado ya generado por `wp_oembed_get()` (solo 'video-embed').
+ *     @type string $poster URL de miniatura del proveedor si la ofreció, o cadena vacía.
+ * } o null si el testimonio no tiene video (o el guardado ya no es válido).
+ */
+function ce_get_testimonio_video( $post_id ) {
+	$video_id = (int) get_post_meta( $post_id, '_ce_testimonio_video_id', true );
+
+	if ( $video_id ) {
+		$mime = get_post_mime_type( $video_id );
+		$src  = wp_get_attachment_url( $video_id );
+		if ( $src && $mime && 0 === strpos( $mime, 'video/' ) ) {
+			return array(
+				'type'   => 'video-local',
+				'src'    => $src,
+				'mime'   => $mime,
+				'poster' => '',
+			);
+		}
+		// Adjunto guardado pero ya no válido (borrado / ya no es video):
+		// se trata como "sin video local" y se continúa evaluando si
+		// además hay una URL externa guardada, en vez de descartar el
+		// testimonio de inmediato.
+	}
+
+	$video_url = get_post_meta( $post_id, '_ce_testimonio_video_url', true );
+	if ( $video_url ) {
+		$embed_html = wp_oembed_get( $video_url );
+		if ( $embed_html ) {
+			$poster = '';
+			if ( function_exists( '_wp_oembed_get_object' ) ) {
+				$oembed_data = _wp_oembed_get_object()->get_data( $video_url );
+				if ( $oembed_data && ! empty( $oembed_data->thumbnail_url ) ) {
+					$poster = esc_url_raw( $oembed_data->thumbnail_url );
+				}
+			}
+			return array(
+				'type'   => 'video-embed',
+				'html'   => $embed_html,
+				'poster' => $poster,
+			);
+		}
+	}
+
+	return null;
+}
+
+/**
  * Devuelve true si existe al menos un post publicado del CPT dado.
  * Útil para ocultar secciones completas del home si el admin
  * aún no ha cargado contenido (mejor UX que mostrar una sección vacía).

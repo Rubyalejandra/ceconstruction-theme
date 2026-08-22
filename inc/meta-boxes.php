@@ -23,6 +23,13 @@ function ce_construction_add_meta_boxes() {
 
 	add_meta_box( 'ce_testimonio_fields', __( 'Detalles del Testimonio', 'ce-construction' ), 'ce_render_testimonio_fields', 'testimonio', 'normal', 'high' );
 
+	// Sprint UX-7, Entregable UX-7.8 (D-077): video opcional del
+	// testimonio. Metabox independiente (no se añade al existente
+	// `ce_testimonio_fields`) para mantener ese formulario ya aprobado
+	// sin tocar su render/guardado; este campo es completamente
+	// opcional y su ausencia no afecta a `ce_testimonio_fields`.
+	add_meta_box( 'ce_testimonio_video', __( 'Video del Testimonio (opcional)', 'ce-construction' ), 'ce_render_testimonio_video_field', 'testimonio', 'normal', 'default' );
+
 	add_meta_box( 'ce_equipo_fields', __( 'Detalles del Miembro', 'ce-construction' ), 'ce_render_equipo_fields', 'miembro_equipo', 'normal', 'high' );
 
 	add_meta_box( 'ce_cliente_fields', __( 'Detalles del Cliente', 'ce-construction' ), 'ce_render_cliente_fields', 'cliente', 'normal', 'high' );
@@ -133,6 +140,78 @@ function ce_render_testimonio_fields( $post ) {
 }
 
 /* =========================================================
+ * RENDER: VIDEO DEL TESTIMONIO (Sprint UX-7, Entregable UX-7.8, D-077)
+ * Campo opcional e independiente de `ce_testimonio_fields`. Admite
+ * UNA de dos fuentes (local O externa, no ambas a la vez desde la UI
+ * — si el admin rellena las dos, `ce_get_testimonio_video()` en
+ * inc/helpers.php prioriza la local, ver su docblock). Guardado con
+ * su propio nonce (`ce_save_testimonio_video`), independiente del
+ * nonce de `ce_testimonio_fields`, para no acoplar ambos metaboxes.
+ * ========================================================= */
+function ce_render_testimonio_video_field( $post ) {
+	wp_nonce_field( 'ce_save_testimonio_video', 'ce_testimonio_video_nonce' );
+
+	$video_id  = (int) get_post_meta( $post->ID, '_ce_testimonio_video_id', true );
+	$video_url = get_post_meta( $post->ID, '_ce_testimonio_video_url', true );
+
+	// Si el adjunto guardado ya no existe o ya no es un video (borrado,
+	// reemplazado), no se muestra su nombre de archivo como si siguiera
+	// vigente — mismo criterio de validación que ce_get_testimonio_video().
+	$video_valid = $video_id
+		&& get_post( $video_id )
+		&& 0 === strpos( (string) get_post_mime_type( $video_id ), 'video/' );
+	?>
+	<p class="description">
+		<?php esc_html_e( 'Video opcional para este testimonio. Se muestra únicamente en la página completa de Testimonios — no aparece en el Home, en el slider ni en los sidebars. Usa una de las dos opciones siguientes, no ambas.', 'ce-construction' ); ?>
+	</p>
+
+	<p>
+		<label><strong><?php esc_html_e( 'Opción A — Video local (Biblioteca de Medios)', 'ce-construction' ); ?></strong></label><br>
+		<input type="hidden" id="ce_testimonio_video_id" name="ce_testimonio_video_id" value="<?php echo esc_attr( $video_valid ? $video_id : '' ); ?>">
+		<span id="ce-testimonio-video-preview">
+			<?php if ( $video_valid ) : ?>
+				<?php echo esc_html( basename( get_attached_file( $video_id ) ) ); ?>
+			<?php endif; ?>
+		</span><br>
+		<button type="button" class="button" id="ce-testimonio-video-select-btn"><?php esc_html_e( 'Seleccionar video de la Biblioteca de Medios', 'ce-construction' ); ?></button>
+		<button type="button" class="button" id="ce-testimonio-video-remove-btn" <?php echo $video_valid ? '' : 'style="display:none;"'; ?>><?php esc_html_e( 'Quitar video local', 'ce-construction' ); ?></button>
+	</p>
+
+	<p>
+		<label for="ce_testimonio_video_url"><strong><?php esc_html_e( 'Opción B — URL de video externo compatible', 'ce-construction' ); ?></strong></label><br>
+		<input type="url" id="ce_testimonio_video_url" name="ce_testimonio_video_url" class="widefat" value="<?php echo esc_attr( $video_url ); ?>" placeholder="https://www.youtube.com/watch?v=...">
+		<br>
+		<span class="description"><?php esc_html_e( 'Debe ser un proveedor que WordPress reconozca de forma nativa mediante oEmbed (por ejemplo YouTube o Vimeo). Si WordPress no puede resolver la URL, el video no se mostrará en la página de Testimonios.', 'ce-construction' ); ?></span>
+	</p>
+	<script>
+	jQuery(document).ready(function($){
+		$('#ce-testimonio-video-select-btn').on('click', function(e){
+			e.preventDefault();
+			var frame = wp.media({
+				title: <?php echo wp_json_encode( __( 'Seleccionar video del testimonio', 'ce-construction' ) ); ?>,
+				library: { type: 'video' },
+				multiple: false
+			});
+			frame.on('select', function(){
+				var attachment = frame.state().get('selection').first().toJSON();
+				$('#ce_testimonio_video_id').val(attachment.id);
+				$('#ce-testimonio-video-preview').text(attachment.filename || attachment.title || '');
+				$('#ce-testimonio-video-remove-btn').show();
+			});
+			frame.open();
+		});
+		$('#ce-testimonio-video-remove-btn').on('click', function(e){
+			e.preventDefault();
+			$('#ce_testimonio_video_id').val('');
+			$('#ce-testimonio-video-preview').text('');
+			$(this).hide();
+		});
+	});
+	</script>
+	<?php
+}
+
+/* =========================================================
  * RENDER: EQUIPO
  * ========================================================= */
 function ce_render_equipo_fields( $post ) {
@@ -234,6 +313,44 @@ function ce_construction_save_meta_boxes( $post_id ) {
 		}
 	}
 
+	// TESTIMONIO — VIDEO (Sprint UX-7, Entregable UX-7.8, D-077).
+	// Nonce propio e independiente del de TESTIMONIO de arriba.
+	if ( isset( $_POST['ce_testimonio_video_nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['ce_testimonio_video_nonce'] ) ), 'ce_save_testimonio_video' ) ) {
+		if ( current_user_can( 'edit_post', $post_id ) ) {
+
+			// Video local: se valida que el adjunto exista y que su
+			// mime type sea realmente `video/*` antes de guardarlo —
+			// evita que el campo quede apuntando a un ID arbitrario
+			// (ej. una imagen, o un ID inexistente) enviado desde el
+			// formulario. Un ID inválido se guarda como "sin video
+			// local" (se borra el meta), nunca como el valor recibido.
+			$video_id = isset( $_POST['ce_testimonio_video_id'] ) ? absint( $_POST['ce_testimonio_video_id'] ) : 0;
+			if ( $video_id && 0 !== strpos( (string) get_post_mime_type( $video_id ), 'video/' ) ) {
+				$video_id = 0;
+			}
+			if ( $video_id ) {
+				update_post_meta( $post_id, '_ce_testimonio_video_id', $video_id );
+			} else {
+				delete_post_meta( $post_id, '_ce_testimonio_video_id' );
+			}
+
+			// URL externa: esc_url_raw() sanea el formato de la URL en
+			// el guardado; la validación de si WordPress puede
+			// realmente resolverla vía oEmbed ocurre en lectura
+			// (ce_get_testimonio_video(), inc/helpers.php) porque
+			// wp_oembed_get() hace una petición externa y no debe
+			// ejecutarse en cada guardado del post.
+			if ( isset( $_POST['ce_testimonio_video_url'] ) ) {
+				$video_url = esc_url_raw( wp_unslash( $_POST['ce_testimonio_video_url'] ) );
+				if ( $video_url ) {
+					update_post_meta( $post_id, '_ce_testimonio_video_url', $video_url );
+				} else {
+					delete_post_meta( $post_id, '_ce_testimonio_video_url' );
+				}
+			}
+		}
+	}
+
 	// EQUIPO.
 	if ( isset( $_POST['ce_equipo_nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['ce_equipo_nonce'] ) ), 'ce_save_equipo_meta' ) ) {
 		if ( current_user_can( 'edit_post', $post_id ) ) {
@@ -258,12 +375,16 @@ function ce_construction_save_meta_boxes( $post_id ) {
 add_action( 'save_post', 'ce_construction_save_meta_boxes' );
 
 /**
- * Carga wp.media (media uploader) solo en las pantallas de edición
- * de proyecto, para el selector de galería.
+ * Carga wp.media (media uploader) en las pantallas de edición de
+ * proyecto (selector de galería) y, desde UX-7.8 (D-077), también en
+ * las de testimonio (selector de video local).
  */
 function ce_construction_admin_enqueue( $hook ) {
 	global $post_type;
-	if ( in_array( $hook, array( 'post.php', 'post-new.php' ), true ) && 'proyecto' === $post_type ) {
+	if ( in_array( $hook, array( 'post.php', 'post-new.php' ), true ) && in_array( $post_type, array( 'proyecto', 'testimonio' ), true ) ) {
+		// 'testimonio' añadido en Sprint UX-7, Entregable UX-7.8 (D-077):
+		// el selector de video local del nuevo metabox también necesita
+		// wp.media. No afecta la condición ya existente para 'proyecto'.
 		wp_enqueue_media();
 	}
 }

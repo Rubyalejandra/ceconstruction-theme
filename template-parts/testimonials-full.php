@@ -34,6 +34,13 @@
  * reutiliza en un contexto sin `page-hero` (p. ej. otra Página, o el
  * propio Home si el administrador la activa ahí).
  *
+ * Sprint UX-7, Entregable UX-7.8 (D-077): esta es la ÚNICA plantilla
+ * que pasa `$args['video_enabled'] = true` a `content-testimonio-card.php`
+ * (ver docblock de ese archivo). Es la razón por la que UX-7.8 pudo
+ * retomarse aquí sin reabrir ni modificar el resto de esta plantilla
+ * — la extensión de video vive enteramente dentro del partial de la
+ * card, activada solo desde este único punto de llamada.
+ *
  * Reutiliza sin cambios: `ce_cpt_has_posts()`, `content-testimonio-card.php`
  * (`$args['compact'] = true`, misma card que ya usan el teaser del
  * Home, los sidebars de Servicios/Proyectos, y el selector aleatorio
@@ -94,7 +101,14 @@ $testimonios_full_query = new WP_Query( array(
 				<?php
 				while ( $testimonios_full_query->have_posts() ) :
 					$testimonios_full_query->the_post();
-					get_template_part( 'template-parts/content-testimonio-card', null, array( 'compact' => true ) );
+					// 'video_enabled' => true (UX-7.8, D-077): único
+					// consumidor de content-testimonio-card.php que
+					// activa la capacidad de video — ver docblock de
+					// ese archivo y el bloque de arriba.
+					get_template_part( 'template-parts/content-testimonio-card', null, array(
+						'compact'       => true,
+						'video_enabled' => true,
+					) );
 				endwhile;
 				?>
 			</div>

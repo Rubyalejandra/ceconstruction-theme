@@ -1741,3 +1741,120 @@ a.ce-trust-badge--compact:hover .ce-trust-badge__label {
   width: 100%;
   overflow-x: auto;
 }
+
+/* =============================================================
+   32. SPRINT UX-7, ENTREGABLE UX-7.8 — VIDEO OPCIONAL EN
+   TESTIMONIOS (PÁGINA COMPLETA). Ver DECISIONS.md D-077.
+
+   Alcance de esta sección:
+     a) Poster + botón Play dentro de `.ce-testimonial-card`, nuevos
+        en UX-7.8. Solo pueden aparecer cuando
+        content-testimonio-card.php recibe `$args['video_enabled']`
+        en true (hoy, únicamente testimonials-full.php) Y el
+        testimonio tiene un video válido — el resto de usos de la
+        card (Home, slider, sidebars) nunca imprime este markup, así
+        que estas reglas no tienen ningún efecto visual ahí.
+     b) Extensión de `.ce-lightbox` (sección "Lightbox" más arriba,
+        sin tocar ninguna de sus reglas existentes) para los dos
+        nuevos tipos de medio (`<video>`/embed). `.ce-lightbox__img`
+        no se modifica.
+   ============================================================= */
+
+/* -- a) Poster/Play en la card ------------------------------- */
+.ce-testimonial-card__video {
+  margin-bottom: var(--ce-space-4);
+}
+.ce-testimonial-video-trigger {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 16/9;
+  max-width: 100%;
+  border: 0;
+  padding: 0;
+  border-radius: var(--ce-radius-md);
+  overflow: hidden; /* evita overflow del poster/iframe — punto 11 del alcance */
+  cursor: pointer;
+  background: var(--ce-color-neutral-800);
+}
+.ce-testimonial-video-trigger__poster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* Sin poster disponible (ni imagen destacada ni miniatura del
+   proveedor oEmbed, ver docblock de content-testimonio-card.php):
+   fondo degradado neutro coherente con la paleta del tema en vez de
+   una dependencia externa de generación de thumbnails (punto 7 del
+   alcance de UX-7.8). El botón Play sigue siendo visible y funcional. */
+.ce-testimonial-video-trigger--no-poster {
+  background: linear-gradient(135deg, var(--ce-color-primary), var(--ce-color-neutral-800));
+}
+.ce-testimonial-video-trigger__icon {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ce-color-white);
+  font-size: 1.4rem;
+  background: rgba(15, 42, 67, 0.25);
+  transition: background var(--ce-transition-fast);
+}
+.ce-testimonial-video-trigger__icon i {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--ce-color-primary);
+  font-size: 1.1rem;
+}
+.ce-testimonial-video-trigger:hover .ce-testimonial-video-trigger__icon,
+.ce-testimonial-video-trigger:focus-visible .ce-testimonial-video-trigger__icon {
+  background: rgba(15, 42, 67, 0.4);
+}
+.ce-testimonial-video-trigger:focus-visible {
+  outline: 3px solid var(--ce-color-secondary);
+  outline-offset: 2px;
+}
+
+/* -- b) Lightbox: video local / embed externo ----------------- */
+.ce-lightbox__video {
+  max-width: 90vw;
+  max-height: 85vh;
+  border-radius: var(--ce-radius-md);
+  box-shadow: var(--ce-shadow-lg);
+  background: #000;
+}
+.ce-lightbox__embed {
+  max-width: 90vw;
+  max-height: 85vh;
+  width: min(90vw, 900px);
+  aspect-ratio: 16/9;
+  border-radius: var(--ce-radius-md);
+  overflow: hidden;
+  box-shadow: var(--ce-shadow-lg);
+}
+/* El embed que entrega wp_oembed_get() (ver content-testimonio-card.php)
+   trae su propio <iframe> con width/height fijos del proveedor; se
+   fuerza a ocupar el contenedor para que el video quede completo y
+   sin overflow en cualquier tamaño de pantalla (punto 11). */
+.ce-lightbox__embed iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}
+
+@media (max-width: 480px) {
+  .ce-testimonial-video-trigger__icon i {
+    width: 48px;
+    height: 48px;
+    font-size: 1rem;
+  }
+}

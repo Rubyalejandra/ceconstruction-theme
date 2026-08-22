@@ -375,40 +375,77 @@
 	});
 
 	/* ============================================================
-	 * MÓDULO: LIGHTBOX DE GALERÍA
+	 * MÓDULO: LIGHTBOX (GALERÍA DE IMÁGENES + VIDEO DE TESTIMONIOS)
+	 *
+	 * Sprint UX-7, Entregable UX-7.8 (D-077): módulo existente
+	 * extendido para representar, además de la imagen de siempre
+	 * (`.ce-gallery-item[data-full]`, sin cambios de comportamiento
+	 * ni de markup interno para este caso), dos tipos nuevos de medio:
+	 * video local (`<video controls>` nativo) y video externo
+	 * embebido vía oEmbed (`[data-lightbox-video][data-lightbox-type]`,
+	 * ver template-parts/content-testimonio-card.php). NO es un
+	 * lightbox nuevo ni un segundo overlay: es el mismo `ModuleLightbox`
+	 * de siempre, con `show()` ahora condicional según
+	 * `dataset.lightboxType` en vez de asumir siempre imagen.
+	 *
+	 * Navegación prev/next: se calcula sobre un subconjunto — solo los
+	 * triggers del MISMO tipo que el que se abrió (`this.groupItems`,
+	 * ver open()) — para que una galería de imágenes nunca navegue
+	 * hacia un video de testimonio ni viceversa, aunque ambos
+	 * existieran en la misma página. Para una página con un único tipo
+	 * de trigger (el caso real de gallery.php y de
+	 * testimonials-full.php hoy) el resultado es idéntico al
+	 * comportamiento anterior: `groupItems` termina siendo la lista
+	 * completa de ese tipo.
 	 * ============================================================ */
 	const ModuleLightbox = {
 		init() {
-			this.items = $$('.ce-gallery-item[data-full]');
+			// Selector combinado: imágenes de galería (sin cambios,
+			// mismo atributo `data-full` de siempre) + triggers de
+			// video de testimonio (`data-lightbox-video`, nuevos en
+			// UX-7.8). Si una página no tiene ninguno de los dos, el
+			// módulo no hace nada, igual que antes.
+			this.items = $$('.ce-gallery-item[data-full], [data-lightbox-video]');
 			if (!this.items.length) return;
 
 			this.buildMarkup();
-			this.index = 0;
+			this.groupItems  = this.items;
+			this.groupIndex  = 0;
+			this.lastTrigger = null;
 
-			this.items.forEach((item, i) => {
-				on(item, 'click', () => this.open(i));
+			this.items.forEach((item) => {
+				on(item, 'click', () => this.open(item));
 			});
 
 			on(this.closeBtn, 'click', () => this.close());
 			on(this.overlay, 'click', (e) => {
 				if (e.target === this.overlay) this.close();
 			});
-			on(this.prevBtn, 'click', () => this.show(this.index - 1));
-			on(this.nextBtn, 'click', () => this.show(this.index + 1));
+			on(this.prevBtn, 'click', () => this.show(this.groupIndex - 1));
+			on(this.nextBtn, 'click', () => this.show(this.groupIndex + 1));
 			on(document, 'keydown', (e) => {
 				if (!this.overlay.classList.contains('is-open')) return;
 				if (e.key === 'Escape') this.close();
-				if (e.key === 'ArrowRight') this.show(this.index + 1);
-				if (e.key === 'ArrowLeft') this.show(this.index - 1);
+				if (e.key === 'ArrowRight') this.show(this.groupIndex + 1);
+				if (e.key === 'ArrowLeft') this.show(this.groupIndex - 1);
 			});
 		},
 		buildMarkup() {
 			this.overlay = document.createElement('div');
 			this.overlay.className = 'ce-lightbox';
+			// Nota: <img>, <video> y el contenedor de embed quedan como
+			// hijos DIRECTOS del overlay (mismo nivel que en la versión
+			// anterior de este módulo, sin ningún <div> envolvente
+			// nuevo) para que el centrado/tamaño flex existente de
+			// `.ce-lightbox` no cambie para el caso de imagen — solo se
+			// añaden dos elementos nuevos, ocultos por defecto
+			// (`hidden`), que conviven con `.ce-lightbox__img` de siempre.
 			this.overlay.innerHTML = `
 				<button class="ce-lightbox__close" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
 				<button class="ce-lightbox__nav ce-lightbox__nav--prev" aria-label="Anterior"><i class="fa-solid fa-chevron-left"></i></button>
 				<img class="ce-lightbox__img" src="" alt="">
+				<video class="ce-lightbox__video" controls playsinline hidden></video>
+				<div class="ce-lightbox__embed" hidden></div>
 				<button class="ce-lightbox__nav ce-lightbox__nav--next" aria-label="Siguiente"><i class="fa-solid fa-chevron-right"></i></button>
 			`;
 			document.body.appendChild(this.overlay);
@@ -416,22 +453,90 @@
 			this.prevBtn  = $('.ce-lightbox__nav--prev', this.overlay);
 			this.nextBtn  = $('.ce-lightbox__nav--next', this.overlay);
 			this.imgEl    = $('.ce-lightbox__img', this.overlay);
+			this.videoEl  = $('.ce-lightbox__video', this.overlay);
+			this.embedEl  = $('.ce-lightbox__embed', this.overlay);
 		},
-		open(index) {
-			this.show(index);
+		open(item) {
+			// Grupo de navegación = mismo tipo que el item que abrió
+			// (ver comentario del módulo). Tipo por defecto 'image'
+			// preserva el comportamiento de gallery.php (sin
+			// `data-lightbox-type`, todos caen en 'image').
+			const type = item.dataset.lightboxType || 'image';
+			this.groupItems = this.items.filter((i) => (i.dataset.lightboxType || 'image') === type);
+			this.groupIndex = this.groupItems.indexOf(item);
+			if (this.groupIndex === -1) this.groupIndex = 0;
+
+			const multiple = this.groupItems.length > 1;
+			this.prevBtn.style.display = multiple ? '' : 'none';
+			this.nextBtn.style.display = multiple ? '' : 'none';
+
+			this.lastTrigger = item;
+			this.show(this.groupIndex);
 			this.overlay.classList.add('is-open');
 			document.body.classList.add('ce-no-scroll');
+			this.closeBtn.focus();
 		},
 		show(index) {
-			const total = this.items.length;
-			this.index = (index + total) % total;
-			const item = this.items[this.index];
-			this.imgEl.src = item.dataset.full;
-			this.imgEl.alt = item.dataset.caption || '';
+			const total = this.groupItems.length;
+			this.groupIndex = (index + total) % total;
+			const item = this.groupItems[this.groupIndex];
+			const type = item.dataset.lightboxType || 'image';
+
+			// Detiene/limpia cualquier medio de la vista anterior antes
+			// de mostrar el siguiente (evita que un video siga sonando
+			// de fondo al navegar entre items, o al reabrir).
+			this.stopMedia();
+
+			this.imgEl.hidden   = true;
+			this.videoEl.hidden = true;
+			this.embedEl.hidden = true;
+
+			if (type === 'video-local') {
+				this.videoEl.hidden = false;
+				this.videoEl.src = item.dataset.videoSrc || '';
+				if (item.dataset.caption) {
+					this.videoEl.setAttribute('aria-label', item.dataset.caption);
+				}
+			} else if (type === 'video-embed') {
+				this.embedEl.hidden = false;
+				const target = item.dataset.embedTarget ? document.getElementById(item.dataset.embedTarget) : null;
+				// El <template> ya trae el marcado que wp_oembed_get()
+				// generó en el servidor (ver content-testimonio-card.php);
+				// aquí solo se copia su innerHTML al contenedor visible,
+				// no se construye ni se solicita ningún embed nuevo desde
+				// el cliente.
+				if (target) {
+					this.embedEl.innerHTML = target.innerHTML;
+				}
+			} else {
+				this.imgEl.hidden = false;
+				this.imgEl.src = item.dataset.full || '';
+				this.imgEl.alt = item.dataset.caption || '';
+			}
+		},
+		stopMedia() {
+			if (this.videoEl) {
+				this.videoEl.pause();
+				this.videoEl.removeAttribute('src');
+				this.videoEl.load();
+			}
+			if (this.embedEl) {
+				// Vacía el embed externo (p. ej. un iframe de YouTube)
+				// para que un video externo tampoco continúe
+				// reproduciéndose en segundo plano tras navegar o cerrar.
+				this.embedEl.innerHTML = '';
+			}
 		},
 		close() {
 			this.overlay.classList.remove('is-open');
 			document.body.classList.remove('ce-no-scroll');
+			this.stopMedia();
+			// Devuelve el foco al botón/elemento que abrió el lightbox
+			// (Play del testimonio, o miniatura de la galería) — punto
+			// 10 del alcance de UX-7.8 (gestión de foco al cerrar).
+			if (this.lastTrigger && typeof this.lastTrigger.focus === 'function') {
+				this.lastTrigger.focus();
+			}
 		},
 	};
 
