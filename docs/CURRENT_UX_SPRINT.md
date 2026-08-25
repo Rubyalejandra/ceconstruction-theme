@@ -49,6 +49,8 @@ Surgido de un análisis solicitado explícitamente por el usuario (solo diagnós
 
 Ver `docs/DECISIONS.md` D-083 a D-090 para el detalle técnico completo, y la entrega de cierre de este Sprint para el reporte de validaciones realizadas.
 
+> 🆕 **Ajuste puntual dentro de UX-11, posterior al cierre de arriba (D-091):** el formulario embebido en el Hero (Punto 1, contexto `'hero'` ÚNICAMENTE) ahora se muestra inicialmente colapsado hasta "Servicio requerido" y se expande con una transición de altura suave al enfocar cualquiera de los campos visibles. Progressive enhancement obligatorio (sin JS, formulario completo desde el inicio). Instancias normal y modal, sin cambios. Ver `docs/DECISIONS.md` D-091. **Pendiente de tu aprobación explícita — no se ha tocado ningún otro Entregable ni el Sprint 8.**
+
 ---
 
 ## Sprint UX-1 — "Home Builder: base arquitectónica" — Estado: ✅ **Completado.**

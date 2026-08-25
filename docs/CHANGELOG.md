@@ -727,10 +727,24 @@ Con el cierre de UX-7 y UX-10, la fase paralela iniciada junto al Sprint 8 no ti
 `inc/hero-image-position.php`.
 
 ### Sin cambios
-`inc/quote-form.php`, `template-parts/quote-form.php`, cualquier instancia normal/modal del formulario de cotización.
+`inc/quote-form.php`, cualquier instancia normal/modal del formulario de cotización (ver también el ajuste aditivo de más abajo).
 
 ### Decisiones clave
 Ver `DECISIONS.md`: D-083 a D-090.
 
 ### Documentación actualizada
 `docs/CURRENT_UX_SPRINT.md`, `docs/QA_REPORT.md` (QA-043 cerrado), `docs/TODO.md`, `docs/PROJECT_STATUS.md`, `docs/TREE.md`.
+
+---
+
+### 🆕 Ajuste puntual dentro de UX-11 (posterior al cierre de arriba): expansión progresiva del formulario del Hero
+
+**Alcance:** exclusivamente la instancia `'hero'` de `template-parts/quote-form.php` (Punto 1 de este mismo Sprint). Sin ningún cambio en las instancias normal (`single-servicio.php`/`single-proyecto.php`) ni modal (`footer.php`).
+
+- El formulario del Hero se muestra inicialmente colapsado hasta el campo "Servicio requerido" (Nombre, Correo, Teléfono, Empresa, Servicio requerido siempre visibles). El resto (Mensaje, Adjuntar archivo, botón "Enviar Solicitud") se revela con una expansión suave de altura al enfocar (`focus`, sin necesidad de escribir) cualquiera de los campos visibles.
+- **Progressive enhancement obligatorio:** sin JavaScript (o si falla), el formulario se muestra completo desde el inicio — el colapso lo aplica únicamente el nuevo módulo JS, nunca el HTML/CSS de origen.
+- Nuevo módulo independiente `ModuleHeroFormProgressive` (`assets/js/main.js`), desacoplado de `ModuleQuoteForm` (mismo criterio de separación ya usado por `ModuleOfferPopup`, D-079) — no se tocó la validación/envío/AJAX existente.
+- El campo "Servicio requerido" sigue siendo obligatorio y validado igual (cliente y servidor), esté colapsado o expandido.
+- **Archivo tocado de "quote-form":** únicamente `template-parts/quote-form.php` (el markup), y solo dentro de la rama `$ce_quote_is_hero` — nuevo `<div class="ce-hero-quote-form__extra">` envolviendo Mensaje/Adjuntar archivo/botón. `inc/quote-form.php` (handler AJAX) **no se tocó**.
+- **Archivos modificados:** `template-parts/quote-form.php`, `assets/js/main.js` (nuevo módulo `ModuleHeroFormProgressive` + registro en el bootstrap), `assets/css/main.css` (sección 28 bis, punto 6 nuevo, aditivo).
+- **Decisión clave:** ver `DECISIONS.md` D-091.

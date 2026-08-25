@@ -1681,6 +1681,31 @@ img[loading="lazy"] {
   }
 }
 
+/* -------------------------------------------------------------
+   6) Ajuste puntual dentro de UX-11 (D-091): expansión progresiva
+   del formulario del Hero. Wrapper `.ce-hero-quote-form__extra`
+   (impreso ÚNICAMENTE en el contexto 'hero', ver
+   template-parts/quote-form.php) que envuelve Mensaje, Adjuntar
+   archivo y el botón de envío.
+   Progressive enhancement OBLIGATORIO: esta regla, por sí sola, NO
+   oculta nada — no fija ningún `max-height` ni `display`. Sin
+   `ModuleHeroFormProgressive` (assets/js/main.js) el wrapper se
+   muestra con su altura natural, exactamente como cualquier otro
+   `<div>` del formulario. Es el propio JS el que, solo si llega a
+   ejecutarse, fija `max-height` en línea (primero al alto real
+   medido, después a `0`) para poder animar la expansión — aquí solo
+   se define la transición y el recorte (`overflow: hidden`) que esa
+   animación necesita.
+   `prefers-reduced-motion: reduce` ya queda cubierto por la regla
+   global de la sección 1 de este archivo (fuerza
+   `transition-duration: 0.01ms` en todos los elementos) — no hace
+   falta una excepción específica aquí.
+   ------------------------------------------------------------- */
+.ce-hero-quote-form__extra {
+  overflow: hidden;
+  transition: max-height 0.35s ease;
+}
+
 /* =============================================================
    29. SPRINT UX-7, ENTREGABLE UX-7.6 — ESTADÍSTICAS CONFIGURABLES
    Nueva clase dedicada `.ce-stats-grid`, en vez de reutilizar

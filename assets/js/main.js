@@ -770,6 +770,97 @@
 	};
 
 	/* ============================================================
+	 * MÓDULO: EXPANSIÓN PROGRESIVA DEL FORMULARIO DEL HERO
+	 * Ajuste puntual dentro de UX-11 (ver DECISIONS.md D-091).
+	 *
+	 * Colapsa, ÚNICAMENTE vía JS, la parte final del formulario de
+	 * cotización embebido en el Hero (Mensaje, Adjuntar archivo,
+	 * botón de envío — wrapper `.ce-hero-quote-form__extra`, ver
+	 * template-parts/quote-form.php, impreso solo en el contexto
+	 * 'hero') hasta que el usuario haga foco en cualquiera de los
+	 * campos visibles inicialmente (Nombre, Correo, Teléfono,
+	 * Empresa, Servicio requerido).
+	 *
+	 * Progressive enhancement OBLIGATORIO: si este módulo no llega a
+	 * ejecutarse (JS deshabilitado, error, script no cargado), el
+	 * wrapper nunca recibe ningún `max-height` ni clase que lo oculte
+	 * — el HTML/CSS de origen ya lo muestran completo por defecto
+	 * (ver assets/css/main.css, sección 28 bis, punto 6). Este módulo
+	 * solo AÑADE el colapso cuando confirma que puede ejecutarse; en
+	 * ningún punto el formulario depende de JS para mostrar sus
+	 * campos obligatorios.
+	 *
+	 * Módulo independiente de ModuleQuoteForm, no una extensión
+	 * suya: el comportamiento de mostrar/ocultar esta sección es
+	 * puramente visual y ortogonal al envío/validación del
+	 * formulario (mismo criterio de desacople que ya usa
+	 * ModuleOfferPopup frente a ModuleQuoteForm — ver D-079). Mezclar
+	 * ambas responsabilidades en un único módulo habría acoplado la
+	 * lógica de envío AJAX/nonce (crítica, compartida por las 3
+	 * instancias) con un detalle de presentación exclusivo de una
+	 * sola de ellas; con módulos separados, un fallo o cambio futuro
+	 * en la expansión progresiva no puede romper el envío del
+	 * formulario en ningún contexto, ni viceversa.
+	 * ============================================================ */
+	const ModuleHeroFormProgressive = {
+		init() {
+			$$('.ce-hero-quote-card .ce-hero-quote-form__extra').forEach((extra) => this.createInstance(extra));
+		},
+		createInstance(extra) {
+			const form = extra.closest('form');
+			if (!form) return;
+
+			// Solo se colapsa AHORA, tras confirmar que este código se
+			// ejecuta con éxito (patrón "enhance", no "hide by default"):
+			// se mide primero la altura real con el contenido totalmente
+			// visible (estado de partida, idéntico al que ve un usuario
+			// sin JS) y luego se fija esa misma altura en línea antes de
+			// colapsar a 0, para que la transición tenga un punto de
+			// partida real y no salte de "sin restricción" a "0" sin
+			// animar.
+			extra.style.maxHeight = extra.scrollHeight + 'px';
+			// Fuerza reflow para que el navegador registre ese valor de
+			// partida antes de aplicar el colapso en el siguiente frame.
+			void extra.offsetHeight;
+			extra.classList.add('is-collapsed');
+			extra.style.maxHeight = '0px';
+
+			// `focus` no burbujea; `focusin` sí — un único listener en el
+			// propio `<form>` cubre cualquier campo visible (Nombre,
+			// Correo, Teléfono, Empresa, Servicio) sin tener que
+			// enumerarlos aquí ni duplicar esa lista frente al markup de
+			// template-parts/quote-form.php. Basta con comprobar que el
+			// foco no haya entrado DENTRO del propio wrapper colapsado.
+			const onFocusIn = (e) => {
+				if (extra.contains(e.target)) return;
+				expand();
+			};
+
+			const expand = () => {
+				if (!extra.classList.contains('is-collapsed')) return;
+				extra.classList.remove('is-collapsed');
+				extra.style.maxHeight = extra.scrollHeight + 'px';
+
+				// Al terminar la transición, se libera el `max-height` fijo
+				// (vuelve a `none`) para que el wrapper fluya con
+				// normalidad después — por ejemplo, si un mensaje de error
+				// de validación (ModuleQuoteForm) aumenta su altura más
+				// tarde, o si el usuario cambia el tamaño de la ventana.
+				const onTransitionEnd = (ev) => {
+					if (ev.target !== extra || ev.propertyName !== 'max-height') return;
+					extra.style.maxHeight = 'none';
+					extra.removeEventListener('transitionend', onTransitionEnd);
+				};
+				on(extra, 'transitionend', onTransitionEnd);
+
+				form.removeEventListener('focusin', onFocusIn);
+			};
+
+			on(form, 'focusin', onFocusIn);
+		},
+	};
+
+	/* ============================================================
 	 * MÓDULO: LAZY LOADING (fallback para navegadores sin soporte
 	 * nativo de loading="lazy", y animación de entrada al viewport)
 	 * ============================================================ */
@@ -1036,6 +1127,7 @@
 		ModuleLightbox.init();
 		ModuleModals.init();
 		ModuleQuoteForm.init();
+		ModuleHeroFormProgressive.init(); // 🆕 Sprint UX-11 (ver DECISIONS.md D-091). Después de ModuleQuoteForm.init() por orden de lectura (sin dependencia real entre ambos: son módulos independientes, ver comentario del módulo).
 		ModuleLazyLoading.init();
 		ModuleScrollReveal.init();
 		ModuleAccordion.init();

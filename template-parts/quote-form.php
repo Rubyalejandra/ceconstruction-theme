@@ -251,6 +251,26 @@ $servicios = get_posts( array(
 							<span class="ce-field__error"></span>
 						</div>
 
+						<?php if ( $ce_quote_is_hero ) : ?>
+						<!-- 🆕 Ajuste puntual dentro de UX-11 (D-091): wrapper
+						     colapsable EXCLUSIVO de la instancia 'hero' —
+						     envuelve el resto de campos (Mensaje, Adjuntar
+						     archivo, botón de envío) para la expansión
+						     progresiva al enfocar cualquier campo visible
+						     arriba. Progressive enhancement obligatorio: este
+						     `<div>` no lleva ningún estilo/atributo que oculte
+						     nada por sí mismo — sin CSS ni JS se muestra
+						     exactamente igual que cualquier otro `<div>` del
+						     formulario (todos los campos visibles). El
+						     colapso real lo aplica ÚNICAMENTE
+						     ModuleHeroFormProgressive (assets/js/main.js),
+						     solo si el script carga y se ejecuta con éxito.
+						     Las instancias normal y modal NUNCA imprimen este
+						     `<div>` (rama condicionada a `$ce_quote_is_hero`),
+						     así que no hay ningún cambio de markup para ellas. -->
+						<div class="ce-hero-quote-form__extra">
+						<?php endif; ?>
+
 						<div class="ce-field">
 							<label for="ce_message<?php echo esc_attr( $ce_quote_id_suffix ); ?>"><?php esc_html_e( 'Mensaje', 'ce-construction' ); ?> <span class="required">*</span></label>
 							<textarea id="ce_message<?php echo esc_attr( $ce_quote_id_suffix ); ?>" name="message" rows="4" required minlength="10" placeholder="<?php esc_attr_e( 'Cuéntanos brevemente sobre tu proyecto: alcance, ubicación, tiempos estimados...', 'ce-construction' ); ?>"></textarea>
@@ -271,6 +291,10 @@ $servicios = get_posts( array(
 							<span class="ce-btn__label"><?php esc_html_e( 'Enviar Solicitud', 'ce-construction' ); ?></span>
 							<span class="ce-spinner" aria-hidden="true"></span>
 						</button>
+
+						<?php if ( $ce_quote_is_hero ) : ?>
+						</div><!-- /.ce-hero-quote-form__extra -->
+						<?php endif; ?>
 
 						<div class="ce-form-status" role="status" aria-live="polite"></div>
 
