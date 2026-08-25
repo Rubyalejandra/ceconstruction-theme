@@ -748,3 +748,14 @@ Ver `DECISIONS.md`: D-083 a D-090.
 - **Archivo tocado de "quote-form":** únicamente `template-parts/quote-form.php` (el markup), y solo dentro de la rama `$ce_quote_is_hero` — nuevo `<div class="ce-hero-quote-form__extra">` envolviendo Mensaje/Adjuntar archivo/botón. `inc/quote-form.php` (handler AJAX) **no se tocó**.
 - **Archivos modificados:** `template-parts/quote-form.php`, `assets/js/main.js` (nuevo módulo `ModuleHeroFormProgressive` + registro en el bootstrap), `assets/css/main.css` (sección 28 bis, punto 6 nuevo, aditivo).
 - **Decisión clave:** ver `DECISIONS.md` D-091.
+
+---
+
+### 🆕 Ajuste puntual dentro de UX-11 (continuación): opacidad configurable del panel + recompactar al salir del formulario
+
+**Alcance:** exclusivamente la instancia `'hero'` de `template-parts/quote-form.php`, misma que el ajuste anterior. Sin ningún cambio en las instancias normal ni modal.
+
+- **Opacidad configurable del panel (D-092):** nuevo control en el Customizer ("CE: Sección Hero" → "Opacidad del panel del Formulario de Cotización (Hero)"), rango 0–1, mismo mecanismo que "Intensidad del overlay oscuro". Por defecto `0.97` — idéntico al aspecto anterior. Se aplica vía variable CSS `--ce-hero-quote-card-opacity`, impresa en línea por `template-parts/quote-form.php` (contexto `'hero'` únicamente), consumida por `assets/css/main.css` con el valor anterior como *fallback* (cero regresión).
+- **Recompactar al salir del formulario (D-093):** el formulario ahora también se vuelve a compactar automáticamente al salir por completo de él (sin haber enviado), y se expande de nuevo al reingresar — puede repetirse indefinidamente. Corrige además, de paso, un pequeño parpadeo visual que tenía el colapso inicial al cargar la página.
+- **Archivos modificados:** `inc/customizer.php` (1 setting + 1 control + 1 sanitize_callback nuevos), `template-parts/quote-form.php` (atributo `style` con la variable CSS, dentro de la rama `'hero'`), `assets/css/main.css` (1 línea de `background` cambiada a `var()` con fallback), `assets/js/main.js` (`ModuleHeroFormProgressive` ampliado: expandir/compactar repetible + corrección del parpadeo inicial).
+- **Decisiones clave:** ver `DECISIONS.md` D-092, D-093.

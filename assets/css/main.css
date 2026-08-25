@@ -1619,7 +1619,16 @@ img[loading="lazy"] {
      que quedaba por defecto tras el `:hover` (sección 28, arriba;
      aquí se sobreescribe también en reposo para que sea consistente
      sin depender de :hover). */
-  background: rgba(255, 255, 255, 0.97);
+  /* 🆕 Ajuste puntual dentro de UX-11 (D-092): la opacidad del fondo
+     ya no es un valor fijo — usa la variable CSS
+     `--ce-hero-quote-card-opacity`, impresa en línea por
+     template-parts/quote-form.php (contexto 'hero' únicamente) a
+     partir del theme_mod `ce_hero_quote_card_opacity`. El `0.97` que
+     antes era el único valor ahora queda como *fallback* de la
+     función `var()` — si por lo que sea el atributo `style` no
+     llegara a imprimirse, el resultado es idéntico al de antes de
+     este ajuste (cero regresión). */
+  background: rgba(255, 255, 255, var(--ce-hero-quote-card-opacity, 0.97));
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   box-shadow: var(--ce-shadow-lg);

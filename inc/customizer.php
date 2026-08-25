@@ -566,6 +566,34 @@ function ce_construction_customize_register( $wp_customize ) {
 		'priority'    => 13,
 	) );
 
+	/* ---------------------------------------------------------
+	 * 🆕 Ajuste puntual dentro de UX-11 (D-092): transparencia
+	 * configurable del panel del Formulario de Cotización embebido
+	 * en el Hero (Home). Mismo mecanismo/tipo de control que
+	 * 'ce_hero_overlay_opacity' (número 0–1, arriba) por
+	 * consistencia — solo aplica al panel `.ce-hero-quote-card` del
+	 * contexto 'hero' de template-parts/quote-form.php; las
+	 * instancias normal y modal del formulario no tienen fondo
+	 * translúcido y no se ven afectadas por este control.
+	 * --------------------------------------------------------- */
+	$wp_customize->add_setting( 'ce_hero_quote_card_opacity', array(
+		'default'           => '0.97',
+		'sanitize_callback' => 'ce_construction_sanitize_hero_quote_card_opacity',
+		'transport'         => 'refresh',
+	) );
+	$wp_customize->add_control( 'ce_hero_quote_card_opacity', array(
+		'label'       => __( 'Opacidad del panel del Formulario de Cotización (Hero)', 'ce-construction' ),
+		'description' => __( 'De 0 (panel totalmente transparente, se ve la imagen del Hero a través de él) a 1 (panel totalmente sólido). Solo afecta al panel del Formulario de Cotización embebido en el Hero del Home — no cambia nada en las instancias normal (Servicios/Proyectos) ni en el modal de Cotización, que no tienen este tratamiento visual. Por defecto: 0.97 — mismo aspecto que hasta ahora.', 'ce-construction' ),
+		'section'     => 'ce_section_hero',
+		'type'        => 'number',
+		'input_attrs' => array(
+			'min'  => 0,
+			'max'  => 1,
+			'step' => 0.05,
+		),
+		'priority'    => 14,
+	) );
+
 	$hero_text_fields = array(
 		'ce_hero_title'    => __( 'Título principal', 'ce-construction' ),
 		'ce_hero_subtitle' => __( 'Subtítulo', 'ce-construction' ),
@@ -1401,6 +1429,28 @@ function ce_construction_sanitize_hero_type( $value ) {
  * en el navegador, no una validación real de servidor).
  */
 function ce_construction_sanitize_hero_overlay_opacity( $value ) {
+	$value = (float) $value;
+	if ( $value < 0 ) {
+		$value = 0;
+	} elseif ( $value > 1 ) {
+		$value = 1;
+	}
+	return (string) $value;
+}
+
+/**
+ * `sanitize_callback` de `ce_hero_quote_card_opacity` (D-092, ajuste
+ * puntual dentro de UX-11). Mismo mecanismo/acotamiento que
+ * `ce_construction_sanitize_hero_overlay_opacity()` de arriba — se
+ * reutiliza el mismo criterio (rango [0,1], protegido en servidor,
+ * no solo por `input_attrs` del control) en vez de duplicar una
+ * función idéntica; se define de forma independiente (no se llama a
+ * la función de arriba) porque ambos controles, aunque hoy comparten
+ * la misma validación, gobiernan conceptos distintos (overlay del
+ * Hero vs. transparencia del panel del formulario) y podrían evolucionar
+ * con reglas distintas en el futuro sin arrastrarse mutuamente.
+ */
+function ce_construction_sanitize_hero_quote_card_opacity( $value ) {
 	$value = (float) $value;
 	if ( $value < 0 ) {
 		$value = 0;

@@ -164,6 +164,13 @@ $servicios = get_posts( array(
 	'orderby'        => 'title',
 	'order'          => 'ASC',
 ) );
+
+// 🆕 Ajuste puntual dentro de UX-11 (D-092): opacidad configurable
+// del panel del formulario del Hero — solo se resuelve/imprime en el
+// contexto 'hero' (único que tiene el fondo translúcido, ver sección
+// 28 bis de main.css). No afecta a las instancias normal/modal, que
+// ni siquiera evalúan esta variable.
+$ce_hero_quote_card_opacity = $ce_quote_is_hero ? get_theme_mod( 'ce_hero_quote_card_opacity', '0.97' ) : null;
 ?>
 <?php if ( $ce_quote_is_hero ) : ?>
 <!-- 🆕 UX-7.2 (D-064): tarjeta compacta para el slot del Hero — sin
@@ -173,8 +180,14 @@ $servicios = get_posts( array(
      acento (`--ce-color-secondary`, vía CSS en `.ce-hero-quote-card`,
      sección 28 de main.css) + badge corto de "oferta". Sin bullets de
      confianza aquí — ese requisito se absorbe en UX-7.7 (sin aprobar,
-     ver D-065 y la nota añadida a UX-7.7 en este ciclo). -->
-<div class="ce-hero-quote-card ce-card">
+     ver D-065 y la nota añadida a UX-7.7 en este ciclo).
+     🆕 Ajuste puntual dentro de UX-11 (D-092): `--ce-hero-quote-card-opacity`
+     impresa en línea (mismo patrón ya usado por
+     `--ce-hero-overlay-gradient` en hero.php/page-hero.php, D-086) a
+     partir del theme_mod `ce_hero_quote_card_opacity` — controla la
+     opacidad del fondo translúcido del panel (sección 28 bis de
+     main.css). -->
+<div class="ce-hero-quote-card ce-card" style="--ce-hero-quote-card-opacity: <?php echo esc_attr( $ce_hero_quote_card_opacity ); ?>;">
 	<div class="ce-card__body">
 		<span class="ce-hero-quote-card__badge">
 			<i class="fa-solid fa-bolt" aria-hidden="true"></i>

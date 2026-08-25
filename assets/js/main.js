@@ -771,15 +771,17 @@
 
 	/* ============================================================
 	 * MÓDULO: EXPANSIÓN PROGRESIVA DEL FORMULARIO DEL HERO
-	 * Ajuste puntual dentro de UX-11 (ver DECISIONS.md D-091).
+	 * Ajuste puntual dentro de UX-11 (ver DECISIONS.md D-091, D-093).
 	 *
 	 * Colapsa, ÚNICAMENTE vía JS, la parte final del formulario de
 	 * cotización embebido en el Hero (Mensaje, Adjuntar archivo,
 	 * botón de envío — wrapper `.ce-hero-quote-form__extra`, ver
 	 * template-parts/quote-form.php, impreso solo en el contexto
-	 * 'hero') hasta que el usuario haga foco en cualquiera de los
-	 * campos visibles inicialmente (Nombre, Correo, Teléfono,
-	 * Empresa, Servicio requerido).
+	 * 'hero'). Se expande al entrar al formulario (foco en cualquier
+	 * campo, visible o no) y vuelve a compactarse al salir por
+	 * completo de él, sin haber enviado nada (D-093) — puede
+	 * expandirse y compactarse tantas veces como el usuario entre y
+	 * salga del formulario.
 	 *
 	 * Progressive enhancement OBLIGATORIO: si este módulo no llega a
 	 * ejecutarse (JS deshabilitado, error, script no cargado), el
@@ -810,53 +812,84 @@
 			const form = extra.closest('form');
 			if (!form) return;
 
-			// Solo se colapsa AHORA, tras confirmar que este código se
-			// ejecuta con éxito (patrón "enhance", no "hide by default"):
-			// se mide primero la altura real con el contenido totalmente
-			// visible (estado de partida, idéntico al que ve un usuario
-			// sin JS) y luego se fija esa misma altura en línea antes de
-			// colapsar a 0, para que la transición tenga un punto de
-			// partida real y no salte de "sin restricción" a "0" sin
-			// animar.
-			extra.style.maxHeight = extra.scrollHeight + 'px';
-			// Fuerza reflow para que el navegador registre ese valor de
-			// partida antes de aplicar el colapso en el siguiente frame.
-			void extra.offsetHeight;
+			const isCollapsed = () => extra.classList.contains('is-collapsed');
+
+			// 🆕 D-093: colapso INICIAL sin animación — evita un
+			// "parpadeo" visible de colapso justo después de cargar la
+			// página (con la transición de la sección 28 bis activa, fijar
+			// max-height a 0 directamente SÍ se animaría). Se desactiva la
+			// transición en línea por un instante, se colapsa, se fuerza
+			// reflow, y solo entonces se restaura la transición normal del
+			// CSS para que las expansiones/colapsos posteriores —
+			// disparados por el usuario al entrar/salir del formulario—
+			// sí se animen.
+			extra.style.transition = 'none';
 			extra.classList.add('is-collapsed');
 			extra.style.maxHeight = '0px';
-
-			// `focus` no burbujea; `focusin` sí — un único listener en el
-			// propio `<form>` cubre cualquier campo visible (Nombre,
-			// Correo, Teléfono, Empresa, Servicio) sin tener que
-			// enumerarlos aquí ni duplicar esa lista frente al markup de
-			// template-parts/quote-form.php. Basta con comprobar que el
-			// foco no haya entrado DENTRO del propio wrapper colapsado.
-			const onFocusIn = (e) => {
-				if (extra.contains(e.target)) return;
-				expand();
-			};
+			void extra.offsetHeight; // fuerza reflow
+			extra.style.transition = '';
 
 			const expand = () => {
-				if (!extra.classList.contains('is-collapsed')) return;
+				if (!isCollapsed()) return;
 				extra.classList.remove('is-collapsed');
 				extra.style.maxHeight = extra.scrollHeight + 'px';
-
-				// Al terminar la transición, se libera el `max-height` fijo
-				// (vuelve a `none`) para que el wrapper fluya con
-				// normalidad después — por ejemplo, si un mensaje de error
-				// de validación (ModuleQuoteForm) aumenta su altura más
-				// tarde, o si el usuario cambia el tamaño de la ventana.
-				const onTransitionEnd = (ev) => {
-					if (ev.target !== extra || ev.propertyName !== 'max-height') return;
-					extra.style.maxHeight = 'none';
-					extra.removeEventListener('transitionend', onTransitionEnd);
-				};
-				on(extra, 'transitionend', onTransitionEnd);
-
-				form.removeEventListener('focusin', onFocusIn);
 			};
 
-			on(form, 'focusin', onFocusIn);
+			// 🆕 D-093: recompacta el wrapper (mismo mecanismo que el
+			// colapso inicial, pero SÍ animado: aquí no se toca
+			// `transition`, así que corre la definida en el CSS). Antes de
+			// colapsar se fija el alto real actual en píxeles como punto
+			// de partida — necesario porque, tras una expansión completa
+			// (ver `transitionend` más abajo), `max-height` queda en
+			// `none`, y una transición nunca anima correctamente desde
+			// `none`.
+			const collapse = () => {
+				if (isCollapsed()) return;
+				extra.style.maxHeight = extra.scrollHeight + 'px';
+				void extra.offsetHeight; // fuerza reflow
+				extra.classList.add('is-collapsed');
+				extra.style.maxHeight = '0px';
+			};
+
+			on(extra, 'transitionend', (e) => {
+				if (e.target !== extra || e.propertyName !== 'max-height') return;
+				// Solo al terminar de EXPANDIR se libera el `max-height`
+				// fijo (a `none`), para que el wrapper fluya con
+				// normalidad mientras está abierto — por ejemplo, si un
+				// mensaje de error de validación (ModuleQuoteForm)
+				// aumenta su altura después, o si cambia el tamaño de la
+				// ventana. Al terminar de COLAPSAR no hace falta liberar
+				// nada: `0px` ya es el estado de reposo correcto.
+				if (!isCollapsed()) {
+					extra.style.maxHeight = 'none';
+				}
+			});
+
+			// `focus`/`blur` no burbujean; `focusin`/`focusout` sí — un
+			// único par de listeners en el propio `<form>` cubre
+			// cualquier campo (visible o, si el usuario llega a él
+			// tabulando mientras está colapsado, dentro del propio
+			// wrapper) sin tener que enumerarlos ni duplicar esa lista
+			// frente al markup de template-parts/quote-form.php.
+			on(form, 'focusin', expand);
+
+			// 🆕 D-093: "salir del formulario" se resuelve con un
+			// `setTimeout` de 0ms en `focusout`, no con el `relatedTarget`
+			// del propio evento — `relatedTarget` no es fiable en todos
+			// los navegadores (p. ej. al perder el foco por un clic fuera
+			// de cualquier elemento enfocable, o al cambiar de pestaña).
+			// Esperar un ciclo permite leer `document.activeElement` ya
+			// actualizado: si en ese momento sigue siendo un elemento
+			// DENTRO de este mismo `<form>` (el usuario solo se movió de
+			// un campo a otro del formulario), no se compacta; si quedó
+			// fuera (o no quedó ninguno, p. ej. Escape/clic en el fondo),
+			// se compacta.
+			on(form, 'focusout', () => {
+				setTimeout(() => {
+					if (form.contains(document.activeElement)) return;
+					collapse();
+				}, 0);
+			});
 		},
 	};
 
