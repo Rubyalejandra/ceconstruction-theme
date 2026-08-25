@@ -650,3 +650,87 @@ El usuario decidió explícitamente **no** crear una variante `short` ni un segu
 ## Sprint UX-6 — Cierre formal (UX-6.1 + UX-6.2 + UX-6.3)
 
 **Estado:** ✅ **Completado y aprobado.** Los tres Entregables aprobados explícitamente por el usuario en la misma sesión (ver `DECISIONS.md` D-062). Sin cambios de código en este cierre — puramente documental (actualización de este archivo, `TREE.md` y `DECISIONS.md`, diferida hasta este punto conforme a D-034).
+
+---
+
+## Sprint UX-7 — "Consistencia y configurabilidad: Hero, CTA, Header/Footer" — Cierre formal (UX-7.1 a UX-7.10)
+
+**Estado:** ✅ **CERRADO Y APROBADO.** Los 10 Entregables aprobados explícitamente por el usuario (UX-7.10 en la sesión de cierre de esta fase). Entrada consolidada a nivel de Sprint (detalle técnico completo de cada Entregable ya documentado individualmente en `docs/DECISIONS.md` D-063 a D-081 y en `docs/CURRENT_UX_SPRINT.md`), añadida en esta sesión conforme al criterio D-034 (se difería a un punto de cierre de Sprint más significativo; este es ese punto).
+
+### Añadido
+- **UX-7.1** — Unificación del Hero (Home + interior): `ce_construction_get_hero_media_state()` compartida entre `hero.php`/`page-hero.php`; Hero interno gana video/slider y overlay de 3 stops compartido con opacidad configurable (D-063).
+- **UX-7.2** — Layout de Hero en 1/2/3 columnas + Quote Form embebido (`ce_hero_layout`, `ce_hero_show_quote_form`); tercer contexto `'hero'` en `quote-form.php` (D-064). Ajuste puntual: breakpoint intermedio, `.ce-hero--has-form`, badge "Respuesta en 24h" (D-065).
+- **UX-7.3** — Aprovechamiento de espacios vacíos en sidebars de Servicios/Proyectos (D-067).
+- **UX-7.4** — Icono y color de botón configurables para el CTA (D-068).
+- **UX-7.5** — Logo independiente del Footer (`ce_footer_logo`, con fallback automático al logo del sitio) vía `ce_render_footer_logo()` (D-069).
+- **UX-7.6** — Estadísticas configurables desde el Customizer, repeater con control custom (`assets/js/admin-stats-items.js`) (D-070).
+- **UX-7.7** — Franja de Insignias de Confianza/Licencias (`template-parts/trust-badges.php`, repeater con imagen opcional vía `wp.media`), con modo compacto integrado en la tarjeta del Quote Form del Hero (D-071).
+- **UX-7.8** — Testimonio en video (adjunto local o URL externa vía `wp_oembed_get()`), extensión retrocompatible de `ModuleLightbox` para reproducir video sin crear un lightbox nuevo (D-077).
+- **UX-7.9** — Bloque de Financiamiento / opciones de pago (`template-parts/financing.php`, mismo patrón de campos que `cta_secondary`) (D-078).
+- **UX-7.10** — Popup de Oferta / captura de leads: overlay independiente del Quote Form, temporizador configurable, 2 cookies de navegador (supresión corta/larga), refuerzo visual (icono, insignia, colores de oferta, `prefers-reduced-motion`) y efecto de movimiento vía JS (rebote de entrada + nudge acotado del icono, sin sobrecargar) (D-079, D-080, D-081).
+
+### Sin cambios
+- `inc/quote-form.php` (handler AJAX) — protegido explícitamente en todo el Sprint UX-7.
+- Ningún archivo del Sprint 8 — verificado Entregable por Entregable durante toda la fase.
+
+### Decisiones clave
+- Ver `DECISIONS.md`: D-058 (benchmark competitivo y propuesta del Sprint), D-063 a D-071 y D-077 a D-081.
+
+### Documentación actualizada
+- `docs/TREE.md`, `docs/CURRENT_UX_SPRINT.md` (bloque "ESTADO FINAL"), `docs/TODO.md`, `docs/PROJECT_STATUS.md` — todos en esta misma sesión de cierre.
+
+---
+
+## Sprint UX-10 — "Página de Testimonios: CPT propio + Google Reviews" — Cierre formal (UX-10.1 a UX-10.3)
+
+**Estado:** ✅ **COMPLETADO Y APROBADO.** Entrada consolidada a nivel de Sprint (detalle técnico completo ya documentado en `docs/DECISIONS.md` D-072 a D-076 y en `docs/CURRENT_UX_SPRINT.md`).
+
+### Añadido
+- **UX-10.1 + UX-10.2** — Página dedicada de Testimonios vía `page.php` + `[ce_section key="testimonials_full"]` (`template-parts/testimonials-full.php`: grid + paginación, solo CPT propio `testimonio`, reutiliza `content-testimonio-card.php` sin cambios); CTA "Ver todos los testimonios" en el teaser del Home (D-073).
+- **UX-10.3** — Google Reviews vía Trustindex, incorporado como sección independiente del Home Builder (`template-parts/google-reviews.php`, campo `textarea` saneado con `wp_kses()`), embebido tal cual, sin normalización hacia `content-testimonio-card.php` — corrección de la premisa funcional original tras confirmarse que Trustindex no ofrece API pública (D-074, D-075, D-076).
+- **UX-10.4** — sin Entregable propio: la combinatoria "solo CPT / solo Trustindex / ambos / ninguno" queda absorbida por el Home Builder existente (activar/desactivar/reordenar `testimonials` y `google_reviews` de forma independiente).
+
+### Sin cambios
+- `inc/cpt-testimonios.php`, `template-parts/content-testimonio-card.php` — ninguno de los 3 archivos señalados como conflicto de secuencia con UX-7.8 (D-072) fue modificado por UX-10.
+- Ningún archivo del Sprint 8.
+
+### Decisiones clave
+- Ver `DECISIONS.md`: D-072 a D-076.
+
+### Documentación actualizada
+- `docs/TREE.md`, `docs/CURRENT_UX_SPRINT.md`, `docs/TODO.md`, `docs/PROJECT_STATUS.md` — todos en esta sesión de cierre (la de UX-7, ya que UX-10 se aprobó antes pero también tenía esta actualización diferida).
+
+---
+
+## 🎉 FASE "OPTIMIZACIÓN UX / CONVERSIÓN" — Sprints UX-1 a UX-7 y UX-10, CERRADOS
+
+Con el cierre de UX-7 y UX-10, la fase paralela iniciada junto al Sprint 8 no tiene ningún Sprint ni Entregable UX **obligatorio** pendiente. Quedan como backlog no bloqueante, sin iniciar: UX-5.2 (documentación de "objetivo de plantilla"), Sprint UX-8 ("Video en Proyectos", propuesto/futuro) y Sprint UX-9 (registro documental de Responsive). Un hallazgo de QA (`.ce-header__social` sin estilo base) detectado durante la auditoría UX se registró formalmente como **QA-043** en `docs/QA_REPORT.md`, derivado al Sprint 8 (no es parte de esta fase). El **Sprint 8** ("Cierre de Hallazgos QA") permanece pausado, sin cerrarse, en el Entregable 8.2 (QA-030) — ver `docs/CURRENT_SPRINT.md` para su estado reconstruido.
+
+---
+
+## Sprint UX-11 — "Hero, Formulario del Hero y Header" — Completado y aprobado (Entregable único)
+
+**Estado:** ✅ **COMPLETADO Y APROBADO.** Precedido de una fase de análisis/planificación explícitamente separada de la implementación (a pedido del usuario): primero se entregó un plan técnico/UX de 9 puntos sin tocar código, luego el usuario aprobó el plan completo con decisiones específicas por punto, y solo entonces se implementó.
+
+### Añadido / Corregido
+- **Punto 1 — Formulario del Hero:** corregido el recorte del botón "Enviar Solicitud" (causa real: `.ce-hero-quote-card` heredaba de `.ce-card` tanto `overflow: hidden` como `height: 100%`, combinado con el `overflow: hidden` de `.ce-hero` y el `align-items: center` de `.ce-hero__layout`). Panel rediseñado como componente visualmente separado del fondo (fondo translúcido + `backdrop-filter`, sombra `--ce-shadow-lg` consistente, más padding/gap) — inspirado en concepto en la referencia proporcionada por el usuario, sin copiarla. Ningún cambio en las instancias normal/modal del formulario.
+- **Punto 2 — Altura del Hero:** reducción ~15% (`clamp(480px, 75vh, 760px)` base, `clamp(560px, 78vh, 820px)` en `xl`) — sin un `min-height` en píxeles que anulara la reducción en viewports habituales.
+- **Punto 3 — Hero interno vs. Home:** `template-parts/page-hero.php` reescrito — ya no comparte el modo video/slider global del Home (modifica explícitamente D-063, no una reversión silenciosa); usa siempre la imagen destacada del post/página, con fallback a la imagen del Home solo si no existe.
+- **Punto 4 — Imágenes de Hero:** verificado que WordPress no ofrece punto focal nativo para imágenes destacadas/adjuntos. Alternativa implementada, nativa y sin plugin: campo "Posición en Heroes" (9 posiciones predefinidas) en la pantalla clásica de edición de adjuntos, nuevo archivo `inc/hero-image-position.php`.
+- **Punto 5 — Overlay configurable:** 4 controles en el Customizer (color, dirección, extensión, e intensidad ya existente) — nueva función `ce_construction_get_hero_overlay_gradient_css()` (`inc/helpers.php`). Valores por defecto matemáticamente equivalentes al gradiente fijo anterior — sin regresión visual.
+- **Punto 6 — Header (QA-043):** espaciado/tamaño de `.ce-header__social` en la barra superior del header, incorporado a este Sprint por decisión explícita del usuario.
+
+### Archivos modificados
+`template-parts/hero.php`, `template-parts/page-hero.php` (reescrito), `inc/helpers.php`, `inc/customizer.php`, `assets/css/main.css`, `functions.php` (registro del nuevo módulo).
+
+### Archivos nuevos
+`inc/hero-image-position.php`.
+
+### Sin cambios
+`inc/quote-form.php`, `template-parts/quote-form.php`, cualquier instancia normal/modal del formulario de cotización.
+
+### Decisiones clave
+Ver `DECISIONS.md`: D-083 a D-090.
+
+### Documentación actualizada
+`docs/CURRENT_UX_SPRINT.md`, `docs/QA_REPORT.md` (QA-043 cerrado), `docs/TODO.md`, `docs/PROJECT_STATUS.md`, `docs/TREE.md`.

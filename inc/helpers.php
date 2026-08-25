@@ -684,7 +684,8 @@ function ce_get_hero_slide_ids( $raw ) {
  *     @type string $video_url   URL del adjunto de video (vacío si no aplica).
  *     @type string $video_mime  MIME type del adjunto de video (vacío si no aplica).
  *     @type bool   $is_slider   Si debe renderizarse el fondo de slider.
- *     @type array  $slide_urls  URLs de las imágenes del slider (tamaño 'ce-hero'), vacío si no aplica.
+ *     @type array  $slides      Slides del slider, vacío si no aplica. Cada elemento:
+ *                                { url: string, position: string (valor CSS background-position) }.
  * }
  */
 function ce_construction_get_hero_media_state( $hero_type ) {
@@ -693,23 +694,172 @@ function ce_construction_get_hero_media_state( $hero_type ) {
 	$hero_video_mime = $hero_video_id ? get_post_mime_type( $hero_video_id ) : '';
 	$is_video        = ( 'video' === $hero_type && $hero_video_url );
 
-	$hero_slide_ids  = ce_get_hero_slide_ids( get_theme_mod( 'ce_hero_slides', '' ) );
-	$hero_slide_urls = array();
+	// 🆕 Sprint UX-11 (D-083): cada slide expone ahora también su
+	// posición de fondo configurable por imagen (ver
+	// inc/hero-image-position.php) — antes solo se exponía la URL,
+	// siempre con background-position:center implícito (CSS, sección
+	// 10/27). Sin esta información, el llamador no podría aplicar la
+	// posición elegida por el administrador para esa imagen concreta.
+	$hero_slide_ids = ce_get_hero_slide_ids( get_theme_mod( 'ce_hero_slides', '' ) );
+	$hero_slides    = array();
 	foreach ( $hero_slide_ids as $slide_id ) {
 		$slide_url = wp_get_attachment_image_url( $slide_id, 'ce-hero' );
 		if ( $slide_url ) {
-			$hero_slide_urls[] = $slide_url;
+			$hero_slides[] = array(
+				'url'      => $slide_url,
+				'position' => ce_construction_get_hero_background_position( $slide_id ),
+			);
 		}
 	}
-	$is_slider = ( 'slider' === $hero_type && ! empty( $hero_slide_urls ) );
+	$is_slider = ( 'slider' === $hero_type && ! empty( $hero_slides ) );
 
 	return array(
 		'is_video'   => (bool) $is_video,
 		'video_url'  => $is_video ? $hero_video_url : '',
 		'video_mime' => $is_video ? $hero_video_mime : '',
 		'is_slider'  => (bool) $is_slider,
-		'slide_urls' => $is_slider ? $hero_slide_urls : array(),
+		'slides'     => $is_slider ? $hero_slides : array(),
 	);
+}
+
+/* =========================================================
+ * SPRINT UX-11 — Hero: panel del formulario, altura, Hero interno
+ * propio, posicionamiento de imagen y overlay configurable. Ver
+ * DECISIONS.md D-083, D-084, D-086.
+ * ========================================================= */
+
+/**
+ * Sprint UX-11, Entregable único (punto 3 del plan aprobado — ver
+ * DECISIONS.md D-084, que documenta la modificación explícita de
+ * D-063). Resuelve la imagen de fondo del Hero INTERNO
+ * (`template-parts/page-hero.php`), que desde este Entregable ya NO
+ * comparte el modo video/slider global del Home (revierte esa parte
+ * puntual de D-063; la función compartida
+ * `ce_construction_get_hero_media_state()` de arriba sigue existiendo
+ * y sigue sirviendo exclusivamente al Hero de Home).
+ *
+ * Orden de resolución:
+ *   1. Imagen destacada del post/página actual (`$image_id`).
+ *   2. Fallback: la imagen de fondo configurada para el Hero de Home
+ *      (`ce_hero_image`) — solo si el post no tiene imagen destacada
+ *      propia. Nunca video ni slider, en ningún caso.
+ *   3. Si tampoco existe esa imagen: cadena vacía — `page-hero.php`
+ *      ya tiene un fondo de color sólido de respaldo
+ *      (`background-color: var(--ce-color-primary)`, sección 20 de
+ *      main.css), comportamiento histórico sin cambios.
+ *
+ * @param int $image_id ID de la imagen destacada del post/página actual (0 si no tiene).
+ * @return array { @type string $url URL de la imagen (tamaño 'ce-hero'), vacío si ninguna disponible.
+ *                 @type int    $attachment_id ID del adjunto realmente usado (0 si ninguno). }
+ */
+function ce_construction_get_page_hero_image_url( $image_id ) {
+	$image_id = absint( $image_id );
+	if ( $image_id ) {
+		$url = wp_get_attachment_image_url( $image_id, 'ce-hero' );
+		if ( $url ) {
+			return array( 'url' => $url, 'attachment_id' => $image_id );
+		}
+	}
+
+	$fallback_id = absint( get_theme_mod( 'ce_hero_image' ) );
+	if ( $fallback_id ) {
+		$url = wp_get_attachment_image_url( $fallback_id, 'ce-hero' );
+		if ( $url ) {
+			return array( 'url' => $url, 'attachment_id' => $fallback_id );
+		}
+	}
+
+	return array(
+		'url'           => '',
+		'attachment_id' => 0,
+	);
+}
+
+/**
+ * Sprint UX-11, punto 5 del plan aprobado (overlay/gradiente
+ * configurable — ver DECISIONS.md D-086). Convierte un color
+ * hexadecimal ('#rrggbb' o '#rgb') a un array [r, g, b]. No existe
+ * un helper nativo de WordPress para esto (`sanitize_hex_color()`
+ * valida el formato pero no lo descompone) — función pura, sin
+ * efectos secundarios, reutilizable por cualquier necesidad futura
+ * de manipular color en el theme.
+ *
+ * @param string $hex Color hexadecimal, con o sin '#'.
+ * @return int[] [r, g, b] (0-255 cada uno). Si el valor es inválido,
+ *               devuelve el equivalente de --ce-color-primary-dark
+ *               (#081A2B) — mismo color que usaba el gradiente fijo
+ *               del overlay antes de este Entregable.
+ */
+function ce_construction_hex_to_rgb( $hex ) {
+	$hex = ltrim( (string) $hex, '#' );
+	if ( 3 === strlen( $hex ) ) {
+		$hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+	}
+	if ( 6 !== strlen( $hex ) || ! ctype_xdigit( $hex ) ) {
+		return array( 8, 26, 43 ); // --ce-color-primary-dark, color de respaldo.
+	}
+	return array(
+		hexdec( substr( $hex, 0, 2 ) ),
+		hexdec( substr( $hex, 2, 2 ) ),
+		hexdec( substr( $hex, 4, 2 ) ),
+	);
+}
+
+/**
+ * Sprint UX-11, punto 5 del plan aprobado (ver DECISIONS.md D-086).
+ * Construye el valor CSS del gradiente de overlay a partir de los 3
+ * nuevos theme_mods (`ce_hero_overlay_color`, `ce_hero_overlay_direction`,
+ * `ce_hero_overlay_extent`), reutilizando exactamente las mismas
+ * proporciones de opacidad (0.92 / 0.78 / 0.45) que el gradiente fijo
+ * que reemplaza — con los valores por defecto de los 3 controles
+ * nuevos, el resultado es *pixel-idéntico* al gradiente fijo anterior
+ * (mismo color #081A2B, misma dirección 120deg, mismo punto medio al
+ * 55%). El 4° control ya existente (`ce_hero_overlay_opacity`) no se
+ * toca aquí — sigue aplicándose como multiplicador de opacidad sobre
+ * el elemento `.ce-hero__overlay`/`.ce-page-hero__overlay` completo
+ * (CSS, sección 10), independiente de este gradiente.
+ *
+ * "Extensión" (punto explícito del plan aprobado: 40/50/70/100):
+ * controla en qué % del Hero se alcanza la opacidad mínima (0.45).
+ * Más allá de ese punto, el color se mantiene constante hasta el
+ * 100% (4° stop idéntico al 3°) — así se logra la "zona oscura donde
+ * está el texto + transición progresiva hacia una zona donde se
+ * conserva más visible la imagen" pedida en el plan, sin volver a
+ * oscurecer después del punto de extensión.
+ *
+ * @return string Valor listo para usar como `linear-gradient(...)` en CSS.
+ */
+function ce_construction_get_hero_overlay_gradient_css() {
+	$color_hex     = get_theme_mod( 'ce_hero_overlay_color', '#081A2B' );
+	$direction_key = get_theme_mod( 'ce_hero_overlay_direction', 'diagonal' );
+	$extent        = (int) get_theme_mod( 'ce_hero_overlay_extent', 100 );
+
+	$directions = array(
+		'diagonal'  => '120deg',
+		'to-bottom' => '180deg',
+		'to-top'    => '0deg',
+		'to-right'  => '90deg',
+		'to-left'   => '270deg',
+	);
+	$degrees = isset( $directions[ $direction_key ] ) ? $directions[ $direction_key ] : $directions['diagonal'];
+
+	list( $r, $g, $b ) = ce_construction_hex_to_rgb( $color_hex );
+	$mid_stop = (int) round( $extent * 0.55 );
+
+	return sprintf(
+		'linear-gradient(%1$s, rgba(%2$d,%3$d,%4$d,0.92) 0%%, rgba(%2$d,%3$d,%4$d,0.78) %5$d%%, rgba(%2$d,%3$d,%4$d,0.45) %6$d%%, rgba(%2$d,%3$d,%4$d,0.45) 100%%)',
+		$degrees,
+		$r,
+		$g,
+		$b,
+		$mid_stop,
+		$extent
+	);
+	// Nota: se usan exclusivamente marcadores posicionales (%1$s,
+	// %2$d...) porque PHP no permite mezclar marcadores posicionales y
+	// no posicionales en el mismo sprintf() de forma fiable — así
+	// $r/$g/$b se reutilizan en los 4 stops sin repetirlos en la
+	// lista de argumentos.
 }
 
 /**

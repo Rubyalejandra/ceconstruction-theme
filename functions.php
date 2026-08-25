@@ -62,6 +62,7 @@ function ce_construction_require_modules() {
 		'inc/widgets.php',          // Widgets / sidebars del footer.
 		'inc/home-builder.php',     // Home Builder: registro/orden de secciones del Home (Sprint UX-1).
 		'inc/section-shortcode.php', // Shortcode [ce_section]: reutilización de secciones fuera del Home (Sprint UX-6.2).
+		'inc/hero-image-position.php', // Posición de fondo configurable por imagen de Hero (Sprint UX-11).
 	);
 
 	foreach ( $modules as $module ) {

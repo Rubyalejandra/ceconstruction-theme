@@ -16,6 +16,41 @@ Ver `CURRENT_SPRINT.md` para el detalle completo (sin cambios). El Sprint 8 se r
 
 ---
 
+## 🏁 ESTADO FINAL de esta fase (sesión de cierre) — Sprint UX-7 CERRADO
+
+**UX-7.10 aprobado explícitamente por el usuario en esta sesión** ("UX-7.10 queda aprobado completo: D-079 + D-080 + D-081"), con instrucción explícita de no revertir D-081. Con UX-7.9 ya aprobado en la sesión anterior, **los 10 Entregables del Sprint UX-7 (UX-7.1 a UX-7.10) quedan formalmente aprobados y el Sprint UX-7 queda CERRADO.**
+
+Con el cierre de UX-7 (su último Entregable pendiente), y habiéndose completado y aprobado también el Sprint UX-10 en una sesión previa, **se auditó el resto de la fase "Optimización UX / Conversión" completa** (no solo UX-7) para determinar si queda algún Sprint, Entregable, decisión o hallazgo UX pendiente antes de considerar la fase cerrada en su totalidad. Resultado de esa auditoría (ver `docs/UX_CONVERSION_ANALISIS_Y_PLAN.md` §8 y las tablas de este documento):
+
+- **UX-1 a UX-10:** todos completados y aprobados explícitamente, salvo la excepción puntual siguiente.
+- **UX-5.2** ("objetivo de plantilla" — documentación, sin código) — sigue **sin iniciar**. No bloqueante: es una tarea 100% documental que el plan original nunca marcó como dependencia de ningún otro Sprint.
+- **UX-8** ("Video en Proyectos") — sigue **propuesto, futuro, sin iniciar, sin aprobar**. No bloqueante: prioridad baja, explícitamente "futuro" desde su origen.
+- **UX-9** (registro de backlog formal de Responsive, documental, sin código) — sigue **sin iniciar**. No bloqueante: tarea documental que no depende de ningún Sprint de código.
+- **QA-043** (iconos sociales del header sin estilo base) — hallazgo de QA detectado durante la auditoría UX, clasificado desde su origen como corrección de QA, no como funcionalidad UX. **Actualización:** resuelto en el Sprint UX-11 (ver más abajo y `docs/DECISIONS.md` D-087/D-090), no en el Sprint 8.
+
+**Ningún hallazgo de los anteriores es bloqueante para retomar el Sprint 8.** Ver la clasificación completa entregada al usuario en esta sesión de cierre.
+
+**Con esto, la fase "Optimización UX / Conversión" no tiene ningún Sprint ni Entregable UX obligatorio pendiente.** El siguiente trabajo recomendado es retomar el **Sprint 8** ("Cierre de Hallazgos QA"), pausado en el Entregable 8.2 (QA-030, entregado, pendiente de aprobación) — ver `docs/CURRENT_SPRINT.md` (reconstruido en esta misma sesión de cierre, ver nota al inicio de ese documento).
+
+---
+
+## 🆕 Sprint UX-11 — "Hero, Formulario del Hero y Header" — Estado: ✅ **COMPLETADO Y APROBADO**
+
+Surgido de un análisis solicitado explícitamente por el usuario (solo diagnóstico/plan, sin implementar) sobre 6 problemas visuales/funcionales detectados tras el cierre de UX-7/UX-10: el formulario de cotización embebido en el Hero, la altura del Hero, la repetición del slider del Home en páginas internas, el posicionamiento de imágenes de Hero, la falta de un overlay configurable, y el amontonamiento de iconos del Header (QA-043). El usuario aprobó el plan completo con decisiones específicas por punto y lo convirtió en este Sprint, ejecutado en un único Entregable.
+
+| Punto del plan | Solución implementada | Decisión |
+|---|---|---|
+| 1. Formulario del Hero | Corregido el recorte del botón de envío (causa real: `.ce-card` heredaba `overflow:hidden` + `height:100%` dentro de un grid centrado) + panel visualmente separado (fondo translúcido, `backdrop-filter`, sombra reforzada) | D-089 |
+| 2. Altura del Hero | Reducción ~15% vía `clamp()` (no un `min-height` en px que anulara la reducción) | D-088 |
+| 3. Hero Home vs. interno | Hero interno abandona el modo video/slider global — usa siempre su imagen destacada (Opción B, modifica explícitamente D-063) | D-084 |
+| 4. Imágenes de Hero | Verificado: WordPress no tiene punto focal nativo. Alternativa implementada: 9 posiciones predefinidas por imagen vía `attachment_fields_to_edit`/`_to_save` (nativo, sin plugin) | D-085 |
+| 5. Overlay configurable | 4 controles (color/dirección/extensión/intensidad ya existente), defaults idénticos al comportamiento anterior | D-086 |
+| 6. Header (QA-043) | Espaciado/tamaño de `.ce-header__social` en la barra superior, incorporado a este Sprint por decisión explícita del usuario | D-087 / D-090 |
+
+Ver `docs/DECISIONS.md` D-083 a D-090 para el detalle técnico completo, y la entrega de cierre de este Sprint para el reporte de validaciones realizadas.
+
+---
+
 ## Sprint UX-1 — "Home Builder: base arquitectónica" — Estado: ✅ **Completado.**
 
 | Entregable | Objetivo | Estado |
@@ -127,10 +162,10 @@ El usuario solicitó una auditoría UX/Conversión/Arquitectura sobre el estado 
 | UX-1 a UX-5 | Home Builder, secciones faltantes, CTA centralizado + modal, Hero configurable, CTA secundario | ✅ **Completados** (ver tablas de arriba) |
 | UX-5.2 | Documentación de "objetivo de plantilla" | ⬜ No iniciado — pendiente del plan original |
 | **UX-6** | **Arquitectura de reutilización de secciones fuera del Home Builder** (`page.php` + mecanismo shortcode) | ✅ **Completado y aprobado.** UX-6.1, UX-6.2 (shortcode `[ce_section]`, confirmado frente a bloque Gutenberg) y UX-6.3 (fix de ancho) aprobados explícitamente por el usuario. Ver `docs/DECISIONS.md` D-062. |
-| **UX-7** | Consistencia y configurabilidad: unificación de Hero Home/interior, layout de columnas + Quote Form en Hero, aprovechamiento de sidebars, CTA icono/color, logo independiente Header/Footer — 🆕 ampliado tras benchmark competitivo (DayBrook Homes / Re-Bath): estadísticas configurables (UX-7.6), insignias de confianza/licencias (UX-7.7), testimonio en video (UX-7.8), bloque de financiamiento (UX-7.9) | 🟡 **Propuesto — pendiente de tu aprobación explícita.** Ver `docs/DECISIONS.md` D-058 para el detalle del benchmark y la corrección de un falso positivo sobre las estadísticas (no muestran "0" en producción — era una lectura incorrecta de la animación JS). |
+| **UX-7** | Consistencia y configurabilidad: unificación de Hero Home/interior, layout de columnas + Quote Form en Hero, aprovechamiento de sidebars, CTA icono/color, logo independiente Header/Footer — ampliado tras benchmark competitivo (DayBrook Homes / Re-Bath): estadísticas configurables (UX-7.6), insignias de confianza/licencias (UX-7.7), testimonio en video (UX-7.8), bloque de financiamiento (UX-7.9), popup de oferta (UX-7.10) | ✅ **CERRADO Y APROBADO — los 10 Entregables (UX-7.1 a UX-7.10) aprobados explícitamente por el usuario.** UX-7.10 (D-079 base + D-080 refuerzo visual + D-081 efecto de movimiento JS) aprobado explícitamente en la sesión de cierre de esta fase (ver bloque "ESTADO FINAL" al inicio de este documento). Ver `docs/DECISIONS.md` D-058 (benchmark), D-063 a D-081 (detalle Entregable por Entregable). |
 | **UX-8** | Video en Proyectos (YouTube/TikTok/WordPress vía oEmbed nativo) | 🟡 **Propuesto — futuro, sin iniciar.** Prioridad baja. |
 | UX-9 (renumerado de UX-6 original) | Registro de backlog formal de Responsive (documental, sin código) | ⬜ No iniciado — mismo alcance que el "Sprint UX-6" del plan original, solo renumerado para no colisionar con el nuevo Sprint UX-6 de la auditoría (ver D-057) |
-| **UX-10 🆕** | Página de Testimonios: CPT propio + Google Reviews (Opción Híbrida C confirmada por el usuario) — requerimiento urgente para producción, fuera del catálogo original del benchmark | 🟢 **En curso.** Secuencia confirmada por el usuario: Opción 2 de D-072 (UX-10 ahora, en paralelo, con UX-7 pausado en UX-7.7 aprobado; UX-7 se retoma en UX-7.8 solo después de que UX-10 esté completo). UX-10.1 + UX-10.2 entregados, pendientes de tu aprobación explícita — ver sección dedicada más abajo y `docs/DECISIONS.md` D-073. |
+| **UX-10** | Página de Testimonios: CPT propio + Google Reviews (Opción Híbrida C confirmada por el usuario, luego corregida a sección independiente del Home Builder) — requerimiento urgente para producción, fuera del catálogo original del benchmark | ✅ **COMPLETADO Y APROBADO.** UX-10.1 + UX-10.2 (D-073) y UX-10.3 (D-075/D-076) aprobados explícitamente por el usuario; UX-10.4 absorbido sin Entregable propio por el Home Builder existente. Con UX-10 completo se cumplió la condición de D-072 para retomar el Sprint UX-7 en UX-7.8, que ya se ejecutó y cerró (ver fila UX-7 arriba). |
 
 ### Hallazgo derivado a Sprint 8 (QA), no a esta fase
 La auditoría detectó que `.ce-header__social` (iconos sociales de la barra superior del header) no tiene reglas base de `display`/`gap`/tamaño en `assets/css/main.css` (a diferencia de `.ce-footer__social`, que sí las tiene) — confirmado visualmente en captura, los iconos aparecen apelmazados. Es una **corrección de algo ya roto (bug/QA), no una funcionalidad UX nueva** — se documenta aquí como referencia cruzada, candidata a `QA-043` dentro del **Sprint 8** ("Cierre de Hallazgos QA", pausado en el Entregable 8.2). **Este documento no modifica ningún archivo del Sprint 8** (`CURRENT_SPRINT.md`/`QA_REPORT.md`/`HANDOFF.md` sin tocar) — queda a la espera de que decidas si se resuelve al retomar el Sprint 8, o de forma aislada antes.
@@ -236,7 +271,9 @@ Con el Sprint UX-6 cerrado, el usuario priorizó e inició el **Sprint UX-7** (C
 
 ---
 
-## Sprint UX-7 — "Consistencia y configurabilidad: Hero, CTA, Header/Footer" — Estado: **En curso.**
+## Sprint UX-7 — "Consistencia y configurabilidad: Hero, CTA, Header/Footer" — Estado: ✅ **CERRADO Y APROBADO (UX-7.1 a UX-7.10).**
+
+> **Cierre formal de esta sesión:** el usuario aprobó explícitamente UX-7.10 completo (D-079 + D-080 + D-081, "sin reversión de D-081"). Con UX-7.9 ya aprobado en la sesión anterior, **los 10 Entregables del Sprint UX-7 quedan aprobados**. El Sprint UX-7 se considera formalmente completo conforme a D-038. Ver bloque "ESTADO FINAL" al inicio de este documento para el resumen ejecutivo de este cierre.
 
 **Modalidad de aprobación elegida por el usuario:** Entregable por Entregable (no el Sprint completo de una vez), conforme a D-038.
 
@@ -250,8 +287,8 @@ Con el Sprint UX-6 cerrado, el usuario priorizó e inició el **Sprint UX-7** (C
 | UX-7.6 | Estadísticas configurables desde el Customizer | ✅ **Aprobado explícitamente por el usuario** en esta sesión, junto con la instrucción de iniciar UX-7.7 en modalidad Entregable por Entregable. Ver `docs/DECISIONS.md` D-070. |
 | UX-7.7 | Franja de insignias de confianza / licencias — 🆕 nota (D-065): una vez construido, el componente de insignias/bullets también debe quedar disponible para la tarjeta del Quote Form del Hero (`.ce-hero-quote-card`) | ✅ **Aprobado explícitamente por el usuario.** Ver `docs/DECISIONS.md` D-071. |
 | UX-7.8 | Testimonio en video (página completa) | ✅ **Aprobado explícitamente por el usuario** ("Aprobado Entregable UX-7.8"), junto con la instrucción de continuar con UX-7.9. Ver `docs/DECISIONS.md` D-077. |
-| UX-7.9 | Bloque de financiamiento / opciones de pago | 🟡 **Entregado — pendiente de tu aprobación explícita.** Ver `docs/DECISIONS.md` D-078. |
-| UX-7.10 🆕 | Popup de oferta / captura de leads al cargar la página — Entregable nuevo (D-065), no una extensión de UX-7.2. Preguntas abiertas antes de implementar: frecuencia de aparición (cada carga vs. limitada por cookie/transient), relación con el modal existente de Quote Form (`ce_quote_form_mode = 'modal'`) — ¿coexisten como 2 modales distintos, o se fusionan?, y contenido del popup (¿reutiliza el componente de insignias de UX-7.7, o es solo texto/CTA?) | ⬜ Propuesto, sin iniciar, sin aprobar |
+| UX-7.9 | Bloque de financiamiento / opciones de pago | ✅ **Aprobado explícitamente por el usuario** ("Apruebo el Entregable UX-7.9 tal como fue entregado"), junto con las 3 respuestas necesarias para iniciar UX-7.10. Ver `docs/DECISIONS.md` D-078. |
+| UX-7.10 | Popup de oferta / captura de leads al cargar la página — Entregable nuevo (D-065), no una extensión de UX-7.2 | ✅ **Aprobado explícitamente por el usuario en la sesión de cierre** ("UX-7.10 queda aprobado completo: D-079 + D-080 + D-081"), incluyendo instrucción explícita de no revertir D-081. Base D-079 + refuerzo visual D-080 + efecto de movimiento JS D-081. **Con este Entregable, el Sprint UX-7 queda formal y completamente cerrado.** |
 
 ### ✅ Cierre de UX-7.8 (esta sesión)
 
@@ -276,7 +313,7 @@ Se implementó UX-7.9 conforme a ese alcance: nuevo `template-parts/financing.ph
 - Sin cambios: `front-page.php`, `inc/section-shortcode.php`, `template-parts/cta.php`, `assets/css/main.css` (reutiliza `.ce-cta` tal cual), `assets/js/main.js`, sistema de cotización, resto del Home Builder, Sprint 8, `style.css` (sin bump).
 
 ### Próximo paso
-Con UX-7.9 entregado, el Sprint UX-7 **no avanza a UX-7.10** sin tu aprobación explícita de UX-7.9 (D-038, modalidad Entregable por Entregable ya elegida por el usuario). `docs/CHANGELOG.md`, `docs/TREE.md`, `docs/TODO.md` y `docs/PROJECT_STATUS.md` **no se actualizaron en este cierre** — mismo criterio D-034 ya aplicado a lo largo de esta fase (se difieren a un punto de cierre de Sprint más significativo, p. ej. el cierre formal completo del Sprint UX-7).
+~~Con UX-7.9 entregado, el Sprint UX-7 no avanza a UX-7.10 sin tu aprobación explícita de UX-7.9~~ — **resuelto:** UX-7.9 fue aprobado, UX-7.10 fue entregado (D-079/D-080/D-081, ver sección dedicada más abajo) y **también fue aprobado explícitamente** en la sesión de cierre de esta fase. **Con esto, el Sprint UX-7 queda formal y completamente cerrado (UX-7.1 a UX-7.10).** `docs/CHANGELOG.md`, `docs/TREE.md`, `docs/TODO.md` y `docs/PROJECT_STATUS.md` se actualizaron en esta sesión de cierre (criterio D-034: este es el punto de cierre de Sprint más significativo que se venía difiriendo).
 
 ### ✅ Cierre de UX-7.6 (esta sesión)
 
@@ -383,7 +420,7 @@ Detalle técnico completo (5 decisiones + alternativas descartadas): `docs/DECIS
 Sin entorno WordPress/navegador real disponible (misma limitación metodológica de Entregables anteriores): balance de `<?php`/llaves/paréntesis verificado en los 3 archivos PHP tocados/creados (`inc/home-builder.php`, `inc/customizer.php`, `template-parts/google-reviews.php`). Trazado lógico manual de `wp_kses()` contra los 3 formatos de embed documentados por Trustindex (script asíncrono / div con `data-*` / iframe alojado) y del criterio de auto-ocultado (comprobación sobre la cadena en crudo, no despojada de tags, para no dar un falso vacío ante un embed que sea solo `<script src="...">`). **Pendiente de prueba funcional real en WordPress**, incluida: pegar un embed real de Trustindex y confirmar que ningún atributo necesario es eliminado por `wp_kses()`, activar la sección desde "CE: Home Builder" y confirmar posición/fondo alterno, y probar `[ce_section key="google_reviews"]` en una Página.
 
 ### Próximo paso
-**Con UX-10.3 entregado, el Sprint UX-10 queda completo, pendiente únicamente de tu aprobación explícita de este Entregable (D-038).** Al aprobarlo, se cumple la condición fijada en D-072 ("UX-7 se retoma en UX-7.8 solo después de que UX-10 esté completo") y el siguiente paso natural es retomar el Sprint UX-7 en **UX-7.8 ("Testimonio en video")** — con la advertencia ya documentada en `docs/UX_CONVERSION_ANALISIS_Y_PLAN.md` §8.4 de que ese Entregable toca los mismos 3 archivos que UX-10 tocó parcialmente (`inc/cpt-testimonios.php`, `template-parts/testimonials.php`, `content-testimonio-card.php`) — ninguno de los tres fue modificado por UX-10.1/10.2/10.3, así que el conflicto de secuencia original de D-072 sigue sin materializarse, pero deberá revisarse al iniciar UX-7.8. Ver la sección "Prompt documental para el siguiente Entregable" al final de este documento.
+**Con UX-10.3 entregado, el Sprint UX-10 quedó completo y fue aprobado explícitamente por el usuario (D-038).** Se cumplió la condición fijada en D-072 ("UX-7 se retoma en UX-7.8 solo después de que UX-10 esté completo") y el Sprint UX-7 se retomó en UX-7.8 ("Testimonio en video") — el conflicto de secuencia advertido en D-072 no llegó a materializarse (ninguno de los 3 archivos compartidos fue modificado por UX-10). UX-7.8, UX-7.9 y UX-7.10 se implementaron y aprobaron en sesiones posteriores (D-077, D-078, D-079/D-080/D-081) — **el Sprint UX-7 completo está ahora cerrado** (ver bloque "ESTADO FINAL" al inicio de este documento). La sección "Prompt documental para el siguiente Entregable" al final de este documento queda **superseded** por ese cierre: no se ejecuta.
 
 ### ✅ Cierre de UX-7.4 (esta sesión)
 

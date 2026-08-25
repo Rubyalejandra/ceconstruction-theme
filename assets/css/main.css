@@ -387,9 +387,44 @@ p  { color: var(--ce-color-neutral-600); }
   color: var(--ce-color-white);
   font-size: 0.82rem;
 }
-.ce-header__top .ce-container { display: flex; justify-content: space-between; padding-block: 8px; }
+.ce-header__top .ce-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--ce-space-2) var(--ce-space-5);
+  padding-block: 8px;
+}
 .ce-header__top a { color: var(--ce-color-white); }
-.ce-header__top .ce-header__contact { display: flex; gap: var(--ce-space-4); }
+.ce-header__top .ce-header__contact { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ce-space-4); }
+/* 🆕 Sprint UX-11 (D-090, resuelve QA-043, incorporado a este Entregable
+   por decisión explícita del usuario): `.ce-header__social` no tenía
+   ninguna regla base de display/gap/tamaño en esta barra (a
+   diferencia de `.ce-footer__social`, sección 12, que sí las tiene)
+   — los iconos se apilaban sin espaciado. Mismo patrón visual que
+   `.ce-footer__social`, adaptado a la barra superior (círculos más
+   pequeños, acordes al tamaño de fuente 0.82rem de `.ce-header__top`). */
+.ce-header__top .ce-header__social {
+  display: flex;
+  align-items: center;
+  gap: var(--ce-space-2);
+  margin-left: var(--ce-space-3);
+}
+.ce-header__top .ce-header__social a {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  transition: background var(--ce-transition-fast), transform var(--ce-transition-fast);
+}
+.ce-header__top .ce-header__social a:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+}
 .ce-header__main {
   padding-block: 16px;
 }
@@ -483,7 +518,15 @@ body.ce-no-scroll { overflow: hidden; }
    ------------------------------------------------------------- */
 .ce-hero {
   position: relative;
-  min-height: 88vh;
+  /* 🆕 Sprint UX-11 (D-088): reducción ~15% respecto a la altura
+     histórica (88vh). Se usa clamp() en vez de un min-height fijo en
+     px, para que el piso (480px) solo actúe como red de seguridad en
+     viewports muy bajos (móviles en horizontal) sin anular la
+     reducción en los tamaños de viewport habituales — donde 75vh ya
+     supera holgadamente ese piso. El techo (760px) evita que el Hero
+     crezca más de lo razonable en monitores muy altos por debajo del
+     breakpoint xl. */
+  min-height: clamp(480px, 75vh, 760px);
   display: flex;
   align-items: center;
   color: var(--ce-color-white);
@@ -882,7 +925,10 @@ img[loading="lazy"] {
 
 /* xl: desktop grande */
 @media (min-width: 1200px) {
-  .ce-hero { min-height: 92vh; }
+  /* 🆕 Sprint UX-11 (D-088): mismo criterio de clamp() que la regla
+     base — reducción ~15% respecto a 92vh, piso 560px (no anula la
+     reducción en resoluciones de escritorio habituales), techo 820px. */
+  .ce-hero { min-height: clamp(560px, 78vh, 820px); }
   .ce-grid--4 { grid-template-columns: repeat(4, 1fr); }
 }
 
@@ -915,7 +961,16 @@ img[loading="lazy"] {
      Opacidad configurable vía el mismo ce_hero_overlay_opacity del
      Customizer que ya usa el Hero de Home (sección 26,
      --ce-hero-overlay-opacity, fallback 1 si faltara el atributo
-     style). */
+     style).
+
+     🆕 Sprint UX-11 (D-086): --ce-hero-overlay-gradient ya no es un
+     valor fijo — template-parts/page-hero.php la sobreescribe
+     inline con el resultado de
+     ce_construction_get_hero_overlay_gradient_css() (color/
+     dirección/extensión configurables desde el Customizer, mismos 3
+     controles que usa el Hero de Home). El valor declarado aquí en
+     .ce-page-hero (bloque de arriba, compartido con .ce-hero) queda
+     como respaldo si por alguna razón faltara el atributo style. */
   position: absolute; inset: 0;
   background: var(--ce-hero-overlay-gradient);
   opacity: var(--ce-hero-overlay-opacity, 1);
@@ -1303,6 +1358,7 @@ img[loading="lazy"] {
   }
   .ce-header__top .ce-header__social {
     justify-content: center;
+    margin-left: 0;
   }
 }
 
@@ -1349,12 +1405,18 @@ img[loading="lazy"] {
    `.ce-hero__overlay` (sección 10): esta regla solo añade la
    propiedad `opacity`, que no existía antes.
 
-   🆕 Sprint UX-7, Entregable UX-7.1 (D-063): `.ce-hero__video` y las
-   reglas de opacidad de este bloque son ahora también consumidas por
-   `template-parts/page-hero.php` (Hero interno, mismas clases, mismo
-   `ce_hero_overlay_opacity`) — sin ninguna regla nueva, ya eran
-   genéricas (posicionamiento absoluto respecto al padre `position:
-   relative` más cercano, sin depender de `.ce-hero` como selector).
+   🆕 Sprint UX-7, Entregable UX-7.1 (D-063): `.ce-hero__video` pasó a
+   ser también consumida por `template-parts/page-hero.php` (Hero
+   interno) — selectores genéricos, sin depender de `.ce-hero` como
+   padre. La regla de opacidad de `.ce-hero__overlay` de abajo sigue
+   siendo exclusiva del Hero de Home; `.ce-page-hero__overlay`
+   declara su propia opacidad por separado (sección 20).
+
+   🆕 Sprint UX-11 (D-084): `template-parts/page-hero.php` dejó de
+   usar `.ce-hero__video`/`.ce-hero-slider` (el Hero interno ya no
+   admite video/slider — ver docblock de ese archivo). Las reglas de
+   este bloque y del bloque 27 de abajo no se eliminan: siguen en uso
+   exclusivo de `template-parts/hero.php` (Home).
    ============================================================= */
 .ce-hero__video {
   position: absolute;
@@ -1460,7 +1522,7 @@ img[loading="lazy"] {
 .ce-hero__layout--2 .ce-hero-quote-card,
 .ce-hero__layout--3 .ce-hero-quote-card { margin-inline: 0; }
 .ce-hero-quote-card:hover { transform: none; box-shadow: var(--ce-shadow-sm); }
-.ce-hero-quote-card .ce-card__body { padding: var(--ce-space-4); }
+.ce-hero-quote-card .ce-card__body { padding: var(--ce-space-5); }
 .ce-hero-quote-card .ce-section-title,
 .ce-hero-quote-card .ce-eyebrow { display: none; } /* defensivo: este contexto nunca los imprime, ver quote-form.php */
 
@@ -1508,9 +1570,33 @@ img[loading="lazy"] {
 .ce-hero--has-form {
   min-height: auto;
   padding-block: var(--ce-space-8) var(--ce-space-7);
+  /* 🆕 Sprint UX-11 (D-089): corrige el recorte del botón "Enviar
+     Solicitud" (y de cualquier campo final del formulario). Causa
+     real, verificada contra el CSS: `.ce-hero` tiene `overflow:
+     hidden` (regla base, arriba) Y `.ce-hero-quote-card` hereda de
+     `.ce-card` (sección 7) tanto `overflow: hidden` como
+     `height: 100%` — esa combinación, dentro de un grid con
+     `align-items: center` (`.ce-hero__layout`), podía recortar el
+     contenido final de la columna del formulario cuando esta era más
+     alta que su columna hermana. Se neutraliza en las 2 capas
+     implicadas, sin tocar `.ce-card`/`.ce-hero` fuera de este
+     contexto (cero impacto en el resto del theme). */
+  overflow: visible;
+  align-items: flex-start;
 }
 @media (min-width: 992px) {
   .ce-hero--has-form { min-height: 70vh; padding-block: var(--ce-space-8); }
+}
+.ce-hero--has-form .ce-hero__layout {
+  /* Ver nota de arriba: se evita "center" para que ambas columnas
+     partan de su altura natural desde el borde superior, sin
+     depender de ningún cálculo de centrado entre columnas de alturas
+     distintas. */
+  align-items: start;
+}
+.ce-hero--has-form .ce-hero-quote-card {
+  height: auto;
+  overflow: visible;
 }
 
 /* -------------------------------------------------------------
@@ -1521,6 +1607,26 @@ img[loading="lazy"] {
    ------------------------------------------------------------- */
 .ce-hero-quote-card {
   border-top: 4px solid var(--ce-color-secondary);
+  /* 🆕 Sprint UX-11 (D-089): panel visualmente separado del fondo del
+     Hero — inspirado en concepto en la referencia proporcionada por
+     el usuario (panel flotante, no fusionado con la imagen), sin
+     copiarla: aquí se mantiene la identidad visual del theme (franja
+     de acento superior ya existente, tipografía y radios del sistema
+     de diseño) en vez del estilo de la referencia. Fondo ligeramente
+     translúcido + desenfoque para que se perciba "flotando" sobre la
+     foto, sombra más pronunciada y un borde sutil para reforzar el
+     límite entre panel y fondo — sustituye la sombra `--ce-shadow-sm`
+     que quedaba por defecto tras el `:hover` (sección 28, arriba;
+     aquí se sobreescribe también en reposo para que sea consistente
+     sin depender de :hover). */
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: var(--ce-shadow-lg);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+.ce-hero-quote-card:hover {
+  box-shadow: var(--ce-shadow-lg);
 }
 .ce-hero-quote-card__badge {
   display: inline-flex;
@@ -1544,7 +1650,7 @@ img[loading="lazy"] {
    tocan.
    ------------------------------------------------------------- */
 .ce-hero-quote-card .ce-form {
-  gap: var(--ce-space-3);
+  gap: var(--ce-space-4);
 }
 .ce-hero-quote-card .ce-form__row {
   gap: var(--ce-space-3);

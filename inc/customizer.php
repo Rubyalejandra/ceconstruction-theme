@@ -409,7 +409,7 @@ function ce_construction_customize_register( $wp_customize ) {
 	) );
 	$wp_customize->add_control( 'ce_hero_type', array(
 		'label'       => __( 'Tipo de fondo del Hero', 'ce-construction' ),
-		'description' => __( 'En modo Video, si no se sube ningún video (o el navegador no puede reproducirlo), el Hero usa automáticamente la imagen de fondo configurada abajo como respaldo. En modo Slider, si no se selecciona ninguna imagen, ocurre lo mismo. Sprint UX-7: en modo Video o Slider, este ajuste también se aplica al Hero interno de Páginas/Servicios/Proyectos/etc.; en modo Imagen (por defecto), el Hero interno sigue usando la imagen destacada propia de cada Página/entrada.', 'ce-construction' ),
+		'description' => __( 'En modo Video, si no se sube ningún video (o el navegador no puede reproducirlo), el Hero usa automáticamente la imagen de fondo configurada abajo como respaldo. En modo Slider, si no se selecciona ninguna imagen, ocurre lo mismo. Este ajuste solo aplica al Hero de portada (Home). Sprint UX-11: el Hero interno de Páginas/Servicios/Proyectos/etc. ya no comparte este ajuste — siempre usa la imagen destacada propia de cada página (con la imagen de este Hero como respaldo si la página no tiene una propia).', 'ce-construction' ),
 		'section'     => 'ce_section_hero',
 		'type'        => 'select',
 		'choices'     => array(
@@ -453,7 +453,7 @@ function ce_construction_customize_register( $wp_customize ) {
 	) );
 	$wp_customize->add_control( 'ce_hero_overlay_opacity', array(
 		'label'       => __( 'Intensidad del overlay oscuro', 'ce-construction' ),
-		'description' => __( 'De 0 (sin overlay, fondo a la vista) a 1 (overlay al 100%, como hasta ahora). Por defecto: 1 — mismo aspecto que antes de este Entregable. Sprint UX-7: este ajuste ahora también controla el overlay del Hero interno de Páginas/Servicios/Proyectos/etc. (antes fijo, sin control).', 'ce-construction' ),
+		'description' => __( 'De 0 (sin overlay, fondo a la vista) a 1 (overlay al 100%, como hasta ahora). Por defecto: 1 — mismo aspecto que antes de este Entregable. Se combina con el color/dirección/extensión de abajo (Sprint UX-11) como un multiplicador general sobre el resultado.', 'ce-construction' ),
 		'section'     => 'ce_section_hero',
 		'type'        => 'number',
 		'input_attrs' => array(
@@ -465,14 +465,75 @@ function ce_construction_customize_register( $wp_customize ) {
 	) );
 
 	/* ---------------------------------------------------------
+	 * 🆕 Sprint UX-11 — Overlay/gradiente configurable (punto 5 del
+	 * plan aprobado). Aditivo dentro de la misma sección
+	 * 'ce_section_hero'. Los 3 controles nuevos se combinan con
+	 * 'ce_hero_overlay_opacity' (arriba, sin cambios de mecanismo) —
+	 * ver DECISIONS.md D-086 e inc/helpers.php
+	 * (ce_construction_get_hero_overlay_gradient_css()). Valores por
+	 * defecto elegidos para reproducir EXACTAMENTE el gradiente fijo
+	 * anterior (mismo color, misma dirección, mismo punto medio) —
+	 * cero cambio visual hasta que el administrador los edite.
+	 * --------------------------------------------------------- */
+	$wp_customize->add_setting( 'ce_hero_overlay_color', array(
+		'default'           => '#081A2B',
+		'sanitize_callback' => 'sanitize_hex_color',
+		'transport'         => 'refresh',
+	) );
+	$wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'ce_hero_overlay_color', array(
+		'label'       => __( 'Color del overlay', 'ce-construction' ),
+		'description' => __( 'Por defecto: el mismo azul institucional oscuro ya usado hasta ahora.', 'ce-construction' ),
+		'section'     => 'ce_section_hero',
+		'priority'    => 9,
+	) ) );
+
+	$wp_customize->add_setting( 'ce_hero_overlay_direction', array(
+		'default'           => 'diagonal',
+		'sanitize_callback' => 'ce_construction_sanitize_hero_overlay_direction',
+		'transport'         => 'refresh',
+	) );
+	$wp_customize->add_control( 'ce_hero_overlay_direction', array(
+		'label'       => __( 'Dirección del gradiente del overlay', 'ce-construction' ),
+		'description' => __( 'Por defecto: "Diagonal", igual que hasta ahora.', 'ce-construction' ),
+		'section'     => 'ce_section_hero',
+		'type'        => 'select',
+		'choices'     => array(
+			'diagonal'  => __( 'Diagonal (por defecto)', 'ce-construction' ),
+			'to-bottom' => __( 'De arriba hacia abajo', 'ce-construction' ),
+			'to-top'    => __( 'De abajo hacia arriba', 'ce-construction' ),
+			'to-right'  => __( 'De izquierda a derecha', 'ce-construction' ),
+			'to-left'   => __( 'De derecha a izquierda', 'ce-construction' ),
+		),
+		'priority'    => 10,
+	) );
+
+	$wp_customize->add_setting( 'ce_hero_overlay_extent', array(
+		'default'           => 100,
+		'sanitize_callback' => 'ce_construction_sanitize_hero_overlay_extent',
+		'transport'         => 'refresh',
+	) );
+	$wp_customize->add_control( 'ce_hero_overlay_extent', array(
+		'label'       => __( 'Extensión del oscurecimiento', 'ce-construction' ),
+		'description' => __( 'Hasta qué % del Hero se extiende el oscurecimiento antes de mantenerse plano (más allá de ese punto no se oscurece más, dejando el resto de la imagen más visible). Por defecto: 100% — igual que hasta ahora.', 'ce-construction' ),
+		'section'     => 'ce_section_hero',
+		'type'        => 'select',
+		'choices'     => array(
+			'40'  => '40%',
+			'50'  => '50%',
+			'70'  => '70%',
+			'100' => __( '100% (por defecto)', 'ce-construction' ),
+		),
+		'priority'    => 11,
+	) );
+
+	/* ---------------------------------------------------------
 	 * 🆕 Sprint UX-7, Entregable UX-7.2: layout de columnas del
 	 * Hero de Home + slot opcional de Quote Form embebido. Ver
 	 * DECISIONS.md D-064. Aditivo dentro de la misma sección
 	 * 'ce_section_hero' ya existente. Solo aplica al Hero de Home
 	 * (template-parts/hero.php) — el Hero interno
-	 * (template-parts/page-hero.php, unificado en UX-7.1) sigue de
-	 * una sola columna, sin este control (decisión explícita del
-	 * usuario para este Entregable).
+	 * (template-parts/page-hero.php, ver D-084) no tiene este
+	 * control (decisión explícita del usuario).
 	 * --------------------------------------------------------- */
 	$wp_customize->add_setting( 'ce_hero_layout', array(
 		'default'           => '1',
@@ -489,7 +550,7 @@ function ce_construction_customize_register( $wp_customize ) {
 			'2' => __( 'Dos columnas — contenido 7 / formulario 5', 'ce-construction' ),
 			'3' => __( 'Dos columnas — contenido 8 / formulario 4', 'ce-construction' ),
 		),
-		'priority'    => 9,
+		'priority'    => 12,
 	) );
 
 	$wp_customize->add_setting( 'ce_hero_show_quote_form', array(
@@ -502,7 +563,7 @@ function ce_construction_customize_register( $wp_customize ) {
 		'description' => __( 'Combinable con cualquier layout de arriba. Con layout "Una columna", el formulario aparece debajo del contenido (apilado); con "Dos columnas", aparece al lado. Reutiliza el mismo formulario/handler de siempre (mismo nonce, misma validación) — respeta el modo configurado en "CE: Formulario de Cotización" (si es "Desactivado" o "Solo Popup", este formulario embebido tampoco se muestra).', 'ce-construction' ),
 		'section'     => 'ce_section_hero',
 		'type'        => 'checkbox',
-		'priority'    => 10,
+		'priority'    => 13,
 	) );
 
 	$hero_text_fields = array(
@@ -1347,6 +1408,34 @@ function ce_construction_sanitize_hero_overlay_opacity( $value ) {
 		$value = 1;
 	}
 	return (string) $value;
+}
+
+/* =========================================================
+ * SPRINT UX-11 — Overlay/gradiente configurable (punto 5 del plan
+ * aprobado). Ver DECISIONS.md D-086.
+ * ========================================================= */
+
+/**
+ * `sanitize_callback` de `ce_hero_overlay_direction`. Whitelist
+ * estricta — cualquier valor no reconocido cae a 'diagonal' (el
+ * mismo ángulo, 120deg, que usaba el gradiente fijo anterior a este
+ * Entregable, sin regresión).
+ */
+function ce_construction_sanitize_hero_overlay_direction( $value ) {
+	$allowed = array( 'diagonal', 'to-bottom', 'to-top', 'to-right', 'to-left' );
+	return in_array( $value, $allowed, true ) ? $value : 'diagonal';
+}
+
+/**
+ * `sanitize_callback` de `ce_hero_overlay_extent`. Whitelist
+ * estricta a los 4 valores explícitamente pedidos en el plan
+ * aprobado (40/50/70/100) — cualquier otro valor cae a 100 (mismo
+ * comportamiento que el gradiente fijo anterior, sin regresión).
+ */
+function ce_construction_sanitize_hero_overlay_extent( $value ) {
+	$allowed = array( 40, 50, 70, 100 );
+	$value   = (int) $value;
+	return in_array( $value, $allowed, true ) ? $value : 100;
 }
 
 /* =========================================================

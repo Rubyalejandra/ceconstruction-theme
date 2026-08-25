@@ -21,7 +21,9 @@
 | 🟢 Bajo | 5 | 4 | 9 |
 | 🔵 Mejora futura | 6 | 1 | 7 |
 | ⚪ Nota metodológica | 0 | 1 | 1 |
-| **Total de IDs/documentados** | **29** | **13** | **42** |
+| **Total de IDs/documentados** | **29** | **14** | **43** |
+
+> **Nota (sesión de cierre de UX-7):** el total pasa a 43 por la incorporación de **QA-043** (nuevo, sección 4.7), detectado durante la auditoría UX y clasificado como corrección de QA. QA-041 se recuenta como cerrado (ver abajo) en vez de nota metodológica abierta.
 
 ### Estado de correcciones
 
@@ -35,8 +37,9 @@
 - QA-019 a QA-029: ⬜ pendientes / mejoras futuras según su clasificación.
 - **QA-031 (Alto):** 🆕 abierto — siguiente prioridad del Sprint 8 (Entregable 8.3 de `DECISIONS.md` D-043), requiere decisión arquitectónica previa de cómo servir adjuntos protegidos.
 - QA-032 a QA-040: 🆕 abiertos según la auditoría integral (agrupados en Entregables 8.4/8.5/8.6 de D-043).
-- QA-041: ✅ verificado — page.php no existe en el repositorio actual (no es un bug, ver detalle sección 4.6). Decisión pendiente: crear page.php dedicado o mantener el fallback de index.php.
+- QA-041: ✅ **cerrado** — `page.php` no existía al momento de la verificación; fue creado después en Sprint UX-6 (Entregable UX-6.1, fuera del Sprint 8). Ver detalle sección 4.6.
 - QA-042: 🔵 mejora futura.
+- **QA-043:** ✅ **corregido** — `.ce-header__social` sin estilo base, resuelto en Sprint UX-11 (no en el Sprint 8, ver `docs/DECISIONS.md` D-087/D-090). Ver sección 4.7.
 
 **Resultado operativo (actualizado, Sprint 8 Entregable 8.2):** 15 hallazgos corregidos o cerrados (10 históricos + QA-010/011/014/017/030 nuevos + QA-013 parcial + QA-015 verificado como no reproducible); el resto permanece pendiente, sujeto a priorización y aprobación para los siguientes Entregables del Sprint 8 (ver `DECISIONS.md` D-043 para la planificación vigente de 8.3 a 8.7).
 
@@ -275,6 +278,21 @@ El problema de versión de assets congelada (QA-030) tiene una faceta de perform
 - **Impacto funcional real:** Ninguno crítico. Sin `page.php`, WordPress recurre a `index.php` para renderizar páginas estáticas (`is_page()`), y `index.php` sí contempla explícitamente la rama `is_singular() && have_posts()` que cubre páginas — el sitio no se rompe, pero las páginas no tienen una plantilla dedicada (sin las secciones/estilos específicos que sí tienen `single.php`, `single-servicio.php`, etc.).
 - **Importante:** Esto **no se corrige como código en esta sesión** (regla explícita: QA-041 solo requiere verificación, no corrección automática sin decisión previa). Se corrige únicamente la documentación (`TREE.md`, que afirmaba incorrectamente que el archivo existía) — ver Sprint 8, sección de hallazgos fuera de Entregable.
 - **Decisión pendiente para el usuario:** si `page.php` debe crearse como plantilla dedicada (mejora futura, no un bug) o si se acepta permanentemente el fallback de `index.php` para páginas estáticas. No se incluye en ningún Entregable del Sprint 8 sin tu instrucción explícita.
+- **✅ Actualización (sesión de cierre de UX-7):** `page.php` **fue creado** en la fase paralela "Optimización UX / Conversión" (Sprint UX-6, Entregable UX-6.1, aprobado — ver `docs/DECISIONS.md` D-059/D-062), no como resultado de un Entregable del Sprint 8. El archivo ya existe hoy en el repositorio. **QA-041 queda cerrado**, sin ninguna acción pendiente del Sprint 8.
+
+---
+
+## 4.7 QA-043 — Nuevo (registrado en la sesión de cierre del Sprint UX-7)
+
+### QA-043 — `.ce-header__social` sin estilo base (`display`/`gap`/tamaño)
+
+- **Severidad:** 🟢 Bajo / visual.
+- **Estado:** ✅ **Corregido en Sprint UX-11** (ver `docs/DECISIONS.md` D-087 y D-090) — no en un Entregable del Sprint 8.
+- **Archivo afectado:** `assets/css/main.css`.
+- **Origen:** detectado durante la auditoría UX/Arquitectura de la fase "Optimización UX / Conversión" (no durante una revisión del Sprint 8) — ver `docs/DECISIONS.md` D-058 (Decisión 4).
+- **Descripción:** `.ce-header__social` (iconos sociales de la barra superior del header) no tenía reglas base de `display`/`gap`/tamaño, a diferencia de `.ce-footer__social`, que sí las tiene — confirmado visualmente en captura, los iconos aparecían apelmazados en la barra superior del header.
+- **Clasificación:** corrección de QA (bug visual), no funcionalidad UX nueva — el usuario aprobó explícitamente incorporarla al alcance de UX-11 en vez de esperar al Sprint 8 (D-087), dado que ambos Sprints estaban pausados y el fix es de bajo riesgo.
+- **Corrección aplicada:** mismo patrón visual que `.ce-footer__social` (`display:flex`, `gap`, iconos circulares), adaptado al tamaño de la barra superior. Ver D-090 para el detalle técnico completo.
 
 ---
 
@@ -311,7 +329,7 @@ El problema de versión de assets congelada (QA-030) tiene una faceta de perform
 | QA-013 | Duplicación CSS/reset | 🟡 Parcial (Entregable 8.1 — solo comentario) |
 | QA-014 | JSON-LD sin endurecimiento contra `</script>` | ✅ Corregido (Entregable 8.1) |
 | QA-015 | `$attachment_name` sin uso | ✅ Verificado — ya no se reproduce (Entregable 8.1) |
-| QA-016 | Script inline de metabox sin dependencia formal | ⬜ Abierto (propuesto: Entregable 8.2) |
+| QA-016 | Script inline de metabox sin dependencia formal | ⬜ Abierto (propuesto: Entregable 8.5, ver `DECISIONS.md` D-043 — corregida referencia stale a "Entregable 8.2" en la sesión de cierre de UX-7) |
 | QA-017 | Skip-link sin `tabindex="-1"` | ✅ Corregido (Entregable 8.1) |
 | QA-018 | Header top sin adaptación responsive | ✅ Corregido |
 | QA-032 | Race condition del rate-limit | ⬜ Abierto |
@@ -333,7 +351,8 @@ El problema de versión de assets congelada (QA-030) tiene una faceta de perform
 | QA-037 | `aria-label` estático del menú móvil | ⬜ Abierto |
 | QA-039 | Twitter Card incompleto | ⬜ Abierto |
 | QA-040 | `BreadcrumbList` JSON-LD inconsistente | ⬜ Abierto |
-| QA-041 | `page.php` no existe en el repositorio (verificado) | ✅ Verificado, no bug — decisión pendiente sobre crear plantilla dedicada |
+| QA-041 | `page.php` no existe en el repositorio (verificado) | ✅ Cerrado — `page.php` fue creado después, en Sprint UX-6 (fuera del Sprint 8) |
+| QA-043 | `.ce-header__social` sin estilo base | ✅ Corregido en Sprint UX-11 (D-087/D-090) |
 
 ## 🔵 MEJORAS FUTURAS
 

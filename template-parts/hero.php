@@ -49,14 +49,37 @@
  * Este layout NO aplica al Hero interno (`page-hero.php`) — decisión
  * explícita del usuario, ese Hero permanece de una sola columna.
  *
- * 🆕 Ajuste puntual dentro de UX-7.2 (aún sin aprobar, amparado por
- * la excepción de `docs/UX_CONVERSION_ANALISIS_Y_PLAN.md` §8.2/§8.4
- * — ver DECISIONS.md D-065, que referencia D-064): con el formulario
- * activo, `.ce-hero` gana el modificador `.ce-hero--has-form` (altura
- * automática en vez de `min-height: 88vh` forzado) y se omite el
- * indicador `.ce-hero__scroll` (se posiciona mal con contenido más
- * largo). Sin cambios de comportamiento cuando el formulario está
- * desactivado.
+ * 🆕 Ajuste puntual dentro de UX-7.2 (D-065, referencia D-064): con
+ * el formulario activo, `.ce-hero` gana el modificador
+ * `.ce-hero--has-form` (altura automática en vez de `min-height`
+ * forzado) y se omite el indicador `.ce-hero__scroll` (se posiciona
+ * mal con contenido más largo). Sin cambios de comportamiento cuando
+ * el formulario está desactivado.
+ *
+ * 🆕 Sprint UX-11 (fase "Optimización UX / Conversión") — plan
+ * aprobado por el usuario, ver DECISIONS.md D-083 a D-090:
+ *   - Punto 1: corrección del recorte del botón de envío del
+ *     formulario embebido + panel visualmente separado del fondo
+ *     (CSS únicamente, `assets/css/main.css` secciones 10/28 bis —
+ *     este archivo no cambia su lógica para ese punto).
+ *   - Punto 2: altura del Hero reducida ~15% (CSS únicamente,
+ *     sección 10/19).
+ *   - Punto 4: la imagen de fondo (modo 'image') y cada slide del
+ *     slider ahora admiten una posición configurable por imagen
+ *     (`ce_construction_get_hero_background_position()`,
+ *     `inc/hero-image-position.php`) — por defecto 'center center',
+ *     idéntico al `background-position: center` fijo que ya traía
+ *     este archivo, sin cambio de comportamiento hasta que se edite
+ *     una imagen.
+ *   - Punto 5: el gradiente de overlay ya no es un valor fijo en CSS
+ *     — se calcula por request vía
+ *     `ce_construction_get_hero_overlay_gradient_css()`
+ *     (`inc/helpers.php`) a partir de 3 nuevos theme_mods (color/
+ *     dirección/extensión) y se imprime como variable CSS inline,
+ *     sobreescribiendo el valor fijo que sigue existiendo en
+ *     `assets/css/main.css` como respaldo. Con los valores por
+ *     defecto de los 3 controles nuevos, el resultado es idéntico al
+ *     gradiente anterior.
  *
  * @package CE_Construction
  */
@@ -92,9 +115,25 @@ $hero_is_video   = $hero_media['is_video'];
 $hero_video_url  = $hero_media['video_url'];
 $hero_video_mime = $hero_media['video_mime'];
 $hero_is_slider  = $hero_media['is_slider'];
-$hero_slide_urls = $hero_media['slide_urls'];
+$hero_slides     = $hero_media['slides'];
 
 $hero_overlay_opacity = get_theme_mod( 'ce_hero_overlay_opacity', '1' );
+
+/* -----------------------------------------------------------
+ * 🆕 Sprint UX-11, punto 4 del plan aprobado: posición de fondo
+ * configurable para la imagen de fondo del Hero (modo 'image').
+ * Sin efecto en modo video/slider (el slider resuelve su propia
+ * posición por slide, ver el foreach de abajo; el video usa
+ * `object-fit:cover` con posición central fija, fuera del alcance
+ * aprobado). Ver DECISIONS.md D-085.
+ * --------------------------------------------------------- */
+$hero_image_position = $hero_image_id ? ce_construction_get_hero_background_position( $hero_image_id ) : 'center center';
+
+/* -----------------------------------------------------------
+ * 🆕 Sprint UX-11, punto 5 del plan aprobado: gradiente de overlay
+ * configurable. Ver DECISIONS.md D-086.
+ * --------------------------------------------------------- */
+$hero_overlay_gradient = ce_construction_get_hero_overlay_gradient_css();
 
 /* -----------------------------------------------------------
  * 🆕 Sprint UX-7, Entregable UX-7.2: layout de columnas + slot de
@@ -136,8 +175,23 @@ $btn2_url  = get_theme_mod( 'ce_hero_btn2_url', post_type_exists( 'proyecto' ) ?
  * móvil, donde el formulario ya aporta suficiente contenido.
  * --------------------------------------------------------- */
 $hero_section_class = 'ce-hero' . ( $hero_show_quote_form ? ' ce-hero--has-form' : '' );
+
+/* -----------------------------------------------------------
+ * 🆕 Sprint UX-11: el atributo style de la sección combina ahora 2
+ * cosas independientes (antes solo el background-image): la imagen
+ * de fondo + su posición configurable (solo modo 'image'), y la
+ * variable CSS del gradiente de overlay (siempre, en los 3 modos —
+ * el overlay se pinta igual sin importar el fondo). Se arma como
+ * array y se concatena al final para no depender de un único
+ * atributo `style=""` construido con concatenación frágil de cadenas.
+ * --------------------------------------------------------- */
+$hero_style_parts = array( '--ce-hero-overlay-gradient: ' . $hero_overlay_gradient . ';' );
+if ( ! $hero_is_video && ! $hero_is_slider && $hero_image_url ) {
+	$hero_style_parts[] = "background-image:url('" . esc_url( $hero_image_url ) . "');";
+	$hero_style_parts[] = 'background-position: ' . esc_attr( $hero_image_position ) . ';';
+}
 ?>
-<section class="<?php echo esc_attr( $hero_section_class ); ?>" id="ce-hero" <?php echo ( ! $hero_is_video && ! $hero_is_slider && $hero_image_url ) ? 'style="background-image:url(\'' . esc_url( $hero_image_url ) . '\')"' : ''; ?>>
+<section class="<?php echo esc_attr( $hero_section_class ); ?>" id="ce-hero" style="<?php echo esc_attr( implode( ' ', $hero_style_parts ) ); ?>">
 	<?php if ( $hero_is_video ) : ?>
 		<video class="ce-hero__video" autoplay muted loop playsinline aria-hidden="true">
 			<source src="<?php echo esc_url( $hero_video_url ); ?>" <?php echo $hero_video_mime ? 'type="' . esc_attr( $hero_video_mime ) . '"' : ''; ?>>
@@ -152,11 +206,15 @@ $hero_section_class = 'ce-hero' . ( $hero_show_quote_form ? ' ce-hero--has-form'
 		ver DECISIONS.md D-055. aria-hidden porque es puramente
 		decorativo — el contenido real (título/CTA) está en
 		.ce-hero__content, no en las slides.
+
+		🆕 Sprint UX-11, punto 4: cada slide imprime también su propia
+		`background-position` configurable (antes fija a "center" vía
+		CSS) — ver DECISIONS.md D-085.
 		*/ ?>
 		<div class="ce-hero-slider" aria-hidden="true">
 			<div class="ce-hero-slider__track">
-				<?php foreach ( $hero_slide_urls as $slide_url ) : ?>
-					<div class="ce-hero-slider__slide" style="background-image:url('<?php echo esc_url( $slide_url ); ?>')"></div>
+				<?php foreach ( $hero_slides as $hero_slide ) : ?>
+					<div class="ce-hero-slider__slide" style="background-image:url('<?php echo esc_url( $hero_slide['url'] ); ?>');background-position:<?php echo esc_attr( $hero_slide['position'] ); ?>;"></div>
 				<?php endforeach; ?>
 			</div>
 		</div>
