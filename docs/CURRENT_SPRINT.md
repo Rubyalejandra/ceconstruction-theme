@@ -11,9 +11,9 @@
 
 | Entregable | Alcance | Estado |
 |---|---|---|
-| 8.1 | QA-010, QA-011, QA-013 (parcial, solo comentario), QA-014, QA-015 (verificado como no reproducible, sin cambio de código), QA-017 | 🟡 **Desarrollado y entregado.** Ver "Punto sin resolver" abajo: el estado de *aprobación* de este Entregable es inconsistente entre documentos. |
-| 8.2 | QA-030 (cache-busting de assets: `filemtime()` + `CE_THEME_VERSION` derivada de `wp_get_theme()`) | 🟡 **Entregado e implementado en código** (verificado en `functions.php`/`inc/enqueue.php`/`style.css` del ZIP actual) — **pendiente de tu aprobación explícita. El Sprint 8 se pausó exactamente en este punto** al iniciarse la fase UX paralela. |
-| 8.3 | QA-031 (adjuntos de cotización potencialmente accesibles por URL directa) | ⬜ Propuesto, sin iniciar — requiere decisión arquitectónica previa (mecanismo de protección) antes de implementar. |
+| 8.1 | QA-010, QA-011, QA-013 (parcial, solo comentario), QA-014, QA-015 (verificado como no reproducible, sin cambio de código), QA-017 | ✅ **Aprobado explícitamente por el usuario** (ver "Punto sin resolver — RESUELTO" abajo). `docs/DECISIONS.md` D-095. |
+| 8.2 | QA-030 (cache-busting de assets: `filemtime()` + `CE_THEME_VERSION` derivada de `wp_get_theme()`) | ✅ **Aprobado explícitamente por el usuario** en esta sesión, junto con la instrucción de continuar con el Entregable 8.3. `docs/DECISIONS.md` D-095. |
+| 8.3 | QA-031 (adjuntos de cotización potencialmente accesibles por URL directa) | 🟡 **Implementado y entregado — pendiente de tu aprobación final.** Alcance (Opción 1: carpeta protegida + endpoint autenticado) aprobado explícitamente antes de escribir código; el código ya está implementado (`inc/quote-attachments.php` nuevo, `inc/quote-form.php`/`functions.php` modificados). Ver `docs/DECISIONS.md` D-096. |
 | 8.4 | QA-032, QA-033, QA-034 (robustez del formulario de cotización: race condition del rate-limit, archivo huérfano si falla `wp_insert_post()`, sin idempotencia) | ⬜ Propuesto, sin iniciar — depende de la decisión arquitectónica de 8.3 (comparten el flujo de almacenamiento de adjuntos). |
 | 8.5 | QA-012 (caché de consultas "relacionados"), QA-016 (script inline de metabox sin dependencia formal), QA-035 (autoplay de testimonios sin pausa accesible), QA-038 (`<link rel="canonical">` ausente) | ⬜ Propuesto, sin iniciar. |
 | 8.6 | QA-036 (sin gestión de foco en overlays: menú móvil, modales) | ⬜ Propuesto, sin iniciar — requiere decisión de diseño (utilidad de foco centralizada vs. por componente). |
@@ -30,15 +30,13 @@ Detectado durante la auditoría UX (no durante una revisión del Sprint 8): `.ce
 
 ---
 
-## ⚠️ Punto sin resolver: estado de aprobación del Entregable 8.1
+## ✅ Punto sin resolver — RESUELTO: estado de aprobación del Entregable 8.1
 
-Al reconstruir este documento se encontró una contradicción real entre las fuentes disponibles, que no se puede resolver sin tu confirmación:
+Existía una contradicción real entre fuentes (`docs/CHANGELOG.md` lo marcaba aprobado; `docs/DECISIONS.md` D-043, `docs/HANDOFF.md`, `docs/PROJECT_STATUS.md` y `docs/QA_REPORT.md` lo describían como pendiente). **El usuario confirmó explícitamente que el Entregable 8.1 sí quedó aprobado**, resolviendo la contradicción a favor de esa confirmación directa por encima de las cuatro fuentes documentales que asumían lo contrario. Ver `docs/DECISIONS.md` D-095.
 
-- **`docs/CHANGELOG.md`** (entrada v0.8.0) declara el Entregable 8.1 con **"Estado: ✅ Completado — aprobado explícitamente por el usuario."**
-- **`docs/DECISIONS.md` D-043** (posterior a la entrega de 8.1) dice literalmente **"Fecha: Tras la aprobación pendiente del Entregable 8.1"** — es decir, en ese momento posterior seguía pendiente.
-- **`docs/HANDOFF.md`, `docs/PROJECT_STATUS.md` y `docs/QA_REPORT.md`** (todos igual de posteriores) describen 8.1 consistentemente como **"desarrollado, pendiente de tu aprobación final"**, nunca como aprobado.
+## ✅ Entregable 8.2 aprobado
 
-Cuatro de las cinco fuentes (D-043, HANDOFF.md, PROJECT_STATUS.md, QA_REPORT.md) coinciden en que 8.1 seguía pendiente de aprobación; solo `CHANGELOG.md` lo marca como aprobado. Este documento adopta, de forma cautelar y hasta que confirmes, el estado **"desarrollado, pendiente de aprobación"** (mayoría de fuentes + la fuente más específica sobre el momento exacto, D-043), pero **no se debe asumir sin tu confirmación explícita**. Por favor confirma si el Entregable 8.1 quedó o no aprobado — de tu respuesta depende si el Sprint 8 se retoma reconfirmando 8.1 o directamente en 8.2.
+El usuario aprobó explícitamente el Entregable 8.2 (QA-030, ya implementado en código) en la misma sesión, junto con la instrucción de continuar con el Entregable 8.3. Ver `docs/DECISIONS.md` D-095.
 
 ---
 
@@ -52,9 +50,4 @@ Ver `docs/DECISIONS.md` D-041 a D-044 y `docs/CHANGELOG.md` (entradas v0.8.0 y v
 
 ## Próximo paso
 
-**No se retoma ningún Entregable del Sprint 8 en esta sesión.** El siguiente paso, una vez confirmes el punto sin resolver de arriba, es:
-1. Confirmar (o corregir) el estado de aprobación del Entregable 8.1.
-2. Aprobar o rechazar explícitamente el Entregable 8.2 (QA-030, ya implementado en código, ver arriba).
-3. Solo entonces, decidir si continuar con el Entregable 8.3 (QA-031) u otro orden de tu preferencia.
-
-Ver el prompt de continuación preparado (no ejecutado) en la entrega de cierre de esta sesión.
+El Entregable 8.3 (QA-031) ya está **implementado y entregado**, tras aprobación explícita del alcance (Opción 1) antes de escribir código. **Pendiente de tu aprobación final** del código entregado y de las pruebas funcionales reales listadas en `docs/DECISIONS.md` D-096 (sin entorno WordPress disponible para ejecutarlas en esta sesión). Con esa aprobación, el Sprint 8 continúa con el **Entregable 8.4** (QA-032, QA-033, QA-034 — dependían de la decisión arquitectónica de 8.3, ya tomada).

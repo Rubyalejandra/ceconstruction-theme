@@ -47,12 +47,13 @@ add_action( 'init', 'ce_construction_register_cpt_cotizacion' );
  */
 function ce_construction_cotizacion_columns( $columns ) {
 	$columns = array(
-		'cb'       => $columns['cb'],
-		'title'    => __( 'Nombre', 'ce-construction' ),
-		'ce_email' => __( 'Correo', 'ce-construction' ),
-		'ce_phone' => __( 'Teléfono', 'ce-construction' ),
-		'ce_service' => __( 'Servicio', 'ce-construction' ),
-		'date'     => $columns['date'],
+		'cb'            => $columns['cb'],
+		'title'         => __( 'Nombre', 'ce-construction' ),
+		'ce_email'      => __( 'Correo', 'ce-construction' ),
+		'ce_phone'      => __( 'Teléfono', 'ce-construction' ),
+		'ce_service'    => __( 'Servicio', 'ce-construction' ),
+		'ce_attachment' => __( 'Adjunto', 'ce-construction' ), // QA-031 (Sprint 8, Entregable 8.3): único punto de acceso legítimo al adjunto, vía endpoint autenticado.
+		'date'          => $columns['date'],
 	);
 	return $columns;
 }
@@ -68,6 +69,22 @@ function ce_construction_cotizacion_column_content( $column, $post_id ) {
 			break;
 		case 'ce_service':
 			echo esc_html( get_post_meta( $post_id, '_ce_service', true ) );
+			break;
+		case 'ce_attachment':
+			// QA-031 (Sprint 8, Entregable 8.3): ya no se enlaza la URL
+			// directa del adjunto (bloqueada a nivel de servidor, ver
+			// inc/quote-attachments.php) — este es el único acceso
+			// legítimo, autenticado y con nonce propio por cotización.
+			$attachment_id = (int) get_post_meta( $post_id, '_ce_attachment_id', true );
+			if ( $attachment_id && current_user_can( 'edit_post', $post_id ) && function_exists( 'ce_construction_get_quote_attachment_download_url' ) ) {
+				printf(
+					'<a href="%1$s"><i class="dashicons dashicons-paperclip" aria-hidden="true"></i> %2$s</a>',
+					esc_url( ce_construction_get_quote_attachment_download_url( $post_id, $attachment_id ) ),
+					esc_html__( 'Descargar', 'ce-construction' )
+				);
+			} else {
+				echo '—';
+			}
 			break;
 	}
 }
@@ -171,10 +188,30 @@ function ce_construction_handle_quote_form() {
 			wp_send_json_error( array( 'message' => __( 'El archivo supera el tamaño máximo de 5MB.', 'ce-construction' ) ), 400 );
 		}
 
+		// QA-031 (Sprint 8, Entregable 8.3): el adjunto ya no se sube al
+		// árbol normal de uploads/ (servible directamente por el servidor
+		// web) — se redirige a una subcarpeta dedicada y bloqueada a nivel
+		// de servidor (ver inc/quote-attachments.php). El filtro se añade
+		// y se quita en esta misma función, para no afectar ninguna otra
+		// subida del sitio (Media Library, galería de Proyectos, etc.).
+		ce_construction_ensure_quote_uploads_protected();
+		add_filter( 'upload_dir', 'ce_construction_quote_upload_dir' );
+
 		$upload_overrides = array( 'test_form' => false );
 		$uploaded_file    = wp_handle_upload( $_FILES['attachment'], $upload_overrides );
 
+		remove_filter( 'upload_dir', 'ce_construction_quote_upload_dir' );
+
 		if ( isset( $uploaded_file['file'] ) && empty( $uploaded_file['error'] ) ) {
+
+			// QA-031: renombra el archivo físico a un nombre aleatorio
+			// impredecible — defensa adicional aunque la carpeta ya esté
+			// bloqueada (ver comentario completo en
+			// ce_construction_randomize_quote_attachment_filename()).
+			$renamed         = ce_construction_randomize_quote_attachment_filename( $uploaded_file );
+			$uploaded_file   = $renamed['uploaded_file'];
+			$original_name   = $renamed['original_name'];
+
 			$attachment_path = $uploaded_file['file'];
 			$attachment_name = basename( $uploaded_file['file'] );
 			$attachment_type = $uploaded_file['type'];
@@ -212,7 +249,10 @@ function ce_construction_handle_quote_form() {
 			$attachment_data = array(
 				'guid'           => isset( $uploaded_file['url'] ) ? $uploaded_file['url'] : '',
 				'post_mime_type' => isset( $attachment_type ) ? $attachment_type : '',
-				'post_title'     => isset( $attachment_name ) ? $attachment_name : '',
+				// QA-031: se usa el nombre ORIGINAL (no el aleatorio en disco)
+				// como post_title, únicamente para que el registro sea legible
+				// en la Media Library — no afecta la ruta física del archivo.
+				'post_title'     => ! empty( $original_name ) ? $original_name : ( isset( $attachment_name ) ? $attachment_name : '' ),
 				'post_status'    => 'inherit',
 				'post_parent'    => $post_id,
 			);
@@ -222,6 +262,14 @@ function ce_construction_handle_quote_form() {
 				$attachment_metadata = wp_generate_attachment_metadata( $attachment_id, $attachment_path );
 				wp_update_attachment_metadata( $attachment_id, $attachment_metadata );
 				update_post_meta( $post_id, '_ce_attachment_id', $attachment_id );
+
+				// QA-031: nombre original del archivo (antes de renombrarlo
+				// a un nombre aleatorio) — se usa solo para el nombre de
+				// descarga mostrado al administrador vía el endpoint
+				// autenticado, nunca para localizar el archivo en disco.
+				if ( ! empty( $original_name ) ) {
+					update_post_meta( $attachment_id, '_ce_attachment_original_name', $original_name );
+				}
 			}
 		}
 	}

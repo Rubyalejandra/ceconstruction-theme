@@ -57,6 +57,7 @@ function ce_construction_require_modules() {
 		'inc/cpt-faq.php',          // CPT Preguntas Frecuentes.
 		'inc/meta-boxes.php',       // Campos personalizados (metaboxes) para los CPTs.
 		'inc/quote-form.php',       // Formulario de cotización (AJAX + email + nonce).
+		'inc/quote-attachments.php', // Protección de adjuntos de cotización (Sprint 8, Entregable 8.3 — QA-031).
 		'inc/seo.php',              // Meta tags, Open Graph, Schema, breadcrumbs.
 		'inc/helpers.php',          // Funciones auxiliares reutilizables.
 		'inc/widgets.php',          // Widgets / sidebars del footer.

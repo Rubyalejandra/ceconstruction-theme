@@ -201,7 +201,7 @@ La auditoría integral (`QA_REPORT_2.md`) declaró como alcance el estado del pr
 El CPT `cotizacion` se registra con `'public' => false` (`inc/quote-form.php`), lo cual impide que exista una URL pública para el *post* de la cotización. Sin embargo, el archivo adjunto se sube con `wp_handle_upload()` y se registra como *attachment* real vía `wp_insert_attachment()` con `post_status => 'inherit'`, vinculado por `post_parent`. En WordPress, el hecho de que el post padre sea privado **no restringe por sí mismo el acceso directo al archivo físico** en `wp-content/uploads/AAAA/MM/archivo.ext`: ese archivo es servido directamente por el servidor web (Apache/Nginx), no a través de PHP/WordPress, salvo que exista una regla adicional (`.htaccess`, plugin de protección de medios, o `X-Sendfile`/proxy autenticado) que no está presente en ningún archivo revisado. Esto significa que un adjunto de cotización (que puede incluir planos, cédulas, presupuestos u otra información potencialmente sensible del cliente) podría quedar accesible para cualquiera que conozca o adivine/enumere la URL, sin autenticación, incluso siendo el registro de la cotización en sí mismo privado.
 - **Severidad:** ALTO (privacidad de datos personales/comerciales de clientes).
 - **Archivo:** `inc/quote-form.php`.
-- **Corrección conceptual (no implementada en esta sesión):** servir el adjunto vía un endpoint PHP autenticado (`current_user_can`) en lugar de la URL directa de Media Library, o mover el archivo fuera de `wp-content/uploads/` a una ruta no servida directamente.
+- **Estado:** ✅ **Corregido en Sprint 8, Entregable 8.3** — pendiente de aprobación final del usuario (alcance ya aprobado explícitamente). Solución implementada: carpeta dedicada `uploads/cotizaciones/` bloqueada a nivel de servidor (`.htaccess`) + renombrado aleatorio del archivo + endpoint PHP autenticado (`current_user_can( 'edit_post', ... )`, nonce, verificación de ruta) para servirlo. Ver `docs/DECISIONS.md` D-096 para el detalle completo, la limitación conocida (Nginx) y las pruebas funcionales pendientes de ejecutar en un entorno real.
 
 ### Nuevo hallazgo MEDIO — QA-032
 **Race condition (TOCTOU) en el rate-limiting del formulario de cotización.**
@@ -317,7 +317,7 @@ El problema de versión de assets congelada (QA-030) tiene una faceta de perform
 | QA-008 | `CE_THEME_VERSION` hardcodeada | ✅ Corregido históricamente |
 | QA-009 | CPT Servicio sin `page-attributes` | ✅ Corregido |
 | QA-030 | Cache-busting congelado en 0.4.1 | ✅ Corregido (v0.8.1, Entregable 8.2) |
-| QA-031 | Adjuntos potencialmente accesibles por URL directa | ⬜ Abierto |
+| QA-031 | Adjuntos potencialmente accesibles por URL directa | ✅ Corregido (Sprint 8, Entregable 8.3 — pendiente de aprobación final) |
 
 ## 🟡 MEDIO
 

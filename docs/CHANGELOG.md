@@ -759,3 +759,32 @@ Ver `DECISIONS.md`: D-083 a D-090.
 - **Recompactar al salir del formulario (D-093):** el formulario ahora también se vuelve a compactar automáticamente al salir por completo de él (sin haber enviado), y se expande de nuevo al reingresar — puede repetirse indefinidamente. Corrige además, de paso, un pequeño parpadeo visual que tenía el colapso inicial al cargar la página.
 - **Archivos modificados:** `inc/customizer.php` (1 setting + 1 control + 1 sanitize_callback nuevos), `template-parts/quote-form.php` (atributo `style` con la variable CSS, dentro de la rama `'hero'`), `assets/css/main.css` (1 línea de `background` cambiada a `var()` con fallback), `assets/js/main.js` (`ModuleHeroFormProgressive` ampliado: expandir/compactar repetible + corrección del parpadeo inicial).
 - **Decisiones clave:** ver `DECISIONS.md` D-092, D-093.
+
+---
+
+## 🎉 Sprint UX-11 — CERRADO Y APROBADO EN SU TOTALIDAD
+
+Con la aprobación explícita del usuario, quedan cerrados los 6 puntos base (D-083 a D-090) **y** los 3 ajustes puntuales posteriores (D-091: expansión progresiva del formulario del Hero; D-092: opacidad configurable del panel; D-093: recompactado al salir del formulario). No queda ningún punto del Sprint UX-11 pendiente de aprobación. Ver `docs/DECISIONS.md` D-094.
+
+## Sprint 8 — Entregables 8.1 y 8.2 aprobados
+
+El usuario confirmó explícitamente la aprobación del **Entregable 8.1** (QA-010, QA-011, QA-013 parcial, QA-014, QA-015, QA-017 — resolviendo una inconsistencia de estado entre documentos previos) y del **Entregable 8.2** (QA-030, cache-busting por `filemtime()`). El Sprint 8 se retoma en el **Entregable 8.3** (QA-031). Ver `docs/DECISIONS.md` D-095.
+
+---
+
+## Sprint 8, Entregable 8.3 — QA-031: adjuntos de cotización protegidos
+
+**Estado:** Implementado y entregado — pendiente de aprobación final del usuario (alcance ya aprobado explícitamente antes de escribir código, ver `docs/DECISIONS.md` D-096).
+
+### Añadido
+- `inc/quote-attachments.php`: carpeta dedicada `wp-content/uploads/cotizaciones/` bloqueada a nivel de servidor (`.htaccess` + índice vacío, generados automáticamente); endpoint autenticado `admin_post_ce_download_quote_attachment` (sesión + capacidad + nonce + verificación de ruta); renombrado aleatorio del archivo físico al subirlo.
+
+### Modificado
+- `inc/quote-form.php`: la subida del adjunto ahora usa la carpeta protegida y el renombrado aleatorio; nueva columna "Adjunto" en el listado admin de Cotizaciones con enlace de descarga seguro (reemplaza cualquier exposición de la URL directa).
+- `functions.php`: registro del nuevo módulo.
+
+### Sin cambios
+Cualquier template del formulario de cotización (normal, modal, Hero), `assets/js/main.js`, validación de tipo/tamaño de archivo, envío de correo, cron de retención.
+
+### Decisiones clave
+Ver `DECISIONS.md`: D-096.

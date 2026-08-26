@@ -48,12 +48,13 @@ ce-construction-theme/
 │   ├── cpt-clientes.php               ✅
 │   ├── cpt-faq.php                    ✅
 │   ├── meta-boxes.php                 ✅ 🔧 UX-7.8: nuevo metabox ce_testimonio_video (_ce_testimonio_video_id/_ce_testimonio_video_url), nonce y guardado independientes
-│   ├── quote-form.php                 ✅ sin cambios en toda la fase UX (protegido explícitamente, D-053/D-056/D-064/D-079)
+│   ├── quote-form.php                 ✅ sin cambios en toda la fase UX (protegido explícitamente, D-053/D-056/D-064/D-079) — 🔧 Sprint 8, Entregable 8.3 (D-096, QA-031): subida redirigida a carpeta protegida + renombrado aleatorio + columna "Adjunto" en el admin
 │   ├── seo.php                        ✅ ce_construction_output_json_ld() con endurecimiento contra </script> (QA-014, Sprint 8 Entregable 8.1)
 │   ├── widgets.php                    ✅ Sprint 7, Entregable 7.1
 │   ├── home-builder.php               ✅ 🆕 UX-1.1. Claves registradas a la fecha: hero, about, services, projects, stats, why_us, testimonials, gallery, cta, quote_form, team, clients, faq, cta_secondary (UX-5.1), trust_badges (UX-7.7), financing (UX-7.9), testimonials_full (UX-10.1/10.2), google_reviews (UX-10.3). El Popup de Oferta (UX-7.10) NO se registra aquí — no es una sección posicionable
 │   └── section-shortcode.php          ✅ 🆕 UX-6.2 (D-060/D-062) — [ce_section key="..."]
-│   └── hero-image-position.php        ✅ 🆕 UX-11 (D-085) — posición de fondo configurable por imagen (alternativa nativa al punto focal, sin plugin)
+│   ├── hero-image-position.php        ✅ 🆕 UX-11 (D-085) — posición de fondo configurable por imagen (alternativa nativa al punto focal, sin plugin)
+│   └── quote-attachments.php          ✅ 🆕 Sprint 8, Entregable 8.3 (D-096) — QA-031: carpeta protegida `uploads/cotizaciones/` + endpoint autenticado de descarga
 │
 ├── template-parts/                    ✅ 27 archivos
 │   ├── hero.php                       🔧 UX-4.1 (tipo imagen/video/overlay) + UX-4.2 (slider) + UX-7.1 (media state, ahora exclusiva del Home) + UX-7.2 (layout de columnas + slot Quote Form, D-064/D-065) + UX-11 (D-085/D-086/D-089: posición de imagen, overlay configurable, panel del formulario sin recorte)
@@ -91,3 +92,15 @@ ce-construction-theme/
 Con UX-7.10 aprobado explícitamente (D-079 base + D-080 refuerzo visual + D-081 efecto de movimiento JS, sin reversión), **el Sprint UX-7 queda completo (UX-7.1 a UX-7.10)**. El Sprint UX-10 (UX-10.1 a UX-10.3, UX-10.4 absorbido) ya estaba completo y aprobado de una sesión anterior. Este árbol se actualiza para reflejar todos los archivos tocados por ambos Sprints, diferido hasta este punto conforme al criterio D-034 ya vigente en el proyecto (actualización incremental en el cierre de Sprint más significativo, no por cada Entregable individual).
 
 Ningún archivo del Sprint 8 (`inc/enqueue.php` en su lógica de QA-030, `inc/customizer.php` en sus 3 colores de QA-011, `inc/seo.php` en `ce_construction_output_json_ld()`, `header.php` en su `tabindex`, `style.css` en su comentario de QA-013) fue modificado por ningún Entregable de la fase UX — verificado Entregable por Entregable durante toda la fase, y reconfirmado en este cierre.
+
+---
+
+### Verificación de cierre — Sprint UX-11 completo + reanudación del Sprint 8 (esta sesión)
+
+Con el Sprint UX-11 cerrado en su totalidad (6 puntos base + D-091/D-092/D-093, ver `DECISIONS.md` D-094), no hay archivos adicionales que reflejar en este árbol respecto a la entrada de UX-11 ya existente arriba — los 3 ajustes puntuales tocaron únicamente `template-parts/quote-form.php`, `assets/js/main.js` e `inc/customizer.php`, ya listados. Sin cambios de árbol por la aprobación de los Entregables 8.1/8.2 del Sprint 8 (decisión de aprobación sobre código ya existente, ver `DECISIONS.md` D-095) — ningún archivo nuevo ni eliminado.
+
+---
+
+### Actualización — Sprint 8, Entregable 8.3 (QA-031, esta sesión)
+
+Archivo nuevo: `inc/quote-attachments.php`. Archivos modificados: `inc/quote-form.php` (subida de adjuntos redirigida a `uploads/cotizaciones/`, renombrado aleatorio, columna "Adjunto" en el admin), `functions.php` (registro del nuevo módulo). Ningún template del formulario de cotización ni `assets/js/main.js` fueron tocados — ver `docs/DECISIONS.md` D-096 para el detalle completo y las verificaciones ejecutadas.
