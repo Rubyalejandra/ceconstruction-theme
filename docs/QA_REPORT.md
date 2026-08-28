@@ -35,7 +35,7 @@
 - **QA-030 (Alto): ✅ corregido en Sprint 8, Entregable 8.2** (cache-busting por `filemtime()` + `CE_THEME_VERSION` derivada de `wp_get_theme()`) — ver `DECISIONS.md` D-044.
 - QA-012, QA-016: ⬜ pendientes (agrupados en el Entregable 8.5 de la reorganización de `DECISIONS.md` D-043).
 - QA-019 a QA-029: ⬜ pendientes / mejoras futuras según su clasificación.
-- **QA-031 (Alto):** 🆕 abierto — siguiente prioridad del Sprint 8 (Entregable 8.3 de `DECISIONS.md` D-043), requiere decisión arquitectónica previa de cómo servir adjuntos protegidos.
+- **QA-031 (Alto):** ✅ **corregido y aprobado** — Sprint 8, Entregable 8.3 (`DECISIONS.md` D-096, D-097). Pruebas funcionales reales ejecutadas y verificadas por el usuario en el entorno real (Apache/2.4.68, PHP 8.2.33).
 - QA-032 a QA-040: 🆕 abiertos según la auditoría integral (agrupados en Entregables 8.4/8.5/8.6 de D-043).
 - QA-041: ✅ **cerrado** — `page.php` no existía al momento de la verificación; fue creado después en Sprint UX-6 (Entregable UX-6.1, fuera del Sprint 8). Ver detalle sección 4.6.
 - QA-042: 🔵 mejora futura.
@@ -201,7 +201,7 @@ La auditoría integral (`QA_REPORT_2.md`) declaró como alcance el estado del pr
 El CPT `cotizacion` se registra con `'public' => false` (`inc/quote-form.php`), lo cual impide que exista una URL pública para el *post* de la cotización. Sin embargo, el archivo adjunto se sube con `wp_handle_upload()` y se registra como *attachment* real vía `wp_insert_attachment()` con `post_status => 'inherit'`, vinculado por `post_parent`. En WordPress, el hecho de que el post padre sea privado **no restringe por sí mismo el acceso directo al archivo físico** en `wp-content/uploads/AAAA/MM/archivo.ext`: ese archivo es servido directamente por el servidor web (Apache/Nginx), no a través de PHP/WordPress, salvo que exista una regla adicional (`.htaccess`, plugin de protección de medios, o `X-Sendfile`/proxy autenticado) que no está presente en ningún archivo revisado. Esto significa que un adjunto de cotización (que puede incluir planos, cédulas, presupuestos u otra información potencialmente sensible del cliente) podría quedar accesible para cualquiera que conozca o adivine/enumere la URL, sin autenticación, incluso siendo el registro de la cotización en sí mismo privado.
 - **Severidad:** ALTO (privacidad de datos personales/comerciales de clientes).
 - **Archivo:** `inc/quote-form.php`.
-- **Estado:** ✅ **Corregido en Sprint 8, Entregable 8.3** — pendiente de aprobación final del usuario (alcance ya aprobado explícitamente). Solución implementada: carpeta dedicada `uploads/cotizaciones/` bloqueada a nivel de servidor (`.htaccess`) + renombrado aleatorio del archivo + endpoint PHP autenticado (`current_user_can( 'edit_post', ... )`, nonce, verificación de ruta) para servirlo. Ver `docs/DECISIONS.md` D-096 para el detalle completo, la limitación conocida (Nginx) y las pruebas funcionales pendientes de ejecutar en un entorno real.
+- **Estado:** ✅ **Corregido y aprobado en Sprint 8, Entregable 8.3.** Solución implementada: carpeta dedicada `uploads/cotizaciones/` bloqueada a nivel de servidor (`.htaccess`) + renombrado aleatorio del archivo + endpoint PHP autenticado (`current_user_can( 'edit_post', ... )`, nonce, verificación de ruta) para servirlo. Ver `docs/DECISIONS.md` D-096 para el detalle técnico completo y D-097 para las 4 pruebas funcionales reales ejecutadas por el usuario (envío con adjunto, descarga por admin autenticado, bloqueo tras cerrar sesión, bloqueo de acceso directo no autenticado) — todas exitosas, verificadas en un entorno real Apache/2.4.68 (Debian) + PHP 8.2.33. La limitación conocida sobre Nginx (documentada en D-096) permanece como advertencia de compatibilidad para instalaciones futuras sobre ese servidor; no aplica a esta instalación.
 
 ### Nuevo hallazgo MEDIO — QA-032
 **Race condition (TOCTOU) en el rate-limiting del formulario de cotización.**
@@ -317,7 +317,7 @@ El problema de versión de assets congelada (QA-030) tiene una faceta de perform
 | QA-008 | `CE_THEME_VERSION` hardcodeada | ✅ Corregido históricamente |
 | QA-009 | CPT Servicio sin `page-attributes` | ✅ Corregido |
 | QA-030 | Cache-busting congelado en 0.4.1 | ✅ Corregido (v0.8.1, Entregable 8.2) |
-| QA-031 | Adjuntos potencialmente accesibles por URL directa | ✅ Corregido (Sprint 8, Entregable 8.3 — pendiente de aprobación final) |
+| QA-031 | Adjuntos potencialmente accesibles por URL directa | ✅ Corregido y aprobado (Sprint 8, Entregable 8.3 — `DECISIONS.md` D-096/D-097) |
 
 ## 🟡 MEDIO
 
@@ -332,9 +332,9 @@ El problema de versión de assets congelada (QA-030) tiene una faceta de perform
 | QA-016 | Script inline de metabox sin dependencia formal | ⬜ Abierto (propuesto: Entregable 8.5, ver `DECISIONS.md` D-043 — corregida referencia stale a "Entregable 8.2" en la sesión de cierre de UX-7) |
 | QA-017 | Skip-link sin `tabindex="-1"` | ✅ Corregido (Entregable 8.1) |
 | QA-018 | Header top sin adaptación responsive | ✅ Corregido |
-| QA-032 | Race condition del rate-limit | ⬜ Abierto |
-| QA-033 | Archivo huérfano si falla `wp_insert_post()` | ⬜ Abierto |
-| QA-034 | Sin idempotencia de envíos | ⬜ Abierto |
+| QA-032 | Race condition del rate-limit | 🟡 Implementado — pendiente de integración final (`DECISIONS.md` D-098) |
+| QA-033 | Archivo huérfano si falla `wp_insert_post()` | 🟡 Implementado — pendiente de integración final (`DECISIONS.md` D-098) |
+| QA-034 | Sin idempotencia de envíos | 🟡 Implementado — pendiente de integración final (`DECISIONS.md` D-098) |
 | QA-035 | Autoplay sin pausa accesible | ⬜ Abierto |
 | QA-036 | Sin gestión de foco en overlays | ⬜ Abierto |
 | QA-038 | Sin `<link rel="canonical">` | ⬜ Abierto |
@@ -478,11 +478,24 @@ Reglas:
 
 El QA maestro consolida los dos reportes entregados y mantiene la trazabilidad de los hallazgos históricos y de la auditoría integral posterior al Sprint 7.
 
+---
+
+# 14. QA-044 — Hallazgo puntual post Sprint 8 (reportado por el usuario)
+
+### QA-044 — Etiqueta visual del adjunto no se limpiaba tras un envío exitoso del formulario
+
+- **Severidad:** Bajo (visual/UX, sin impacto de seguridad ni de datos — el archivo real sí se limpiaba, solo su representación visual no).
+- **Estado:** ✅ Corregido — ver `docs/DECISIONS.md` D-100.
+- **Archivo:** `assets/js/main.js` (`ModuleQuoteForm`).
+- **Descripción:** tras un envío exitoso, sin recargar la página, la etiqueta del campo de adjunto seguía mostrando el nombre del último archivo seleccionado aunque `form.reset()` ya había vaciado el input real — `form.reset()` no dispara el evento `change` del que dependía la etiqueta visual.
+- **Corrección:** `updateFileLabel()` ahora también restaura el texto por defecto cuando no hay archivo seleccionado, y se invoca explícitamente tras `form.reset()`.
+- **Reportado por:** el usuario, al ejecutar pruebas manuales sobre el Entregable 8.4 (no relacionado con QA-032/033/034).
+
 **Total documentado:** QA-001 a QA-042.
 
 **Correcciones históricas confirmadas:** QA-001 a QA-009 y QA-018.
 
-**Nuevos hallazgos abiertos de prioridad ALTA:** QA-031 (QA-030 corregido en Sprint 8, Entregable 8.2 — ver `DECISIONS.md` D-044).
+**Hallazgos de prioridad ALTA de la auditoría integral:** QA-030 corregido en Sprint 8, Entregable 8.2 (`DECISIONS.md` D-044); QA-031 corregido y aprobado en Sprint 8, Entregable 8.3 (`DECISIONS.md` D-096/D-097). No quedan hallazgos Altos abiertos a la fecha de esta actualización.
 
 **Nuevos hallazgos MEDIOS:** QA-032 a QA-036 y QA-038.
 

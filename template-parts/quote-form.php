@@ -218,6 +218,18 @@ $ce_hero_quote_card_opacity = $ce_quote_is_hero ? get_theme_mod( 'ce_hero_quote_
 					<form id="<?php echo esc_attr( $ce_quote_form_id ); ?>" class="ce-form ce-quote-form-instance" novalidate enctype="multipart/form-data">
 
 						<?php wp_nonce_field( 'ce_quote_form_action', 'ce_quote_nonce_field' ); ?>
+						<?php
+						// Sprint 8, Entregable 8.4 (QA-034): idempotency key generada
+						// server-side en cada render (nunca reutilizada entre
+						// instancias ni entre cargas de página), viaja como campo
+						// oculto normal — FormData(this.form) en ModuleQuoteForm
+						// (assets/js/main.js) la recoge automáticamente junto con
+						// el resto de campos, sin necesitar ningún cambio de JS.
+						// Precondición documentada en DECISIONS.md D-098: asume que
+						// esta página no está detrás de un caché de página completa
+						// (mismo supuesto que ya tiene el nonce de arriba).
+						?>
+						<input type="hidden" name="ce_idempotency_key" value="<?php echo esc_attr( ce_construction_generate_idempotency_key() ); ?>">
 						<!-- Honeypot anti-spam: campo oculto que un humano nunca completa -->
 						<div class="ce-honeypot" aria-hidden="true">
 							<label for="ce_website<?php echo esc_attr( $ce_quote_id_suffix ); ?>"><?php esc_html_e( 'No completar este campo', 'ce-construction' ); ?></label>

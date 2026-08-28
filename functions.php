@@ -41,6 +41,17 @@ define( 'CE_THEME_VERSION', wp_get_theme()->get( 'Version' ) );
 define( 'CE_THEME_DIR', get_template_directory() );
 define( 'CE_THEME_URI', get_template_directory_uri() );
 
+// Sprint 8, Entregable 8.4 (QA-032/QA-033/QA-034): versión del ESQUEMA de
+// base de datos propio del tema (tabla `{prefix}ce_form_guards`, ver
+// inc/form-guards.php), independiente de CE_THEME_VERSION de arriba —
+// una sube con cada cambio de CSS/JS/versión de tema, esta solo cuando
+// cambia la estructura de una tabla propia. La migración que la lee
+// (ce_construction_maybe_upgrade_db(), enganchada a admin_init +
+// after_switch_theme) es idempotente: instalación nueva, actualización
+// de una instalación ya activa, o ejecución repetida no tienen efectos
+// adversos. Ver DECISIONS.md D-098.
+define( 'CE_THEME_DB_VERSION', '1.0' );
+
 /**
  * Carga segura de módulos del tema.
  */
@@ -56,6 +67,7 @@ function ce_construction_require_modules() {
 		'inc/cpt-clientes.php',     // CPT Clientes.
 		'inc/cpt-faq.php',          // CPT Preguntas Frecuentes.
 		'inc/meta-boxes.php',       // Campos personalizados (metaboxes) para los CPTs.
+		'inc/form-guards.php',      // Rate-limiting atómico + idempotencia del formulario (Sprint 8, Entregable 8.4 — QA-032/033/034). Cargado ANTES de quote-form.php, que depende de sus funciones.
 		'inc/quote-form.php',       // Formulario de cotización (AJAX + email + nonce).
 		'inc/quote-attachments.php', // Protección de adjuntos de cotización (Sprint 8, Entregable 8.3 — QA-031).
 		'inc/seo.php',              // Meta tags, Open Graph, Schema, breadcrumbs.

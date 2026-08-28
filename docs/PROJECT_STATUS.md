@@ -3,7 +3,7 @@
 > Este documento es la fuente oficial de verdad del proyecto.
 > Se actualiza al finalizar cada módulo. No se reinicia ni se resume: solo se agrega/actualiza estado.
 
-**Última actualización (sesión de cierre de UX-11 + reanudación del Sprint 8):** Sprint 7 COMPLETADO. **Sprint UX-11 ("Hero, Formulario del Hero y Header") CERRADO Y APROBADO EN SU TOTALIDAD** — los 6 puntos base (`DECISIONS.md` D-083 a D-090) y los 3 ajustes puntuales posteriores (D-091, D-092, D-093) quedaron aprobados explícitamente por el usuario en esta sesión (`DECISIONS.md` D-094). QA-043 quedó resuelto ahí (D-087/D-090), no en el Sprint 8. **Sprint 8 ("Cierre de Hallazgos QA") EN CURSO: Entregable 8.1 y Entregable 8.2 (QA-030) aprobados explícitamente por el usuario en esta misma sesión (`DECISIONS.md` D-095). Entregable 8.3 (QA-031 — adjuntos de cotización accesibles por URL directa) implementado y entregado en esta misma sesión, tras aprobación explícita de alcance (carpeta protegida + endpoint autenticado) — pendiente de tu aprobación final (`DECISIONS.md` D-096).** Entregables 8.4 a 8.7 reorganizados por prioridad/dependencias/riesgo, sin iniciar (`DECISIONS.md` D-043). QA-041 verificado y cerrado (`page.php` no existía al momento de la verificación; fue creado después, en Sprint UX-6).
+**Última actualización (integración de código completa del Entregable 8.4):** Sprint 7 COMPLETADO. Sprint UX-11 CERRADO Y APROBADO EN SU TOTALIDAD (`DECISIONS.md` D-083 a D-094). **Sprint 8 ("Cierre de Hallazgos QA") EN CURSO: Entregables 8.1, 8.2 (QA-030) y 8.3 (QA-031) aprobados explícitamente por el usuario** (el 8.3 con aprobación final tras 4 pruebas funcionales reales en Apache/2.4.68 + PHP 8.2.33, `DECISIONS.md` D-096/D-097). **Entregable 8.4 (QA-032, QA-033, QA-034) con integración de código completa** en sus 4 archivos (`inc/form-guards.php` nuevo; `inc/quote-form.php`, `functions.php`, `template-parts/quote-form.php` modificados — `DECISIONS.md` D-098/D-099), pendiente únicamente de pruebas funcionales reales antes de aprobarse. Entregables 8.5 a 8.7 reorganizados por prioridad/dependencias/riesgo, sin iniciar (`DECISIONS.md` D-043). QA-041 verificado y cerrado (`page.php` no existía al momento de la verificación; fue creado después, en Sprint UX-6).
 
 **Versión de proyecto correspondiente:** v0.8.5 (ver `style.css`; `docs/CHANGELOG.md` no registra entradas individuales de la fase UX-7/UX-10 más allá del resumen consolidado añadido en la sesión de cierre de esa fase).
 
@@ -28,18 +28,17 @@ El tema tiene: backend 100% funcional, frontend completo (Home, Servicios, Proye
 | 26 | Entregable 8.1 — QA-010, QA-011, QA-013 (parcial), QA-014, QA-015 (verificación), QA-017 | `header.php`, `inc/enqueue.php`, `inc/customizer.php`, `inc/seo.php`, `style.css` | ✅ **Aprobado explícitamente por el usuario** (`DECISIONS.md` D-095) |
 | 27 | Entregable 8.2 — QA-030 (`CE_THEME_VERSION`/`style.css`: cache-busting por `filemtime()`) | `functions.php`, `inc/enqueue.php`, `style.css` | ✅ **Aprobado explícitamente por el usuario** (`DECISIONS.md` D-095) |
 | 28 | Sprint UX-11 — 6 puntos base + 3 ajustes puntuales (D-091/D-092/D-093) | `template-parts/hero.php`, `template-parts/page-hero.php`, `template-parts/quote-form.php`, `inc/helpers.php`, `inc/customizer.php`, `inc/hero-image-position.php`, `assets/css/main.css`, `assets/js/main.js` | ✅ **Cerrado y aprobado en su totalidad** (`DECISIONS.md` D-083 a D-094) |
-| 29 | Entregable 8.3 — QA-031 (adjuntos de cotización protegidos) | `inc/quote-attachments.php` (nuevo), `inc/quote-form.php`, `functions.php` | 🟡 **Implementado y entregado — pendiente de tu aprobación final** (`DECISIONS.md` D-096) |
+| 29 | Entregable 8.3 — QA-031 (adjuntos de cotización protegidos) | `inc/quote-attachments.php` (nuevo), `inc/quote-form.php`, `functions.php` | ✅ **Aprobado explícitamente por el usuario**, con pruebas funcionales reales verificadas (`DECISIONS.md` D-096/D-097) |
 
 ## 3. Módulos en desarrollo
 
-Ninguno activo. El Entregable 8.3 está entregado; a la espera de tu aprobación final (incluidas las pruebas funcionales reales listadas en `DECISIONS.md` D-096) antes de continuar con el Entregable 8.4.
+Ninguno activo. Con el Entregable 8.3 aprobado de forma definitiva, el siguiente módulo recomendado es el Entregable 8.4, pendiente de que se apruebe su alcance antes de iniciar implementación.
 
 ## 4. Módulos pendientes
 
 | # | Módulo | Prioridad |
 |---|--------|-----------|
-| 28 | Entregable 8.3 — QA-031 (Alto: adjuntos de cotización potencialmente accesibles por URL) — requiere decisión arquitectónica previa | **Alta** |
-| 29 | Entregable 8.4 — QA-032, QA-033, QA-034 (robustez del formulario de cotización: concurrencia e integridad de datos) — depende de la decisión de 8.3 | Media |
+| 29 | Entregable 8.4 — QA-032, QA-033, QA-034 (robustez del formulario de cotización: concurrencia e integridad de datos) — 🟡 integración de código completa, pendiente únicamente de pruebas funcionales reales | Alta |
 | 30 | Entregable 8.5 — QA-012, QA-016, QA-035, QA-038 (performance, deuda técnica, accesibilidad puntual, SEO) | Media |
 | 31 | Entregable 8.6 — QA-036 (accesibilidad: gestión de foco en overlays) — requiere decisión de diseño | Media |
 | 32 | Entregable 8.7 — QA-019, QA-020, QA-021, QA-022, QA-037, QA-039, QA-040 (Bajos) | Baja |
@@ -65,8 +64,8 @@ Ninguno activo. El Entregable 8.3 está entregado; a la espera de tu aprobación
 | Riesgo | Severidad | Detalle |
 |---|---|---|
 | QA-030: cache-busting de CSS/JS | 🟢 Resuelto | Corregido y **aprobado** en el Entregable 8.2 (`DECISIONS.md` D-044/D-095). |
-| QA-031: adjuntos de cotización potencialmente accesibles por URL directa | 🟠 Alta | Requiere decisión tuya sobre el mecanismo de protección antes de implementar (Entregable 8.3). |
-| QA-032/033/034: robustez del formulario de cotización (concurrencia, archivo huérfano, idempotencia) | 🟡 Media | Entregable 8.4, depende de la decisión arquitectónica de 8.3 por compartir el mismo flujo de almacenamiento de adjuntos. |
+| QA-031: adjuntos de cotización potencialmente accesibles por URL directa | 🟢 Resuelto | Corregido y **aprobado de forma definitiva** en el Entregable 8.3, con pruebas funcionales reales verificadas en Apache/2.4.68 + PHP 8.2.33 (`DECISIONS.md` D-096/D-097). Limitación conocida sobre Nginx documentada para instalaciones futuras; sin acción pendiente en esta instalación. |
+| QA-032/033/034: robustez del formulario de cotización (concurrencia, archivo huérfano, idempotencia) | 🟡 Media | Entregable 8.4, **integración de código completa** (`docs/DECISIONS.md` D-098/D-099); pendiente únicamente de pruebas funcionales reales antes de aprobar. |
 | QA-012, QA-016, QA-035, QA-038: hallazgos Medios aislados sin corregir | 🟢 Baja | Propuestos para el Entregable 8.5. |
 | QA-036: sin gestión de foco en overlays (menú móvil, modales) | 🟡 Media | Entregable 8.6, requiere decisión de diseño (R-4: utilidad centralizada vs. por componente). |
 | QA-013: unificación real de `:root` entre `style.css`/`main.css` pendiente | 🟢 Baja | Solo se corrigió el comentario inexacto en 8.1; la unificación es una decisión arquitectónica en backlog. |
@@ -75,4 +74,4 @@ Ninguno activo. El Entregable 8.3 está entregado; a la espera de tu aprobación
 
 ## 7. Próximo módulo recomendado
 
-Con la fase UX cerrada en su totalidad (Sprints UX-1 a UX-11) y con los Entregables 8.1, 8.2 y 8.3 del Sprint 8 ya entregados (8.1/8.2 aprobados; 8.3 pendiente de tu aprobación final, `DECISIONS.md` D-095/D-096), el próximo módulo recomendado, una vez apruebes el 8.3, es el **Entregable 8.4** (QA-032, QA-033, QA-034 — robustez del formulario de cotización), que dependía de la decisión arquitectónica ya tomada en el 8.3.
+Con la fase UX cerrada en su totalidad (Sprints UX-1 a UX-11) y con los Entregables 8.1, 8.2 y 8.3 del Sprint 8 ya **aprobados** (`DECISIONS.md` D-095, D-096, D-097), el **Entregable 8.4** (QA-032, QA-033, QA-034) tiene su **integración de código completa** (`DECISIONS.md` D-098, D-099) y solo espera las pruebas funcionales reales del usuario para poder aprobarse.

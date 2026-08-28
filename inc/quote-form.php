@@ -8,6 +8,8 @@
  * - Soporte de adjunto (con validación de tipo y tamaño).
  * - Registro opcional en un CPT interno "cotizacion" para
  *   que el formulario sea administrable desde el panel.
+ * - Rate-limiting atómico por IP (QA-032) e idempotencia server-side
+ *   con checkpoints (QA-034) vía inc/form-guards.php.
  *
  * @package CE_Construction
  */
@@ -105,19 +107,118 @@ function ce_construction_handle_quote_form() {
 		wp_send_json_error( array( 'message' => __( 'Solicitud rechazada.', 'ce-construction' ) ), 400 );
 	}
 
-	// 2 bis. QA-004 (Sprint 5, Fase 1 — corrección alta): rate-limiting
-	// por IP. Antes el honeypot era la única defensa anti-abuso; un
-	// script que simplemente omitiera ese campo podía enviar solicitudes
-	// ilimitadas. Se permite un máximo de 3 envíos cada 10 minutos por IP,
-	// usando un transient (sin dependencias externas ni tablas nuevas).
-	$client_ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : 'unknown';
-	$rate_limit_key = 'ce_quote_rl_' . md5( $client_ip );
-	$attempts       = (int) get_transient( $rate_limit_key );
+	/* =====================================================
+	 * QA-034 (Sprint 8, Entregable 8.4): idempotencia server-side.
+	 *
+	 * La key viaja en un campo oculto (`ce_idempotency_key`) generado
+	 * por el servidor en cada render del formulario (ver
+	 * inc/form-guards.php, ce_construction_generate_idempotency_key(),
+	 * y la precondición documentada sobre caché de página completa en
+	 * DECISIONS.md). Si el campo no llega (p. ej. una plantilla del
+	 * formulario todavía no actualizada), se continúa SIN protección de
+	 * idempotencia en vez de bloquear el envío — comportamiento
+	 * retrocompatible, nunca un fallo duro por este motivo.
+	 * ===================================================== */
+	$idempotency_hash    = null;
+	$idempotency_claim   = null;
+	$raw_idempotency_key = isset( $_POST['ce_idempotency_key'] ) ? sanitize_text_field( wp_unslash( $_POST['ce_idempotency_key'] ) ) : '';
 
-	if ( $attempts >= 3 ) {
+	if ( $raw_idempotency_key && function_exists( 'ce_construction_claim_idempotency_key' ) ) {
+		$idempotency_claim = ce_construction_claim_idempotency_key( $raw_idempotency_key );
+
+		if ( ! $idempotency_claim['claimed'] ) {
+			$row = $idempotency_claim['row'];
+
+			if ( $row && 'done' === $row->status ) {
+				// Replay de una petición ya completada: se devuelve
+				// exactamente la misma respuesta guardada, sin repetir
+				// ningún efecto secundario (sin crear post, sin
+				// reenviar correo).
+				$stored = json_decode( $row->response, true );
+				if ( is_array( $stored ) && isset( $stored['success'] ) ) {
+					if ( $stored['success'] ) {
+						wp_send_json_success( isset( $stored['data'] ) ? $stored['data'] : array() );
+					} else {
+						wp_send_json_error( isset( $stored['data'] ) ? $stored['data'] : array(), isset( $stored['status_code'] ) ? $stored['status_code'] : 400 );
+					}
+				}
+				// Si por algún motivo la respuesta guardada no se pudo
+				// decodificar, se cae al mensaje genérico de abajo en
+				// vez de reprocesar (nunca se repite un efecto
+				// secundario por una respuesta ilegible).
+				wp_send_json_success( array( 'message' => __( '¡Gracias! Tu solicitud de cotización fue enviada. Te contactaremos muy pronto.', 'ce-construction' ) ) );
+			}
+
+			if ( $row && 'processing' === $row->status && ! empty( $row->post_id ) ) {
+				// El post ya fue creado por un intento anterior de esta
+				// misma key; nunca se crea una segunda cotización. Se
+				// reintenta únicamente el envío de correo si todavía no
+				// se había confirmado, usando los datos ya guardados en
+				// el post (no el $_POST de este replay), y se cierra el
+				// checkpoint como 'done'.
+				$resume_post_id = (int) $row->post_id;
+				$already_sent   = (bool) get_post_meta( $resume_post_id, '_ce_email_sent', true );
+
+				if ( ! $already_sent ) {
+					$resume_name    = get_post_meta( $resume_post_id, '_ce_name', true );
+					$resume_email   = get_post_meta( $resume_post_id, '_ce_email', true );
+					$resume_phone   = get_post_meta( $resume_post_id, '_ce_phone', true );
+					$resume_company = get_post_meta( $resume_post_id, '_ce_company', true );
+					$resume_service = get_post_meta( $resume_post_id, '_ce_service', true );
+					$resume_message = get_post_meta( $resume_post_id, '_ce_message', true );
+
+					ce_construction_send_quote_email(
+						$resume_post_id,
+						$resume_name,
+						$resume_email,
+						$resume_phone,
+						$resume_company,
+						$resume_service,
+						$resume_message
+					);
+				}
+
+				ce_construction_idempotency_mark_done( $row->guard_key, array(
+					'success' => true,
+					'data'    => array( 'message' => __( '¡Gracias! Tu solicitud de cotización fue enviada. Te contactaremos muy pronto.', 'ce-construction' ) ),
+				) );
+
+				wp_send_json_success( array( 'message' => __( '¡Gracias! Tu solicitud de cotización fue enviada. Te contactaremos muy pronto.', 'ce-construction' ) ) );
+			}
+
+			// 'processing' con post_id todavía NULL y por debajo del
+			// umbral de "atascada" (ver ce_construction_idempotency_stuck_threshold()):
+			// se interpreta como una petición concurrente genuina
+			// procesándose ahora mismo (dos pestañas, doble clic con
+			// latencia de red). Se responde de forma neutra, SIN
+			// reprocesar ni tocar el rate-limit.
+			wp_send_json_error( array(
+				'message' => __( 'Tu solicitud ya se está procesando. Por favor espera un momento antes de intentar de nuevo.', 'ce-construction' ),
+			), 409 );
+		}
+
+		// $idempotency_claim['claimed'] === true: o bien es una key
+		// nueva, o bien una fila abandonada que es seguro reprocesar
+		// desde cero (ver 'resume' en ce_construction_claim_idempotency_key()).
+		$idempotency_hash = $idempotency_claim['hash'];
+	}
+
+	/* =====================================================
+	 * QA-032 (Sprint 8, Entregable 8.4): rate-limiting atómico por IP.
+	 * Sustituye el mecanismo anterior (get_transient()+set_transient(),
+	 * dos operaciones separadas y no atómicas — ver DECISIONS.md) por
+	 * una única sentencia SQL atómica sobre la tabla dedicada
+	 * `{prefix}ce_form_guards` (ver inc/form-guards.php). La IP nunca se
+	 * guarda en texto plano: se usa un HMAC con wp_salt('auth').
+	 * ===================================================== */
+	$client_ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : 'unknown';
+
+	if ( ! ce_construction_claim_rate_limit( $client_ip, 3, 10 * MINUTE_IN_SECONDS ) ) {
+		if ( $idempotency_hash ) {
+			ce_construction_idempotency_release( $idempotency_hash );
+		}
 		wp_send_json_error( array( 'message' => __( 'Has enviado demasiadas solicitudes. Intenta de nuevo en unos minutos.', 'ce-construction' ) ), 429 );
 	}
-	set_transient( $rate_limit_key, $attempts + 1, 10 * MINUTE_IN_SECONDS );
 
 	// 3. Sanitización de campos.
 	$name    = isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '';
@@ -146,6 +247,12 @@ function ce_construction_handle_quote_form() {
 	}
 
 	if ( ! empty( $errors ) ) {
+		// La solicitud nunca llegó a crear nada: se libera la
+		// idempotency key para que el usuario pueda corregir el campo y
+		// reenviar sin quedar bloqueado por su propio intento fallido.
+		if ( $idempotency_hash ) {
+			ce_construction_idempotency_release( $idempotency_hash );
+		}
 		wp_send_json_error( array(
 			'message' => __( 'Revisa los campos marcados.', 'ce-construction' ),
 			'fields'  => $errors,
@@ -158,6 +265,9 @@ function ce_construction_handle_quote_form() {
 	if ( ! empty( $_FILES['attachment'] ) && UPLOAD_ERR_NO_FILE !== $_FILES['attachment']['error'] ) {
 
 		if ( UPLOAD_ERR_OK !== $_FILES['attachment']['error'] ) {
+			if ( $idempotency_hash ) {
+				ce_construction_idempotency_release( $idempotency_hash );
+			}
 			wp_send_json_error( array( 'message' => __( 'Error al subir el archivo.', 'ce-construction' ) ), 400 );
 		}
 
@@ -182,9 +292,15 @@ function ce_construction_handle_quote_form() {
 		$real_ext = $file_type_and_ext['ext'] ? strtolower( $file_type_and_ext['ext'] ) : '';
 
 		if ( empty( $real_ext ) || ! in_array( $real_ext, $allowed_extensions, true ) ) {
+			if ( $idempotency_hash ) {
+				ce_construction_idempotency_release( $idempotency_hash );
+			}
 			wp_send_json_error( array( 'message' => __( 'Formato de archivo no permitido. Usa PDF, JPG, PNG o WEBP.', 'ce-construction' ) ), 400 );
 		}
 		if ( $_FILES['attachment']['size'] > $max_size ) {
+			if ( $idempotency_hash ) {
+				ce_construction_idempotency_release( $idempotency_hash );
+			}
 			wp_send_json_error( array( 'message' => __( 'El archivo supera el tamaño máximo de 5MB.', 'ce-construction' ) ), 400 );
 		}
 
@@ -216,6 +332,9 @@ function ce_construction_handle_quote_form() {
 			$attachment_name = basename( $uploaded_file['file'] );
 			$attachment_type = $uploaded_file['type'];
 		} else {
+			if ( $idempotency_hash ) {
+				ce_construction_idempotency_release( $idempotency_hash );
+			}
 			wp_send_json_error( array( 'message' => __( 'No se pudo procesar el archivo adjunto.', 'ce-construction' ) ), 400 );
 		}
 	}
@@ -227,54 +346,142 @@ function ce_construction_handle_quote_form() {
 		'post_status' => 'private',
 	) );
 
-	if ( $post_id && ! is_wp_error( $post_id ) ) {
-		update_post_meta( $post_id, '_ce_email', $email );
-		update_post_meta( $post_id, '_ce_phone', $phone );
-		update_post_meta( $post_id, '_ce_company', $company );
-		update_post_meta( $post_id, '_ce_service', $service );
-		update_post_meta( $post_id, '_ce_message', $message );
-		if ( $attachment_path ) {
-			update_post_meta( $post_id, '_ce_attachment_path', $attachment_path );
+	/* =====================================================
+	 * QA-033 (Sprint 8, Entregable 8.4): archivo huérfano si
+	 * wp_insert_post() falla DESPUÉS de que el adjunto ya se movió
+	 * físicamente a uploads/ (paso 5, arriba). Antes, este caso no se
+	 * cubría: el bloque de abajo simplemente no se ejecutaba y la
+	 * ejecución seguía hacia el envío de correo como si nada hubiera
+	 * pasado, dejando el archivo en disco para siempre y respondiendo
+	 * éxito sin que existiera ninguna cotización real registrada.
+	 *
+	 * Ahora, si falla la creación del post, se hace rollback del
+	 * archivo ya subido (wp_delete_file(), wrapper de WordPress sobre
+	 * unlink() que respeta los filtros de terceros), se registra el
+	 * fallo en el log de errores del servidor con el prefijo
+	 * "[CE Construction]" (sin ningún dato personal/sensible: ni
+	 * nombre, ni correo, ni teléfono, ni mensaje — solo el motivo del
+	 * fallo y, si lo hay, el mensaje del WP_Error, que es información
+	 * técnica genérica, no del cliente), se libera la idempotency key,
+	 * y se responde error real al usuario en vez de un falso éxito.
+	 * ===================================================== */
+	if ( ! $post_id || is_wp_error( $post_id ) ) {
+		if ( $attachment_path && file_exists( $attachment_path ) ) {
+			wp_delete_file( $attachment_path );
+		}
 
-			// QA-002 (Sprint 5, Fase 1 — corrección alta): antes el
-			// archivo quedaba huérfano en wp-content/uploads/ (movido
-			// por wp_handle_upload() pero nunca registrado como
-			// attachment). Ahora se registra con wp_insert_attachment(),
-			// vinculado a la cotización vía post_parent, para que
-			// aparezca en la Media Library y se limpie automáticamente
-			// si se borra la cotización o el propio attachment desde
-			// el admin (ciclo de vida estándar de WordPress).
-			require_once ABSPATH . 'wp-admin/includes/image.php';
+		$error_detail = is_wp_error( $post_id ) ? $post_id->get_error_message() : 'wp_insert_post() devolvió 0';
+		error_log( '[CE Construction] No se pudo registrar la cotización (wp_insert_post falló): ' . $error_detail ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- registro deliberado para diagnóstico de servidor, sin datos personales.
 
-			$attachment_data = array(
-				'guid'           => isset( $uploaded_file['url'] ) ? $uploaded_file['url'] : '',
-				'post_mime_type' => isset( $attachment_type ) ? $attachment_type : '',
-				// QA-031: se usa el nombre ORIGINAL (no el aleatorio en disco)
-				// como post_title, únicamente para que el registro sea legible
-				// en la Media Library — no afecta la ruta física del archivo.
-				'post_title'     => ! empty( $original_name ) ? $original_name : ( isset( $attachment_name ) ? $attachment_name : '' ),
-				'post_status'    => 'inherit',
-				'post_parent'    => $post_id,
-			);
-			$attachment_id = wp_insert_attachment( $attachment_data, $attachment_path, $post_id );
+		if ( $idempotency_hash ) {
+			ce_construction_idempotency_release( $idempotency_hash );
+		}
 
-			if ( $attachment_id && ! is_wp_error( $attachment_id ) ) {
-				$attachment_metadata = wp_generate_attachment_metadata( $attachment_id, $attachment_path );
-				wp_update_attachment_metadata( $attachment_id, $attachment_metadata );
-				update_post_meta( $post_id, '_ce_attachment_id', $attachment_id );
+		wp_send_json_error( array( 'message' => __( 'No se pudo registrar tu solicitud. Por favor inténtalo de nuevo en unos minutos.', 'ce-construction' ) ), 500 );
+	}
 
-				// QA-031: nombre original del archivo (antes de renombrarlo
-				// a un nombre aleatorio) — se usa solo para el nombre de
-				// descarga mostrado al administrador vía el endpoint
-				// autenticado, nunca para localizar el archivo en disco.
-				if ( ! empty( $original_name ) ) {
-					update_post_meta( $attachment_id, '_ce_attachment_original_name', $original_name );
-				}
+	// QA-034: primer checkpoint — el post ya existe. A partir de aquí,
+	// cualquier replay de esta misma idempotency key nunca debe crear
+	// una segunda cotización, pase lo que pase con el correo.
+	if ( $idempotency_hash ) {
+		ce_construction_idempotency_mark_post_created( $idempotency_hash, $post_id );
+	}
+
+	// Nombre guardado como meta propio (además de ir en post_title) para
+	// poder recomponer el correo de forma fiable en el flujo de "resume"
+	// de QA-034, sin depender del parseo de post_title ni del $_POST de
+	// una petición repetida.
+	update_post_meta( $post_id, '_ce_name', $name );
+	update_post_meta( $post_id, '_ce_email', $email );
+	update_post_meta( $post_id, '_ce_phone', $phone );
+	update_post_meta( $post_id, '_ce_company', $company );
+	update_post_meta( $post_id, '_ce_service', $service );
+	update_post_meta( $post_id, '_ce_message', $message );
+
+	if ( $attachment_path ) {
+		update_post_meta( $post_id, '_ce_attachment_path', $attachment_path );
+
+		// QA-002 (Sprint 5, Fase 1 — corrección alta): antes el
+		// archivo quedaba huérfano en wp-content/uploads/ (movido
+		// por wp_handle_upload() pero nunca registrado como
+		// attachment). Ahora se registra con wp_insert_attachment(),
+		// vinculado a la cotización vía post_parent, para que
+		// aparezca en la Media Library y se limpie automáticamente
+		// si se borra la cotización o el propio attachment desde
+		// el admin (ciclo de vida estándar de WordPress).
+		require_once ABSPATH . 'wp-admin/includes/image.php';
+
+		$attachment_data = array(
+			'guid'           => isset( $uploaded_file['url'] ) ? $uploaded_file['url'] : '',
+			'post_mime_type' => isset( $attachment_type ) ? $attachment_type : '',
+			// QA-031: se usa el nombre ORIGINAL (no el aleatorio en disco)
+			// como post_title, únicamente para que el registro sea legible
+			// en la Media Library — no afecta la ruta física del archivo.
+			'post_title'     => ! empty( $original_name ) ? $original_name : ( isset( $attachment_name ) ? $attachment_name : '' ),
+			'post_status'    => 'inherit',
+			'post_parent'    => $post_id,
+		);
+		$attachment_id = wp_insert_attachment( $attachment_data, $attachment_path, $post_id );
+
+		if ( $attachment_id && ! is_wp_error( $attachment_id ) ) {
+			$attachment_metadata = wp_generate_attachment_metadata( $attachment_id, $attachment_path );
+			wp_update_attachment_metadata( $attachment_id, $attachment_metadata );
+			update_post_meta( $post_id, '_ce_attachment_id', $attachment_id );
+
+			// QA-031: nombre original del archivo (antes de renombrarlo
+			// a un nombre aleatorio) — se usa solo para el nombre de
+			// descarga mostrado al administrador vía el endpoint
+			// autenticado, nunca para localizar el archivo en disco.
+			if ( ! empty( $original_name ) ) {
+				update_post_meta( $attachment_id, '_ce_attachment_original_name', $original_name );
 			}
+		} else {
+			// El post ya existe (no es el caso QA-033), pero el
+			// registro del attachment en sí falló: se deja constancia
+			// en el log, sin datos personales, para que el administrador
+			// pueda revisar manualmente ese archivo en
+			// _ce_attachment_path si hiciera falta.
+			error_log( '[CE Construction] wp_insert_attachment() falló para la cotización #' . $post_id . ' (el post y el archivo en disco sí existen).' ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 		}
 	}
 
 	// 7. Envío de correo electrónico.
+	$sent = ce_construction_send_quote_email( $post_id, $name, $email, $phone, $company, $service, $message );
+
+	if ( ! $sent ) {
+		$response = array(
+			'success' => false,
+			'data'    => array( 'message' => __( 'Tu solicitud fue registrada, pero hubo un problema enviando la notificación por correo. Te contactaremos igualmente.', 'ce-construction' ) ),
+			'status_code' => 200,
+		);
+		if ( $idempotency_hash ) {
+			ce_construction_idempotency_mark_done( $idempotency_hash, $response );
+		}
+		wp_send_json_error( $response['data'], 200 );
+	}
+
+	$response = array(
+		'success' => true,
+		'data'    => array( 'message' => __( '¡Gracias! Tu solicitud de cotización fue enviada. Te contactaremos muy pronto.', 'ce-construction' ) ),
+	);
+	if ( $idempotency_hash ) {
+		ce_construction_idempotency_mark_done( $idempotency_hash, $response );
+	}
+	wp_send_json_success( $response['data'] );
+}
+add_action( 'wp_ajax_ce_submit_quote', 'ce_construction_handle_quote_form' );
+add_action( 'wp_ajax_nopriv_ce_submit_quote', 'ce_construction_handle_quote_form' );
+
+/**
+ * Envía el correo de notificación de una cotización y marca
+ * `_ce_email_sent` en el post si tiene éxito. Extraído a su propia
+ * función (QA-034, Sprint 8, Entregable 8.4) porque ahora se invoca
+ * desde dos puntos: el flujo normal (paso 7 de
+ * ce_construction_handle_quote_form()) y el flujo de "resume" de una
+ * idempotency key cuyo post ya existía pero cuyo correo no se había
+ * confirmado.
+ */
+function ce_construction_send_quote_email( $post_id, $name, $email, $phone, $company, $service, $message ) {
 	$to      = get_theme_mod( 'ce_email', get_option( 'admin_email' ) );
 	$subject = sprintf( __( 'Nueva solicitud de cotización de %s', 'ce-construction' ), $name );
 
@@ -287,18 +494,18 @@ function ce_construction_handle_quote_form() {
 	$body .= "Mensaje:\n{$message}\n";
 
 	$headers = array( 'Content-Type: text/plain; charset=UTF-8', 'Reply-To: ' . $email );
-	$attachments = $attachment_path ? array( $attachment_path ) : array();
+
+	$attachment_path = get_post_meta( $post_id, '_ce_attachment_path', true );
+	$attachments     = $attachment_path ? array( $attachment_path ) : array();
 
 	$sent = wp_mail( $to, $subject, $body, $headers, $attachments );
 
-	if ( ! $sent ) {
-		wp_send_json_error( array( 'message' => __( 'Tu solicitud fue registrada, pero hubo un problema enviando la notificación por correo. Te contactaremos igualmente.', 'ce-construction' ) ), 200 );
+	if ( $sent ) {
+		update_post_meta( $post_id, '_ce_email_sent', 1 );
 	}
 
-	wp_send_json_success( array( 'message' => __( '¡Gracias! Tu solicitud de cotización fue enviada. Te contactaremos muy pronto.', 'ce-construction' ) ) );
+	return $sent;
 }
-add_action( 'wp_ajax_ce_submit_quote', 'ce_construction_handle_quote_form' );
-add_action( 'wp_ajax_nopriv_ce_submit_quote', 'ce_construction_handle_quote_form' );
 
 /* =========================================================
  * QA-003 (Sprint 5, Fase 1 — corrección alta).
@@ -314,6 +521,12 @@ add_action( 'wp_ajax_nopriv_ce_submit_quote', 'ce_construction_handle_quote_form
  * la política de retención definitiva es una decisión de negocio
  * del cliente (ver DECISIONS.md, decisión de esta corrección),
  * no algo que el código deba fijar de forma rígida.
+ *
+ * Este mismo evento cron es reutilizado desde Sprint 8, Entregable
+ * 8.4 (ver inc/form-guards.php, ce_construction_purge_expired_guards())
+ * para purgar también las filas vencidas de la tabla de guardas de
+ * rate-limit/idempotencia (QA-032/QA-034), en vez de programar un
+ * segundo cron independiente para lo mismo.
  * ========================================================= */
 
 /**

@@ -13,8 +13,8 @@
 |---|---|---|
 | 8.1 | QA-010, QA-011, QA-013 (parcial, solo comentario), QA-014, QA-015 (verificado como no reproducible, sin cambio de código), QA-017 | ✅ **Aprobado explícitamente por el usuario** (ver "Punto sin resolver — RESUELTO" abajo). `docs/DECISIONS.md` D-095. |
 | 8.2 | QA-030 (cache-busting de assets: `filemtime()` + `CE_THEME_VERSION` derivada de `wp_get_theme()`) | ✅ **Aprobado explícitamente por el usuario** en esta sesión, junto con la instrucción de continuar con el Entregable 8.3. `docs/DECISIONS.md` D-095. |
-| 8.3 | QA-031 (adjuntos de cotización potencialmente accesibles por URL directa) | 🟡 **Implementado y entregado — pendiente de tu aprobación final.** Alcance (Opción 1: carpeta protegida + endpoint autenticado) aprobado explícitamente antes de escribir código; el código ya está implementado (`inc/quote-attachments.php` nuevo, `inc/quote-form.php`/`functions.php` modificados). Ver `docs/DECISIONS.md` D-096. |
-| 8.4 | QA-032, QA-033, QA-034 (robustez del formulario de cotización: race condition del rate-limit, archivo huérfano si falla `wp_insert_post()`, sin idempotencia) | ⬜ Propuesto, sin iniciar — depende de la decisión arquitectónica de 8.3 (comparten el flujo de almacenamiento de adjuntos). |
+| 8.3 | QA-031 (adjuntos de cotización potencialmente accesibles por URL directa) | ✅ **Aprobado explícitamente por el usuario**, tras ejecutar y verificar con éxito las 4 pruebas funcionales reales pendientes de D-096 (envío con adjunto, descarga por admin autenticado, bloqueo tras cerrar sesión, bloqueo de acceso directo no autenticado) en un entorno real Apache/2.4.68 (Debian) + PHP 8.2.33. Ver `docs/DECISIONS.md` D-096 (implementación) y D-097 (aprobación final). |
+| 8.4 | QA-032 (race condition del rate-limit), QA-033 (archivo huérfano si falla `wp_insert_post()`), QA-034 (sin idempotencia de envíos) | 🟡 **Integración de código completa** (`inc/form-guards.php` nuevo; `inc/quote-form.php`, `functions.php` y `template-parts/quote-form.php` modificados) — **pendiente únicamente de tus pruebas funcionales reales** antes de aprobar. Ver `docs/DECISIONS.md` D-098 (diseño e implementación inicial) y D-099 (integración de los 2 archivos que faltaban). |
 | 8.5 | QA-012 (caché de consultas "relacionados"), QA-016 (script inline de metabox sin dependencia formal), QA-035 (autoplay de testimonios sin pausa accesible), QA-038 (`<link rel="canonical">` ausente) | ⬜ Propuesto, sin iniciar. |
 | 8.6 | QA-036 (sin gestión de foco en overlays: menú móvil, modales) | ⬜ Propuesto, sin iniciar — requiere decisión de diseño (utilidad de foco centralizada vs. por componente). |
 | 8.7 | Hallazgos Bajos: QA-019, QA-020, QA-021, QA-022, QA-037, QA-039, QA-040 | ⬜ Propuesto, sin iniciar. |
@@ -38,6 +38,10 @@ Existía una contradicción real entre fuentes (`docs/CHANGELOG.md` lo marcaba a
 
 El usuario aprobó explícitamente el Entregable 8.2 (QA-030, ya implementado en código) en la misma sesión, junto con la instrucción de continuar con el Entregable 8.3. Ver `docs/DECISIONS.md` D-095.
 
+## ✅ Entregable 8.3 aprobado (aprobación final, tras pruebas funcionales reales)
+
+El usuario ejecutó en un entorno real (Apache/2.4.68 Debian, PHP 8.2.33) las 4 pruebas funcionales que D-096 había dejado pendientes, con resultado exitoso en las cuatro, y aprobó explícitamente el Entregable 8.3 (QA-031) de forma definitiva. La limitación conocida sobre Nginx (D-096) se mantiene documentada como advertencia de compatibilidad para instalaciones futuras, sin acción pendiente sobre esta instalación. Ver `docs/DECISIONS.md` D-097.
+
 ---
 
 ## Trabajo realizado (histórico, sin cambios desde la pausa)
@@ -50,4 +54,4 @@ Ver `docs/DECISIONS.md` D-041 a D-044 y `docs/CHANGELOG.md` (entradas v0.8.0 y v
 
 ## Próximo paso
 
-El Entregable 8.3 (QA-031) ya está **implementado y entregado**, tras aprobación explícita del alcance (Opción 1) antes de escribir código. **Pendiente de tu aprobación final** del código entregado y de las pruebas funcionales reales listadas en `docs/DECISIONS.md` D-096 (sin entorno WordPress disponible para ejecutarlas en esta sesión). Con esa aprobación, el Sprint 8 continúa con el **Entregable 8.4** (QA-032, QA-033, QA-034 — dependían de la decisión arquitectónica de 8.3, ya tomada).
+El Entregable 8.4 (QA-032, QA-033, QA-034) tiene ya la **integración de código completa** en los 4 archivos que le correspondían (`docs/DECISIONS.md` D-098, D-099). Falta únicamente que el usuario ejecute las pruebas funcionales reales (envío normal con/sin adjunto en las 3 instancias; doble clic/doble pestaña sobre el mismo envío — debe generar una sola cotización y un solo correo; más de 3 envíos en menos de 10 min desde la misma conexión — el cuarto debe bloquearse) antes de aprobarlo, siguiendo el mismo patrón ya usado en el 8.3 (D-096 → D-097). Con esa aprobación, el Sprint 8 continuaría con el Entregable 8.5, siguiente en la reorganización de D-043.

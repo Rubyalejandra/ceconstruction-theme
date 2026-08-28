@@ -605,6 +605,17 @@
 				statusEl: $('.ce-form-status', formEl),
 				fileInput: $('input[type="file"]', formEl),
 				fileZone: $('.ce-field--file', formEl),
+				// QA-044 (Sprint 8, corrección puntual — hallazgo reportado
+				// tras el Entregable 8.4): texto original de la etiqueta del
+				// campo de archivo, capturado una sola vez al crear la
+				// instancia. form.reset() sí vacía el <input type="file">
+				// (los navegadores nunca permiten lo contrario por
+				// seguridad), pero NO dispara su evento 'change' — así que
+				// el <span> de la etiqueta, que solo se actualiza en ese
+				// evento, se quedaba mostrando el último nombre de archivo
+				// aunque el campo real ya estuviera vacío. Se restaura este
+				// texto en updateFileLabel() cuando no hay archivo seleccionado.
+				fileLabelDefaultText: null,
 
 				// Sprint UX-3, Entregable UX-3.2: cuando el formulario se
 				// reutiliza dentro de #ce-quote-modal (template-parts/quote-form.php
@@ -656,6 +667,11 @@
 				bindFileZone() {
 					if (!this.fileZone || !this.fileInput) return;
 
+					const defaultLabel = $('.ce-field--file__label', this.fileZone);
+					if (defaultLabel) {
+						this.fileLabelDefaultText = defaultLabel.textContent;
+					}
+
 					on(this.fileZone, 'click', () => this.fileInput.click());
 					on(this.fileInput, 'change', () => this.updateFileLabel());
 
@@ -681,9 +697,16 @@
 				},
 				updateFileLabel() {
 					const label = $('.ce-field--file__label', this.fileZone);
+					if (!label) return;
 					const file = this.fileInput.files[0];
-					if (label && file) {
+					if (file) {
 						label.textContent = file.name;
+					} else if (this.fileLabelDefaultText !== null) {
+						// QA-044: sin archivo seleccionado (incluido el caso de
+						// un form.reset() que vació el input sin disparar su
+						// evento 'change') — se restaura el texto original en
+						// vez de dejar el último nombre de archivo mostrado.
+						label.textContent = this.fileLabelDefaultText;
 					}
 				},
 				setLoading(isLoading) {
@@ -721,6 +744,12 @@
 						if (data.success) {
 							this.showStatus(data.data.message, 'success');
 							this.form.reset();
+							// QA-044: form.reset() vacía el <input type="file"> pero
+							// no dispara su evento 'change', así que la etiqueta
+							// visual no se actualizaba sola — se sincroniza aquí
+							// explícitamente, ahora que this.fileInput.files ya
+							// está vacío tras el reset.
+							this.updateFileLabel();
 							$$('.ce-field', this.form).forEach((f) => f.classList.remove('is-valid', 'is-invalid'));
 							if (this.parentModalOverlay) ModuleModals.close(this.parentModalOverlay);
 							ModuleModals.open('ce-modal-success');

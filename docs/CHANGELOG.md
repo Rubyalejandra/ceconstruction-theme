@@ -774,7 +774,7 @@ El usuario confirmó explícitamente la aprobación del **Entregable 8.1** (QA-0
 
 ## Sprint 8, Entregable 8.3 — QA-031: adjuntos de cotización protegidos
 
-**Estado:** Implementado y entregado — pendiente de aprobación final del usuario (alcance ya aprobado explícitamente antes de escribir código, ver `docs/DECISIONS.md` D-096).
+**Estado:** ✅ Aprobado de forma definitiva. Alcance aprobado explícitamente antes de escribir código (`docs/DECISIONS.md` D-096); las 4 pruebas funcionales reales que quedaron pendientes de esa implementación fueron ejecutadas por el usuario con resultado exitoso en un entorno real (Apache/2.4.68 Debian, PHP 8.2.33), cerrando el ciclo de aprobación (`docs/DECISIONS.md` D-097).
 
 ### Añadido
 - `inc/quote-attachments.php`: carpeta dedicada `wp-content/uploads/cotizaciones/` bloqueada a nivel de servidor (`.htaccess` + índice vacío, generados automáticamente); endpoint autenticado `admin_post_ce_download_quote_attachment` (sesión + capacidad + nonce + verificación de ruta); renombrado aleatorio del archivo físico al subirlo.
@@ -787,4 +787,44 @@ El usuario confirmó explícitamente la aprobación del **Entregable 8.1** (QA-0
 Cualquier template del formulario de cotización (normal, modal, Hero), `assets/js/main.js`, validación de tipo/tamaño de archivo, envío de correo, cron de retención.
 
 ### Decisiones clave
-Ver `DECISIONS.md`: D-096.
+Ver `DECISIONS.md`: D-096 (implementación) y D-097 (aprobación final, tras pruebas funcionales reales).
+
+---
+
+## Sprint 8, Entregable 8.3 — Aprobación final (cierre)
+
+El usuario ejecutó en un entorno real (Apache/2.4.68 Debian, PHP 8.2.33) las 4 pruebas funcionales listadas en `docs/DECISIONS.md` D-096, con resultado exitoso en las cuatro: envío del formulario con adjunto (cotización creada + correo enviado sin cambios), descarga del adjunto por un administrador autenticado desde el listado admin, bloqueo del enlace de descarga tras cerrar la sesión de administrador, y bloqueo del acceso directo a la URL física del archivo desde una ventana no autenticada. Con esto, **QA-031 / Entregable 8.3 queda cerrado y aprobado**, sin cambios de código adicionales. Ver `docs/DECISIONS.md` D-097.
+
+---
+
+## Sprint 8, Entregable 8.4 — QA-032, QA-033, QA-034: robustez del formulario de cotización
+
+**Estado:** 🟡 Integración de código completa — pendiente únicamente de pruebas funcionales reales (ver `docs/DECISIONS.md` D-098, D-099).
+
+### Añadido
+- `inc/form-guards.php`: tabla propia `{prefix}ce_form_guards` con migración de esquema versionada (`CE_THEME_DB_VERSION`, enganchada a `admin_init` + `after_switch_theme`, sin coste en frontend); reclamación atómica de rate-limit por IP (HMAC con `wp_salt('auth')`, nunca la IP en texto plano); reclamación atómica de idempotencia con modelo de checkpoints; purga de filas vencidas reutilizando el cron diario ya existente de QA-003.
+
+### Modificado
+- `inc/quote-form.php`: rate-limiting (QA-032) migrado de `get_transient()`/`set_transient()` a una única sentencia SQL atómica; rollback del archivo subido + `error_log()` con prefijo `[CE Construction]` sin datos personales si falla `wp_insert_post()`/`wp_insert_attachment()` (QA-033); idempotencia server-side completa con checkpoints, sin depender de JS ni de las 3 instancias del formulario más allá de un campo oculto (QA-034); nuevo meta `_ce_name`; envío de correo extraído a `ce_construction_send_quote_email()`.
+
+### Añadido/Modificado (integración final)
+- `functions.php`: constante `CE_THEME_DB_VERSION` + registro de `inc/form-guards.php` (antes de `inc/quote-form.php`) en `ce_construction_require_modules()`.
+- `template-parts/quote-form.php`: campo oculto `ce_idempotency_key` junto al nonce existente, dentro del bloque compartido por las 3 instancias.
+
+### Pendiente antes de cerrar este Entregable
+- Pruebas funcionales reales: envío normal (con y sin adjunto, 3 instancias), doble clic/doble pestaña (una sola cotización y un solo correo), más de 3 envíos en 10 min (bloqueo del cuarto).
+
+### Decisiones clave
+Ver `DECISIONS.md`: D-098, D-099.
+
+---
+
+## QA-044 — Corrección puntual: etiqueta visual del adjunto tras envío exitoso
+
+**Estado:** ✅ Corregido y entregado.
+
+### Corregido
+- `assets/js/main.js` (`ModuleQuoteForm`): la etiqueta del campo de adjunto ya no se queda mostrando el último archivo seleccionado tras un envío exitoso — se sincroniza correctamente con `form.reset()`.
+
+### Decisiones clave
+Ver `docs/DECISIONS.md`: D-100.
