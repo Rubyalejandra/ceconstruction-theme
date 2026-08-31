@@ -98,8 +98,15 @@ function ce_construction_enqueue_assets() {
 		'quoteNonce'   => wp_create_nonce( 'ce_quote_form_action' ),
 		'whatsapp'     => get_theme_mod( 'ce_whatsapp_number', '' ),
 		'i18n'         => array(
-			'sending' => __( 'Enviando...', 'ce-construction' ),
-			'error'   => __( 'Ocurrió un error. Intenta nuevamente.', 'ce-construction' ),
+			'sending'      => __( 'Enviando...', 'ce-construction' ),
+			'error'        => __( 'Ocurrió un error. Intenta nuevamente.', 'ce-construction' ),
+			// QA-035 (Sprint 8, Entregable 8.5): textos del botón de
+			// pausa/reanudación accesible del slider de testimonios (ver
+			// createSliderController()/buildPauseToggle() en
+			// assets/js/main.js). Mismo criterio de localización que el
+			// resto de este array: ningún string vive hardcodeado en el JS.
+			'pauseSlider'  => __( 'Pausar', 'ce-construction' ),
+			'resumeSlider' => __( 'Reanudar', 'ce-construction' ),
 		),
 	) );
 
@@ -286,3 +293,44 @@ function ce_construction_enqueue_trust_badges_control_script() {
 	) );
 }
 add_action( 'customize_controls_enqueue_scripts', 'ce_construction_enqueue_trust_badges_control_script' );
+
+/* =========================================================
+ * QA-016 (Sprint 8, Entregable 8.5 — corrección Media): script del
+ * metabox "Galería del Proyecto" (ver ce_render_proyecto_gallery() en
+ * inc/meta-boxes.php), antes inline y sin dependencia formal.
+ *
+ * A diferencia de los 3 bloques anteriores de esta sección (controles
+ * del Customizer, hook `customize_controls_enqueue_scripts`), este es
+ * un metabox de la pantalla normal de edición de entrada — se encola
+ * en `admin_enqueue_scripts`, condicionado a esa pantalla concreta
+ * (`post.php`/`post-new.php` del CPT `proyecto`) para no cargarlo en
+ * el resto del admin, mismo criterio de carga selectiva que ya sigue
+ * el resto de este archivo en el frontend.
+ *
+ * Dependencias: 'jquery' (declarada explícitamente — esta es
+ * precisamente la ausencia que QA-016 señalaba) y 'media-editor'
+ * (`wp.media`), igual que admin-hero-slides.js/admin-trust-badges.js.
+ * ========================================================= */
+function ce_construction_enqueue_proyecto_gallery_script( $hook ) {
+	if ( ! in_array( $hook, array( 'post.php', 'post-new.php' ), true ) ) {
+		return;
+	}
+
+	global $post_type;
+	if ( 'proyecto' !== $post_type ) {
+		return;
+	}
+
+	wp_enqueue_script(
+		'ce-admin-proyecto-gallery',
+		CE_THEME_URI . '/assets/js/admin-proyecto-gallery.js',
+		array( 'jquery', 'media-editor' ),
+		ce_construction_asset_version( 'assets/js/admin-proyecto-gallery.js' ),
+		true
+	);
+
+	wp_localize_script( 'ce-admin-proyecto-gallery', 'ceProyectoGalleryData', array(
+		'mediaTitle' => __( 'Seleccionar imágenes', 'ce-construction' ),
+	) );
+}
+add_action( 'admin_enqueue_scripts', 'ce_construction_enqueue_proyecto_gallery_script' );

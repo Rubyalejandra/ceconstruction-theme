@@ -254,6 +254,15 @@
 	 * @param {number}  [config.defaultDelay]  Delay de autoplay (ms) si el root no trae data-autoplay. Por defecto 6000.
 	 * @param {boolean} [config.swipe]         Si es `false`, no se activa el swipe táctil. Por defecto `true`.
 	 * @param {boolean} [config.pauseOnHover]  Si es `false`, el autoplay no se detiene con mouseenter/mouseleave. Por defecto `true`.
+	 * @param {boolean} [config.pausable]      🆕 QA-035. Si es `true`, se construye un botón de pausa/reanudación
+	 *                                         accesible por teclado/touch (ver buildPauseToggle() abajo) y el foco de
+	 *                                         teclado dentro del slider también detiene el autoplay mientras dure
+	 *                                         (equivalente por teclado al pauseOnHover del mouse). Por defecto `false`
+	 *                                         — no cambia el comportamiento de sliders que no lo activen explícitamente
+	 *                                         (ModuleHeroSlider, fondo decorativo sin dots/flechas, D-055).
+	 * @param {string}  [config.pauseLabel]    Prefijo de aria-label del botón de pausa (recibe el texto de "Pausar"/
+	 *                                         "Reanudar" de ceConstructionData.i18n — ver CE arriba). Requerido si
+	 *                                         `pausable` es `true`.
 	 * @returns {Object} Controlador con `.init()`, listo para usarse como módulo del bootstrap.
 	 * ============================================================ */
 	function createSliderController(config) {
@@ -269,16 +278,42 @@
 				this.current = 0;
 				this.autoplayDelay = parseInt(this.root.dataset.autoplay, 10) || config.defaultDelay || 6000;
 				this.timer = null;
+				// 🆕 QA-035: bandera de pausa MANUAL (botón), independiente de
+				// pauseOnHover/foco — una vez que el usuario pulsa "Pausar" a
+				// propósito, ni mouseleave ni blur deben reanudar el autoplay
+				// por su cuenta; solo lo reanuda una acción explícita (pulsar
+				// de nuevo el mismo botón). Sin esto, un usuario de teclado que
+				// pausa y luego tabula fuera del slider vería el autoplay
+				// reanudarse solo por el evento focusout, contradiciendo su
+				// intención explícita.
+				this.userPaused = false;
 
 				this.buildNav();
 				this.bindArrows();
 				this.bindSwipe();
+				if (config.pausable) this.buildPauseToggle();
 				this.goTo(0);
 				this.startAutoplay();
 
 				if (config.pauseOnHover !== false) {
 					on(this.root, 'mouseenter', () => this.stopAutoplay());
-					on(this.root, 'mouseleave', () => this.startAutoplay());
+					on(this.root, 'mouseleave', () => { if (!this.userPaused) this.startAutoplay(); });
+				}
+
+				// 🆕 QA-035: equivalente por teclado de pauseOnHover. Un
+				// usuario que navega exclusivamente con teclado no dispara
+				// mouseenter/mouseleave, así que sin esto no tendría ninguna
+				// forma de detener el movimiento automático salvo el botón
+				// de pausa explícito (buildPauseToggle(), abajo) — se añaden
+				// ambos mecanismos, no uno en lugar del otro, para cubrir
+				// tanto a quien tabula hasta un control interno del slider
+				// (flechas, dots, el propio botón de pausa) como a quien
+				// prefiere pulsar el botón directamente sin necesidad de
+				// tener el foco dentro. `focusin`/`focusout` sí burbujean
+				// (a diferencia de `focus`/`blur`), por eso se usan aquí.
+				if (config.pausable) {
+					on(this.root, 'focusin', () => this.stopAutoplay());
+					on(this.root, 'focusout', () => { if (!this.userPaused) this.startAutoplay(); });
 				}
 			},
 			buildNav() {
@@ -293,6 +328,55 @@
 					this.nav.appendChild(dot);
 					return dot;
 				});
+			},
+			/**
+			 * 🆕 QA-035: botón de pausa/reanudación del autoplay, operable
+			 * por teclado (es un <button> nativo, focusable por Tab y
+			 * activable con Enter/Espacio sin JS adicional) y por touch
+			 * (evento 'click' estándar, sin depender de hover). Se añade al
+			 * mismo contenedor `.ce-slider-nav` que ya usan los dots
+			 * (buildNav(), arriba) cuando existe; si el slider no tiene nav
+			 * de dots (config.navSelector ausente), se crea un contenedor
+			 * propio para no depender de un marcado que el slider en
+			 * cuestión no tiene por diseño.
+			 */
+			buildPauseToggle() {
+				this.nav = this.nav || (() => {
+					const nav = document.createElement('div');
+					nav.className = 'ce-slider-nav';
+					this.root.parentElement.appendChild(nav);
+					return nav;
+				})();
+
+				this.pauseBtn = document.createElement('button');
+				this.pauseBtn.type = 'button';
+				this.pauseBtn.className = 'ce-slider-pause';
+				this.nav.appendChild(this.pauseBtn);
+
+				on(this.pauseBtn, 'click', () => {
+					this.userPaused = !this.userPaused;
+					if (this.userPaused) {
+						this.stopAutoplay();
+					} else {
+						this.startAutoplay();
+					}
+					this.updatePauseToggle();
+				});
+
+				this.updatePauseToggle();
+			},
+			/** Sincroniza icono/aria-label/aria-pressed del botón de pausa con this.userPaused. */
+			updatePauseToggle() {
+				if (!this.pauseBtn) return;
+				const i18n = CE.i18n || {};
+				const label = this.userPaused
+					? (i18n.resumeSlider || 'Reanudar')
+					: (i18n.pauseSlider || 'Pausar');
+				this.pauseBtn.setAttribute('aria-label', `${config.pauseLabel || ''} ${label}`.trim());
+				this.pauseBtn.setAttribute('aria-pressed', String(this.userPaused));
+				this.pauseBtn.innerHTML = this.userPaused
+					? '<i class="fa-solid fa-play" aria-hidden="true"></i>'
+					: '<i class="fa-solid fa-pause" aria-hidden="true"></i>';
 			},
 			bindArrows() {
 				const prev = config.prevSelector ? $(config.prevSelector, this.root.parentElement) : null;
@@ -348,6 +432,15 @@
 		nextSelector: '.ce-slider-arrow--next',
 		dotLabel: 'Testimonio',
 		defaultDelay: 6000,
+		// 🆕 QA-035 (Sprint 8, Entregable 8.5): mecanismo de pausa
+		// accesible por teclado/touch (WCAG 2.2.2) — ver
+		// buildPauseToggle()/createSliderController() arriba. No se
+		// activa en ModuleHeroSlider (abajo): ese slider ya es puramente
+		// decorativo, sin dots ni flechas, sin pauseOnHover, y esa
+		// ausencia de controles fue una decisión de diseño explícita y
+		// ya aprobada (D-055) que QA-035 no menciona ni pide revisar.
+		pausable: true,
+		pauseLabel: 'Testimonios:',
 	});
 
 	/* ============================================================

@@ -799,7 +799,7 @@ El usuario ejecutó en un entorno real (Apache/2.4.68 Debian, PHP 8.2.33) las 4 
 
 ## Sprint 8, Entregable 8.4 — QA-032, QA-033, QA-034: robustez del formulario de cotización
 
-**Estado:** 🟡 Integración de código completa — pendiente únicamente de pruebas funcionales reales (ver `docs/DECISIONS.md` D-098, D-099).
+**Estado:** ✅ Aprobado explícitamente por el usuario, tras pruebas funcionales reales (ver `docs/DECISIONS.md` D-098, D-099, D-101).
 
 ### Añadido
 - `inc/form-guards.php`: tabla propia `{prefix}ce_form_guards` con migración de esquema versionada (`CE_THEME_DB_VERSION`, enganchada a `admin_init` + `after_switch_theme`, sin coste en frontend); reclamación atómica de rate-limit por IP (HMAC con `wp_salt('auth')`, nunca la IP en texto plano); reclamación atómica de idempotencia con modelo de checkpoints; purga de filas vencidas reutilizando el cron diario ya existente de QA-003.
@@ -828,3 +828,24 @@ Ver `DECISIONS.md`: D-098, D-099.
 
 ### Decisiones clave
 Ver `docs/DECISIONS.md`: D-100.
+
+---
+
+## Sprint 8, Entregable 8.4 — Aprobación final (cierre)
+
+El usuario confirmó que ejecutó las pruebas funcionales reales pendientes de D-098/D-099 (envío normal con y sin adjunto en las 3 instancias; doble clic/doble pestaña sobre el mismo envío; más de 3 envíos en menos de 10 minutos) y aprobó el Entregable 8.4 de forma definitiva. A diferencia del cierre del Entregable 8.3, esta sesión no incluyó el desglose caso por caso de cada prueba. Con esto, **QA-032, QA-033 y QA-034 / Entregable 8.4 quedan cerrados y aprobados**, sin cambios de código adicionales. Ver `docs/DECISIONS.md` D-101.
+
+---
+
+## Sprint 8, Entregable 8.5 — QA-012, QA-016, QA-035, QA-038
+
+**Estado:** 🟡 Integración de código completa — pendiente únicamente de pruebas funcionales reales (ver `docs/DECISIONS.md` D-102).
+
+### Corregido / añadido
+- **QA-012** — `inc/helpers.php`: caché de transient (1h) por id+límite para `ce_get_related_services()`, `ce_get_related_projects()` y `ce_get_related_services_for_project()`, con invalidación activa vía contador de versión al guardar `servicio`/`proyecto` o editar `categoria_servicio`/`categoria_proyecto`.
+- **QA-016** — `inc/meta-boxes.php`: script inline de `ce_render_proyecto_gallery()` eliminado. Nuevo `assets/js/admin-proyecto-gallery.js`, encolado condicionalmente en `inc/enqueue.php` (`post.php`/`post-new.php` del CPT `proyecto`) con `jquery`/`media-editor` como dependencia formal.
+- **QA-035** — `assets/js/main.js`: `createSliderController()` gana un botón de pausa/reanudación accesible por teclado/touch y pausa automática por `focusin`/`focusout`, activado solo en `ModuleTestimonialSlider` (flag `pausable`). Nuevos textos `pauseSlider`/`resumeSlider` en `ceConstructionData.i18n` (`inc/enqueue.php`). Nuevo estilo `.ce-slider-pause` en `assets/css/main.css`.
+- **QA-038** — `inc/seo.php`: nueva función `ce_construction_get_canonical_url()` (+ helper `ce_construction_apply_canonical_pagination()`), invocada desde `ce_construction_meta_tags()` para imprimir `<link rel="canonical">` correcto según el tipo de contenido/archivo, con paginación auto-referencial.
+
+### Decisiones clave
+Ver `docs/DECISIONS.md`: D-102.

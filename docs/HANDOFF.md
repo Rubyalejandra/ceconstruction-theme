@@ -3,26 +3,23 @@
 
 > Este documento, junto con `PROJECT_STATUS.md`, `TODO.md`, `TREE.md`, `CHANGELOG.md`, `DECISIONS.md`, `QA_REPORT.md`, `ARCHITECTURE.md` y `CURRENT_SPRINT.md`, es la fuente oficial del estado del proyecto.
 
-**Versión de referencia:** v0.8.0 (ver `CHANGELOG.md`)
-**Última sesión de trabajo:** **Sprint 8 ("Cierre de Hallazgos QA") — Entregable 8.1 desarrollado, pendiente de tu aprobación final. Entregables 8.2 a 8.7 reorganizados por prioridad, dependencias y riesgo (ver `DECISIONS.md` D-043).** Esta sesión fue exclusivamente de planificación documental: no se implementó ningún hallazgo de QA-030 a QA-042. Esta actualización corresponde al cierre de una sesión continuable — uno de los 3 disparadores válidos de esta plantilla (ver sección 16).
+**Versión de referencia:** v0.8.5 (ver `CHANGELOG.md`)
+**Última sesión de trabajo:** **Sprint 8 ("Cierre de Hallazgos QA") — Entregable 8.4 (QA-032, QA-033, QA-034) aprobado explícitamente por el usuario, tras pruebas funcionales reales (`DECISIONS.md` D-101).** Esta sesión fue exclusivamente de cierre documental de una aprobación ya comunicada por el usuario: no se tocó ningún archivo PHP/CSS/JS (la integración de código ya estaba completa desde D-098/D-099), y se actualizó únicamente la documentación de estado (`DECISIONS.md`, `CURRENT_SPRINT.md`, `PROJECT_STATUS.md`, `QA_REPORT.md`, `TODO.md`, `CHANGELOG.md`, este mismo archivo). Esta actualización corresponde al cierre de una sesión continuable — uno de los 3 disparadores válidos de esta plantilla (ver sección 16).
 
 ---
 
 ## 1. Resumen ejecutivo
 
-CE Construction es un tema profesional de WordPress a medida, con backend y frontend completos (ver versiones previas de este documento para el detalle exhaustivo de Sprints 1-6B). El Sprint 7 agregó `inc/widgets.php`, `archive.php` genérico, la corrección QA-018 y `screenshot.png` (detalle en versiones previas de este documento).
+CE Construction es un tema profesional de WordPress a medida, con backend y frontend completos (ver versiones previas de este documento para el detalle exhaustivo de Sprints 1-7 y de la fase paralela "Optimización UX / Conversión", Sprints UX-1 a UX-11, cerrada y aprobada en su totalidad — `DECISIONS.md` D-083 a D-094).
 
-**Sprint 8 ("Cierre de Hallazgos QA"), Entregable 8.1 (código ya entregado, pendiente de aprobación):**
-- **QA-010** (`inc/enqueue.php`): eliminado filtro `script_loader_tag` redundante con `wp_script_add_data('defer')`.
-- **QA-011** (`inc/customizer.php`): quitado `transport: postMessage` sin script de preview en los 3 colores del Customizer.
-- **QA-013 parcial** (`style.css`): corregido el comentario que afirmaba un `@import` inexistente. Unificación real de `:root` duplicado queda en backlog (decisión arquitectónica pendiente).
-- **QA-014** (`inc/seo.php`): nueva función `ce_construction_output_json_ld()` que endurece los 8 bloques JSON-LD contra `</script>` literal.
-- **QA-015** (`inc/quote-form.php`): verificado que ya no se reproduce (la variable sí se usa) — sin cambio de código.
-- **QA-017** (`header.php`): `tabindex="-1"` en `<main id="ce-main-content">`.
+**Sprint 8 ("Cierre de Hallazgos QA") — estado acumulado a la fecha:**
+- **Entregable 8.1** (QA-010, QA-011, QA-013 parcial, QA-014, QA-015, QA-017) — ✅ **Aprobado explícitamente por el usuario** (`DECISIONS.md` D-095).
+- **Entregable 8.2** (QA-030 — cache-busting de assets, `CE_THEME_VERSION`/`style.css`) — ✅ **Aprobado explícitamente por el usuario** (`DECISIONS.md` D-044/D-095).
+- **Entregable 8.3** (QA-031 — adjuntos de cotización accesibles por URL directa) — ✅ **Aprobado de forma definitiva**, tras 4 pruebas funcionales reales ejecutadas por el usuario en Apache/2.4.68 (Debian) + PHP 8.2.33 (`DECISIONS.md` D-096/D-097).
+- **Entregable 8.4** (QA-032 race condition del rate-limit, QA-033 archivo huérfano si falla `wp_insert_post()`, QA-034 sin idempotencia de envíos) — ✅ **Aprobado de forma definitiva en esta sesión**, tras pruebas funcionales reales confirmadas por el usuario (envío normal con/sin adjunto en las 3 instancias; doble clic/doble pestaña; más de 3 envíos en 10 min), sin desglose caso por caso a diferencia del cierre del 8.3. Código entregado en 4 archivos: `inc/form-guards.php` (nuevo), `inc/quote-form.php`, `functions.php`, `template-parts/quote-form.php` (`DECISIONS.md` D-098, D-099, D-101).
+- **QA-044** (hallazgo puntual, no forma parte del Sprint 8): etiqueta visual del adjunto no se limpiaba tras un envío exitoso — ✅ corregido (`DECISIONS.md` D-100).
 
-**Esta sesión (reorganización, sin código nuevo):**
-- Se reorganizó el resto del Sprint 8 (Entregables 8.2 a 8.7) aplicando un criterio explícito de prioridad (seguridad/privacidad/integridad de datos/integridad de despliegue/errores funcionales/accesibilidad/performance/SEO/deuda técnica/mejoras futuras), dependencias entre hallazgos, y separación de riesgos — ver `DECISIONS.md` D-043.
-- Se verificó **QA-041**: `page.php` **no existe** en el repositorio actual — `TREE.md` lo marcaba erróneamente como ✅. Corregido solo a nivel documental; no se creó ningún archivo de código.
+**Próximo paso:** el Entregable 8.5 (QA-012, QA-016, QA-035, QA-038 — ver reorganización vigente de `DECISIONS.md` D-043) está propuesto pero **no inicia su implementación** sin que el usuario apruebe explícitamente su alcance concreto, conforme a D-038.
 
 ---
 
@@ -36,10 +33,20 @@ Ver `DECISIONS.md` D-038: **ningún Entregable se considera finalizado hasta que
 
 - **D-036 a D-040** — Sprint 7 (ver `DECISIONS.md`).
 - **D-041** — Agrupación original del Sprint 8 en 4 Entregables — **superseded por D-042**.
-- **D-042** — Re-evaluación del Sprint 8 contra el `QA_REPORT.md` consolidado y el estado real del repositorio: cierre de QA-015, agrupación en 5 Entregables, ejecución del Entregable 8.1 — **agrupación de 8.2 a 8.5 superseded por D-043**.
-- **D-043** — Reorganización completa del Sprint 8 (8.2 a 8.7) por prioridad/dependencias/riesgo. QA-030 y QA-031 aislados en Entregables propios pese a ser ambos "Alto" (decisiones arquitectónicas independientes). QA-032/033/034 agrupados por compartir archivo y dominio funcional, y planificados después de QA-031 por dependencia de almacenamiento. QA-036 aislado del resto de hallazgos Medios por requerir decisión de diseño (R-4). Incluye la verificación de QA-041.
+- **D-042** — Re-evaluación del Sprint 8 contra el `QA_REPORT.md` consolidado y el estado real del repositorio — **agrupación de 8.2 a 8.5 superseded por D-043**.
+- **D-043** — Reorganización completa del Sprint 8 (8.2 a 8.7) por prioridad/dependencias/riesgo, **vigente**. Incluye la verificación de QA-041.
+- **D-044** — Corrección QA-030 (Entregable 8.2): cache-busting por `filemtime()` + `CE_THEME_VERSION` derivada de `wp_get_theme()`.
+- **D-045 a D-081** — Fase "Optimización UX / Conversión" (Sprints UX-1 a UX-10), en paralelo al Sprint 8. Ver `docs/CURRENT_UX_SPRINT.md`.
+- **D-083 a D-094** — Sprint UX-11 completo, cerrado y aprobado en su totalidad.
+- **D-095** — Resolución del estado de aprobación del Entregable 8.1 (confirmado aprobado) y aprobación explícita del Entregable 8.2.
+- **D-096** — Corrección QA-031 (Entregable 8.3): carpeta protegida + endpoint autenticado.
+- **D-097** — Aprobación final de QA-031 (Entregable 8.3), tras 4 pruebas funcionales reales.
+- **D-098** — Corrección QA-032/033/034 (Entregable 8.4): diseño e implementación inicial.
+- **D-099** — Entregable 8.4: integración completada con los 2 archivos que faltaban.
+- **D-100** — QA-044 (hallazgo puntual, fuera del Sprint 8): etiqueta visual del adjunto.
+- **D-101** — Aprobación explícita del Entregable 8.4, tras pruebas funcionales reales confirmadas por el usuario.
 
-Registro completo y acumulativo en `DECISIONS.md` (D-001 a D-043 a la fecha).
+Registro completo y acumulativo en `DECISIONS.md` (D-001 a D-101 a la fecha).
 
 ---
 
@@ -47,23 +54,25 @@ Registro completo y acumulativo en `DECISIONS.md` (D-001 a D-043 a la fecha).
 
 | Entregable | Hallazgos | Objetivo | Estado |
 |---|---|---|---|
-| 8.1 | QA-010, QA-011, QA-013 (parcial), QA-014, QA-015 (verificación), QA-017 | Correcciones triviales de bajo riesgo | 🟡 **Desarrollado — pendiente de tu aprobación final** |
-| 8.2 | QA-030 | Integridad de despliegue: versionado de assets (Alto) | ⬜ Propuesto — requiere decisión arquitectónica |
-| 8.3 | QA-031 | Seguridad/privacidad: adjuntos accesibles por URL (Alto) | ⬜ Propuesto — requiere decisión arquitectónica |
-| 8.4 | QA-032, QA-033, QA-034 | Robustez del formulario de cotización | ⬜ Propuesto — depende de la decisión de 8.3 |
-| 8.5 | QA-012, QA-016, QA-035, QA-038 | Performance/deuda técnica/accesibilidad puntual/SEO | ⬜ Propuesto |
+| 8.1 | QA-010, QA-011, QA-013 (parcial), QA-014, QA-015 (verificación), QA-017 | Correcciones triviales de bajo riesgo | ✅ **Aprobado explícitamente** (D-095) |
+| 8.2 | QA-030 | Integridad de despliegue: versionado de assets (Alto) | ✅ **Aprobado explícitamente** (D-044/D-095) |
+| 8.3 | QA-031 | Seguridad/privacidad: adjuntos accesibles por URL (Alto) | ✅ **Aprobado de forma definitiva**, con pruebas funcionales reales (D-096/D-097) |
+| 8.4 | QA-032, QA-033, QA-034 | Robustez del formulario de cotización | ✅ **Aprobado de forma definitiva**, con pruebas funcionales reales (D-098/D-099/D-101) |
+| 8.5 | QA-012, QA-016, QA-035, QA-038 | Performance/deuda técnica/accesibilidad puntual/SEO | ⬜ Propuesto — **siguiente candidato**, requiere aprobación de alcance |
 | 8.6 | QA-036 | Accesibilidad: foco en overlays | ⬜ Propuesto — requiere decisión de diseño |
 | 8.7 | QA-019, QA-020, QA-021, QA-022, QA-037, QA-039, QA-040 | Hallazgos Bajos | ⬜ Propuesto |
 | Fuera de Sprint 8 | QA-024 a QA-029, QA-042 | Mejoras futuras — no se implementan | ⬜ Backlog |
-| Cerrado | QA-041 | `page.php` no existe (verificado, documental) | ✅ Verificado |
+| Cerrado | QA-041 | `page.php` no existía al verificarse; creado después en Sprint UX-6 | ✅ Verificado |
+| Cerrado (fuera de Sprint 8) | QA-043 | `.ce-header__social` sin estilo base — resuelto en Sprint UX-11 | ✅ Corregido |
+| Puntual (fuera de Sprint 8) | QA-044 | Etiqueta visual del adjunto no se limpiaba tras envío exitoso | ✅ Corregido (D-100) |
 
-**Ningún Entregable posterior a 8.1 inicia** sin que apruebes explícitamente el 8.1 y el alcance de cada uno, conforme a D-038.
+**Ningún Entregable posterior a 8.4 inicia** sin que apruebes explícitamente el alcance concreto de 8.5, conforme a D-038.
 
 ---
 
 ## 16. Metodología permanente (sin cambios respecto a versiones previas)
 
-Ver el registro completo en versiones previas de este documento: gestión de Sprints por Entregables (D-030), política de actualización incremental de documentación (D-034), y regla de aprobación explícita obligatoria (D-038). Esta sesión fue exclusivamente de re-planificación documental a solicitud explícita del usuario: no se tocó ningún archivo PHP/CSS/JS, no se implementó ningún hallazgo de QA-030 a QA-042, y se actualizó únicamente la documentación de planificación (`CURRENT_SPRINT.md`, `PROJECT_STATUS.md`, `HANDOFF.md`, `DECISIONS.md`) más la corrección puntual de `TREE.md` (QA-041) y `QA_REPORT.md` (estado de QA-041). Se detiene aquí a la espera de aprobación — sin iniciar el Entregable 8.2.
+Ver el registro completo en versiones previas de este documento: gestión de Sprints por Entregables (D-030), política de actualización incremental de documentación (D-034), y regla de aprobación explícita obligatoria (D-038). Esta sesión fue exclusivamente de cierre documental de una aprobación ya comunicada por el usuario: no se tocó ningún archivo PHP/CSS/JS, no se inició ningún Entregable posterior al 8.4, y se actualizó únicamente la documentación de estado (`CURRENT_SPRINT.md`, `PROJECT_STATUS.md`, `HANDOFF.md`, `DECISIONS.md`, `QA_REPORT.md`, `TODO.md`, `CHANGELOG.md`). Se detiene aquí a la espera de que se defina y apruebe el alcance concreto del Entregable 8.5 — sin iniciarlo.
 
 ---
 
@@ -76,20 +85,21 @@ TREE.md, CHANGELOG.md, DECISIONS.md, QA_REPORT.md, ARCHITECTURE.md,
 CURRENT_SPRINT.md y este mismo HANDOFF.md (y el ZIP/repositorio del tema
 si hace falta verificar el código real).
 
-El Sprint 7 quedó COMPLETADO. El Sprint 8 ("Cierre de Hallazgos QA") quedó
+El Sprint 7 quedó COMPLETADO. El Sprint 8 ("Cierre de Hallazgos QA") sigue
 reorganizado en 7 Entregables (8.1 a 8.7) por prioridad, dependencias y
-riesgo — ver DECISIONS.md D-043. El Entregable 8.1 (QA-010, QA-011, QA-013
-parcial, QA-014, QA-015, QA-017) [indica aquí si lo apruebas tal cual fue
-entregado, o qué ajustar].
+riesgo — ver DECISIONS.md D-043. Los Entregables 8.1 (QA-010/011/013 parcial/
+014/015/017), 8.2 (QA-030), 8.3 (QA-031) y 8.4 (QA-032, QA-033, QA-034) ya
+quedaron aprobados explícitamente (ver DECISIONS.md D-095, D-096/D-097,
+D-098/D-099/D-101).
 
-Apruebo continuar con el Entregable 8.2: QA-030 (Alto — CE_THEME_VERSION
-y style.css congelados en 0.4.1, cache-busting roto de assets/css/main.css
-y assets/js/main.js). Sobre la decisión arquitectónica: [indica si quieres
-que la solución use wp_get_theme()->get('Version') leyendo la cabecera de
-style.css como fuente única de verdad, o prefieres otro mecanismo].
+Apruebo continuar con el Entregable 8.5: QA-012 (caché de consultas
+"relacionados"), QA-016 (script inline de metabox sin dependencia formal),
+QA-035 (autoplay de testimonios sin pausa accesible), QA-038 (`<link
+rel="canonical">` ausente). [indica aquí si apruebas este alcance tal cual,
+o qué ajustar antes de iniciar la implementación].
 
 Aplica la metodología permanente de HANDOFF.md sección 16, incluida la
 regla de aprobación explícita (D-038): entrega siempre los archivos
 completos como artifacts descargables, no diffs, y no inicies el
-Entregable 8.3 sin mi aprobación explícita del 8.2.
+Entregable 8.6 sin mi aprobación explícita del 8.5.
 ```

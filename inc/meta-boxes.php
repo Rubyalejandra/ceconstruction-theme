@@ -80,6 +80,15 @@ function ce_render_proyecto_fields( $post ) {
 	<?php
 }
 
+/**
+ * QA-016 (Sprint 8, Entregable 8.5 — corrección Media): el <script>
+ * inline que antes vivía aquí (selector de imágenes de galería vía
+ * wp.media, sin wp_enqueue_script() ni dependencia formal de jQuery
+ * declarada) se movió a assets/js/admin-proyecto-gallery.js, encolado
+ * en inc/enqueue.php con array( 'jquery', 'media-editor' ) como
+ * dependencia explícita. Mismo marcado, mismo comportamiento — ver el
+ * docblock de ese archivo para el detalle completo de la corrección.
+ */
 function ce_render_proyecto_gallery( $post ) {
 	$gallery_ids = get_post_meta( $post->ID, '_ce_proyecto_galeria', true );
 	?>
@@ -94,24 +103,6 @@ function ce_render_proyecto_gallery( $post ) {
 		?>
 	</div>
 	<button type="button" class="button" id="ce-gallery-upload-btn"><?php esc_html_e( 'Seleccionar imágenes de galería', 'ce-construction' ); ?></button>
-	<script>
-	jQuery(document).ready(function($){
-		$('#ce-gallery-upload-btn').on('click', function(e){
-			e.preventDefault();
-			var frame = wp.media({ title: 'Seleccionar imágenes', multiple: true });
-			frame.on('select', function(){
-				var ids = frame.state().get('selection').map(function(a){ return a.id; });
-				$('#ce_proyecto_galeria').val(ids.join(','));
-				var preview = $('#ce-gallery-preview');
-				preview.empty();
-				frame.state().get('selection').each(function(a){
-					preview.append('<img src="'+a.attributes.sizes.thumbnail.url+'" style="width:80px;height:80px;object-fit:cover;">');
-				});
-			});
-			frame.open();
-		});
-	});
-	</script>
 	<?php
 }
 

@@ -327,6 +327,110 @@ function ce_cpt_has_posts( $post_type ) {
 }
 
 /* =========================================================
+ * QA-012 (Sprint 8, Entregable 8.5 — corrección Media).
+ *
+ * `ce_get_related_services()`/`ce_get_related_projects()` (y, por el
+ * mismo patrón, `ce_get_related_services_for_project()` — ver nota de
+ * alcance más abajo) ejecutaban hasta 2 `WP_Query` cada una (consulta
+ * principal + fallback de "recientes" si la categoría no alcanza el
+ * límite) en CADA carga de `single-servicio.php`/`single-proyecto.php`,
+ * para CUALQUIER visitante — hasta 4 consultas extra por página vista,
+ * repetidas de forma idéntica visita tras visita mientras el contenido
+ * relacionado no cambia. Una caché únicamente "por request" (variable
+ * estática, como la de `ce_cpt_has_posts()`) no habría reducido nada
+ * aquí: cada función ya se invoca una sola vez por request en ambas
+ * plantillas — el costo real está entre requests, no dentro de uno.
+ *
+ * Solución: transient de corta duración (1 hora, `HOUR_IN_SECONDS`)
+ * por combinación id+límite, guardando solo los IDs ya resueltos (no
+ * el objeto `WP_Query` completo, que no es serializable de forma
+ * fiable). En un acierto de caché, se reconstruye un único `WP_Query`
+ * con `post__in`/`orderby => post__in` — 1 consulta en vez de hasta 2,
+ * y sin repetir el cálculo del `tax_query` ni la heurística de
+ * fallback. Además de la expiración por tiempo, se invalida de forma
+ * activa (ver más abajo) al publicar/editar un `servicio`/`proyecto` o
+ * al crear/editar/borrar un término de `categoria_servicio`/
+ * `categoria_proyecto`, mediante un contador de versión — se evita así
+ * tener que enumerar o adivinar claves de transient sueltas para
+ * borrarlas una por una (la API de Transients de WordPress no soporta
+ * borrado por comodín).
+ *
+ * Nota de alcance: el hallazgo original solo nombra
+ * `ce_get_related_services()`/`ce_get_related_projects()`, pero
+ * `ce_get_related_services_for_project()` (más abajo, invocada desde
+ * `single-proyecto.php`) comparte exactamente el mismo patrón sin
+ * caché — se incluye aquí por coherencia de la misma causa raíz, no
+ * como una ampliación de alcance no relacionada.
+ * ========================================================= */
+
+/**
+ * Versión actual de la caché de "relacionados". Se incrementa cada
+ * vez que cambia algo que pueda afectar el resultado de las 3
+ * funciones de relación de abajo (ver hooks al final de este bloque),
+ * invalidando de golpe TODAS las claves de transient ya emitidas sin
+ * necesidad de borrarlas una por una — las claves viejas simplemente
+ * dejan de usarse y expiran solas dentro de la hora siguiente.
+ */
+function ce_construction_related_cache_version() {
+	$version = get_option( 'ce_related_cache_version' );
+	if ( false === $version ) {
+		$version = 1;
+		add_option( 'ce_related_cache_version', $version, '', false ); // autoload => false: no es un dato necesario en cada carga de WordPress.
+	}
+	return (int) $version;
+}
+
+/**
+ * Invalida la caché de "relacionados" completa (ver docblock de
+ * ce_construction_related_cache_version() arriba). Enganchada a los
+ * hooks de guardado de `servicio`/`proyecto` y de sus taxonomías.
+ */
+function ce_construction_bump_related_cache_version() {
+	update_option( 'ce_related_cache_version', ce_construction_related_cache_version() + 1, false );
+}
+add_action( 'save_post_servicio', 'ce_construction_bump_related_cache_version' );
+add_action( 'save_post_proyecto', 'ce_construction_bump_related_cache_version' );
+foreach ( array( 'categoria_servicio', 'categoria_proyecto' ) as $ce_related_taxonomy ) {
+	add_action( "created_{$ce_related_taxonomy}", 'ce_construction_bump_related_cache_version' );
+	add_action( "edited_{$ce_related_taxonomy}", 'ce_construction_bump_related_cache_version' );
+	add_action( "delete_{$ce_related_taxonomy}", 'ce_construction_bump_related_cache_version' );
+}
+unset( $ce_related_taxonomy );
+
+/**
+ * Envuelve una función de relación con caché de transient por IDs.
+ * `$resolver` es un callback sin argumentos que ejecuta la lógica
+ * original (consulta + fallback) y devuelve el `WP_Query` resultante
+ * — solo se invoca en caso de fallo de caché.
+ */
+function ce_construction_get_related_cached( $cache_key_prefix, $post_type, $limit, $resolver ) {
+	$cache_key = $cache_key_prefix . '_v' . ce_construction_related_cache_version();
+	$cached_ids = get_transient( $cache_key );
+
+	if ( false !== $cached_ids ) {
+		if ( empty( $cached_ids ) ) {
+			// "Sin relacionados" ya resuelto: evita repetir la consulta
+			// (y su fallback) solo para volver a confirmar un resultado
+			// vacío. `post__in => array( 0 )` es el modismo estándar de
+			// WP_Query para forzar cero resultados sin omitir el filtro.
+			return new WP_Query( array( 'post_type' => $post_type, 'post__in' => array( 0 ), 'no_found_rows' => true ) );
+		}
+		return new WP_Query( array(
+			'post_type'      => $post_type,
+			'post__in'       => $cached_ids,
+			'orderby'        => 'post__in', // Conserva el orden ya resuelto (categoría primero, luego fallback de recientes).
+			'posts_per_page' => count( $cached_ids ),
+			'post_status'    => 'publish',
+			'no_found_rows'  => true,
+		) );
+	}
+
+	$query = $resolver();
+	set_transient( $cache_key, wp_list_pluck( $query->posts, 'ID' ), HOUR_IN_SECONDS );
+	return $query;
+}
+
+/* =========================================================
  * Añadido en Sprint 3 (módulo Servicios) — funciones de
  * relación entre CPTs. Ver DECISIONS.md D-010.
  *
@@ -341,8 +445,27 @@ function ce_cpt_has_posts( $post_type ) {
  * Servicios relacionados: mismos términos de `categoria_servicio`,
  * excluyendo el servicio actual. Si el servicio no tiene categoría
  * o no hay más servicios en ella, hace fallback a "los más recientes".
+ *
+ * QA-012: resultado cacheado 1h por servicio+límite — ver bloque de
+ * caché arriba.
  */
 function ce_get_related_services( $service_id, $limit = 3 ) {
+	return ce_construction_get_related_cached(
+		"ce_rel_svc_{$service_id}_{$limit}",
+		'servicio',
+		$limit,
+		function() use ( $service_id, $limit ) {
+			return ce_construction_query_related_services( $service_id, $limit );
+		}
+	);
+}
+
+/**
+ * Lógica original de ce_get_related_services() (consulta + fallback),
+ * extraída sin cambios de comportamiento para que QA-012 (arriba)
+ * pueda invocarla solo en caso de fallo de caché.
+ */
+function ce_construction_query_related_services( $service_id, $limit ) {
 	$terms = get_the_terms( $service_id, 'categoria_servicio' );
 	$args  = array(
 		'post_type'      => 'servicio',
@@ -384,8 +507,28 @@ function ce_get_related_services( $service_id, $limit = 3 ) {
  * coincidencia de nombre entre el término de `categoria_servicio`
  * del servicio y los términos de `categoria_proyecto` del proyecto.
  * Fallback a los proyectos más recientes si no hay coincidencia.
+ *
+ * QA-012: resultado cacheado 1h por servicio+límite — ver bloque de
+ * caché al inicio de esta sección.
  */
 function ce_get_related_projects( $service_id, $limit = 3 ) {
+	return ce_construction_get_related_cached(
+		"ce_rel_proj_{$service_id}_{$limit}",
+		'proyecto',
+		$limit,
+		function() use ( $service_id, $limit ) {
+			return ce_construction_query_related_projects( $service_id, $limit );
+		}
+	);
+}
+
+/**
+ * Lógica original de ce_get_related_projects() (consulta + fallback),
+ * extraída sin cambios de comportamiento — ver
+ * ce_construction_query_related_services() arriba para el mismo
+ * criterio aplicado a la función hermana.
+ */
+function ce_construction_query_related_projects( $service_id, $limit ) {
 	$service_terms = get_the_terms( $service_id, 'categoria_servicio' );
 	$query = null;
 
@@ -445,8 +588,30 @@ function ce_get_related_projects( $service_id, $limit = 3 ) {
  * del proyecto y los términos de `categoria_servicio` de los
  * servicios. Fallback a los servicios más recientes si no hay
  * coincidencia o no hay suficientes resultados.
+ *
+ * QA-012: resultado cacheado 1h por proyecto+límite — misma caché que
+ * ce_get_related_services()/ce_get_related_projects() (ver nota de
+ * alcance en el bloque de caché al inicio de esta sección: el
+ * hallazgo original no nombra esta función, pero comparte el mismo
+ * patrón sin caché).
  */
 function ce_get_related_services_for_project( $project_id, $limit = 3 ) {
+	return ce_construction_get_related_cached(
+		"ce_rel_svcforproj_{$project_id}_{$limit}",
+		'servicio',
+		$limit,
+		function() use ( $project_id, $limit ) {
+			return ce_construction_query_related_services_for_project( $project_id, $limit );
+		}
+	);
+}
+
+/**
+ * Lógica original de ce_get_related_services_for_project() (consulta
+ * + fallback), extraída sin cambios de comportamiento — mismo
+ * criterio que las 2 funciones hermanas de arriba.
+ */
+function ce_construction_query_related_services_for_project( $project_id, $limit ) {
 	$project_terms = get_the_terms( $project_id, 'categoria_proyecto' );
 	$query = null;
 

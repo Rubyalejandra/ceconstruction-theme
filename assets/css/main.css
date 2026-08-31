@@ -646,6 +646,27 @@ body.ce-no-scroll { overflow: hidden; }
 .ce-slider-arrow--prev { left: -6px; }
 .ce-slider-arrow--next { right: -6px; }
 
+/* QA-035 (Sprint 8, Entregable 8.5): botón de pausa/reanudación del
+   autoplay del slider — vive dentro de .ce-slider-nav, junto a los
+   dots (ver createSliderController()/buildPauseToggle() en
+   assets/js/main.js). Mismo lenguaje visual que .ce-slider-dot (forma
+   redonda, misma paleta de foco/hover que el resto de los controles
+   del slider), pero de mayor tamaño por ser un botón operable, no un
+   indicador. El estado :focus-visible es intencional: este control
+   existe específicamente para quien navega con teclado, así que su
+   anillo de foco debe ser al menos tan visible como el de cualquier
+   otro control interactivo del tema. */
+.ce-slider-pause {
+  width: 22px; height: 22px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--ce-color-neutral-300); color: var(--ce-color-neutral-600);
+  font-size: 0.7rem; line-height: 1;
+  transition: background var(--ce-transition-fast), color var(--ce-transition-fast);
+}
+.ce-slider-pause:hover,
+.ce-slider-pause[aria-pressed="true"] { background: var(--ce-color-secondary); color: var(--ce-color-white); }
+.ce-slider-pause:focus-visible { outline: 2px solid var(--ce-color-secondary); outline-offset: 2px; }
+
 /* Gallery / lightbox trigger */
 .ce-gallery-grid { display: grid; gap: var(--ce-space-3); grid-template-columns: repeat(2, 1fr); }
 .ce-gallery-item {

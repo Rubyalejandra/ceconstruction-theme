@@ -40,6 +40,127 @@ function ce_construction_output_json_ld( $data ) {
 	echo '<script type="application/ld+json">' . $json . '</script>' . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $json ya está codificado por wp_json_encode() y endurecido contra </script> arriba.
 }
 
+/* =========================================================
+ * QA-038 (Sprint 8, Entregable 8.5 — corrección Media).
+ *
+ * ce_construction_meta_tags() (abajo) emitía og:url pero ningún
+ * <link rel="canonical"> explícito en <head>. Sin canonical, el sitio
+ * dependía enteramente de la heurística de Google para decidir cuál
+ * URL indexar cuando existen variantes de la misma página (parámetros
+ * de tracking tipo UTM, ?s= con variantes de mayúsculas/espacios,
+ * paginación de comentarios) — riesgo real de contenido duplicado
+ * indexable, especialmente porque el tema sí pagina archivos vía
+ * paginate_links() (archive.php, archive-servicio.php,
+ * archive-proyecto.php, archive-clientes.php, archive-equipo.php) sin
+ * que existiera ningún canonical explícito hacia esas páginas.
+ *
+ * Diseño: para contenido singular, se delega en wp_get_canonical_url()
+ * (función nativa de WordPress desde 4.6) — ya resuelve permalink +
+ * paginación de post multi-página + paginación de comentarios
+ * correctamente, sin reinventar esa lógica aquí. Para el resto de
+ * contextos (Home de blog, archivos de CPT, categoría/etiqueta/
+ * taxonomía custom, autor, fecha, búsqueda), se construye la URL base
+ * "limpia" con las funciones nativas de permalink de cada tipo
+ * (get_post_type_archive_link(), get_term_link(), etc.) — nunca a
+ * partir de la URL de la petición actual (se descartó usar
+ * get_pagenum_link() como fuente única: reconstruye la paginación
+ * correctamente, pero conserva cualquier query string ya presente en
+ * la URL, incluidos parámetros de tracking como UTMs, que es
+ * exactamente lo que este canonical debe limpiar) y luego se le
+ * reaplica el sufijo de paginación de archivo (/page/N/) de forma
+ * auto-referencial (cada página paginada apunta a sí misma, no todas
+ * hacia la página 1 — alineado con la recomendación vigente de Google
+ * tras retirar rel="next"/"prev" como señal).
+ *
+ * 404 y cualquier contexto no cubierto explícitamente: se devuelve
+ * cadena vacía a propósito. Imprimir un canonical adivinado o
+ * incorrecto es peor que no imprimir ninguno.
+ * ========================================================= */
+
+/**
+ * Reaplica la paginación de archivo (page/N/, o ?paged=N sin permalinks
+ * bonitos) sobre una URL base ya "limpia" (sin query string de
+ * tracking). Mismo criterio de sufijo que usa internamente
+ * get_pagenum_link() de WordPress core, aplicado aquí sobre una URL
+ * arbitraria en vez de sobre la URL de la petición actual.
+ */
+function ce_construction_apply_canonical_pagination( $url ) {
+	$paged = max( 1, (int) get_query_var( 'paged' ) );
+	if ( $paged < 2 ) {
+		return $url;
+	}
+
+	global $wp_rewrite;
+	if ( $wp_rewrite->using_permalinks() ) {
+		return trailingslashit( $url ) . user_trailingslashit( $wp_rewrite->pagination_base . '/' . $paged, 'paged' );
+	}
+
+	return add_query_arg( 'paged', $paged, $url );
+}
+
+/**
+ * Resuelve la URL canónica del contexto de la petición actual, o
+ * cadena vacía si no aplica ninguna (ver docblock del bloque QA-038
+ * arriba para el detalle de diseño).
+ */
+function ce_construction_get_canonical_url() {
+	if ( is_singular() ) {
+		$canonical = wp_get_canonical_url();
+		return $canonical ? $canonical : get_permalink();
+	}
+
+	if ( is_front_page() ) {
+		// Cubre el caso por defecto (el blog ES la portada): la página 1
+		// pasa por aquí; page/2/ en adelante deja de ser is_front_page()
+		// y cae en la rama is_home() de abajo, que sí reaplica paginación.
+		return home_url( '/' );
+	}
+
+	if ( is_home() ) {
+		// Portada estática configurada + una Página distinta como blog:
+		// is_home() es true en el listado del blog aunque no sea la
+		// portada. Sin Página "de entradas" asignada (configuración por
+		// defecto), cae a home_url('/') igual que is_front_page().
+		$page_for_posts = (int) get_option( 'page_for_posts' );
+		$canonical = $page_for_posts ? get_permalink( $page_for_posts ) : home_url( '/' );
+		return $canonical ? ce_construction_apply_canonical_pagination( $canonical ) : '';
+	}
+
+	if ( is_search() ) {
+		return ce_construction_apply_canonical_pagination( get_search_link() );
+	}
+
+	if ( is_post_type_archive() ) {
+		$canonical = get_post_type_archive_link( get_post_type() );
+		return $canonical ? ce_construction_apply_canonical_pagination( $canonical ) : '';
+	}
+
+	if ( is_category() || is_tag() || is_tax() ) {
+		$canonical = get_term_link( get_queried_object() );
+		return ( $canonical && ! is_wp_error( $canonical ) ) ? ce_construction_apply_canonical_pagination( $canonical ) : '';
+	}
+
+	if ( is_author() ) {
+		$canonical = get_author_posts_url( get_queried_object_id() );
+		return $canonical ? ce_construction_apply_canonical_pagination( $canonical ) : '';
+	}
+
+	if ( is_day() || is_month() || is_year() ) {
+		if ( is_day() ) {
+			$canonical = get_day_link( get_query_var( 'year' ), get_query_var( 'monthnum' ), get_query_var( 'day' ) );
+		} elseif ( is_month() ) {
+			$canonical = get_month_link( get_query_var( 'year' ), get_query_var( 'monthnum' ) );
+		} else {
+			$canonical = get_year_link( get_query_var( 'year' ) );
+		}
+		return $canonical ? ce_construction_apply_canonical_pagination( $canonical ) : '';
+	}
+
+	// 404, feeds u otro contexto no cubierto explícitamente arriba: sin
+	// canonical — ver docblock del bloque QA-038 arriba.
+	return '';
+}
+
 function ce_construction_meta_tags() {
 	if ( ! ce_construction_seo_enabled() ) {
 		return;
@@ -59,6 +180,15 @@ function ce_construction_meta_tags() {
 	}
 
 	echo "\n<!-- CE Construction SEO -->\n";
+	// QA-038 (Sprint 8, Entregable 8.5): <link rel="canonical"> explícito.
+	// Se calcula por separado de $url (arriba, usado solo para og:url y
+	// sin cambios en esta corrección) porque $url no reaplica paginación
+	// de archivo ni distingue entre los distintos tipos de archivo no
+	// singulares — ver ce_construction_get_canonical_url() arriba.
+	$canonical_url = ce_construction_get_canonical_url();
+	if ( $canonical_url ) {
+		printf( '<link rel="canonical" href="%s">' . "\n", esc_url( $canonical_url ) );
+	}
 	printf( '<meta name="description" content="%s">' . "\n", esc_attr( wp_strip_all_tags( $description ) ) );
 	printf( '<meta property="og:title" content="%s">' . "\n", esc_attr( $title ) );
 	printf( '<meta property="og:description" content="%s">' . "\n", esc_attr( wp_strip_all_tags( $description ) ) );
