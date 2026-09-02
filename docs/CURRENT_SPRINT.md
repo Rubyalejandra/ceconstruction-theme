@@ -16,7 +16,7 @@
 | 8.3 | QA-031 (adjuntos de cotización potencialmente accesibles por URL directa) | ✅ **Aprobado explícitamente por el usuario**, tras ejecutar y verificar con éxito las 4 pruebas funcionales reales pendientes de D-096 (envío con adjunto, descarga por admin autenticado, bloqueo tras cerrar sesión, bloqueo de acceso directo no autenticado) en un entorno real Apache/2.4.68 (Debian) + PHP 8.2.33. Ver `docs/DECISIONS.md` D-096 (implementación) y D-097 (aprobación final). |
 | 8.4 | QA-032 (race condition del rate-limit), QA-033 (archivo huérfano si falla `wp_insert_post()`), QA-034 (sin idempotencia de envíos) | ✅ **Aprobado explícitamente por el usuario**, tras ejecutar las pruebas funcionales reales. Ver `docs/DECISIONS.md` D-098 (diseño e implementación inicial), D-099 (integración de los 2 archivos que faltaban) y D-101 (aprobación final). |
 | 8.5 | QA-012 (caché de consultas "relacionados"), QA-016 (script inline de metabox sin dependencia formal), QA-035 (autoplay de testimonios sin pausa accesible), QA-038 (`<link rel="canonical">` ausente) | ✅ **Aprobado explícitamente por el usuario**, tras pruebas funcionales reales. Ver `docs/DECISIONS.md` D-102 (implementación) y D-103 (aprobación). |
-| 8.6 | QA-036 (sin gestión de foco en overlays: menú móvil, modales, lightbox) | 🟡 **Integración de código completa** (utilidad compartida `FocusTrap` en `assets/js/main.js`, aplicada a `ModuleMobileNav`/`ModuleModals`/retrofit en `ModuleLightbox`) — **pendiente únicamente de tus pruebas funcionales reales** antes de aprobar. Decisión de diseño (R-4: utilidad centralizada vs. por componente) resuelta a favor de la centralizada. Ver `docs/DECISIONS.md` D-104. |
+| 8.6 | QA-036 (sin gestión de foco en overlays: menú móvil, modales, lightbox) | ✅ **Aprobado explícitamente por el usuario**, tras pruebas funcionales reales. Ver `docs/DECISIONS.md` D-104 (implementación) y D-105 (aprobación). |
 | 8.7 | Hallazgos Bajos: QA-019, QA-020, QA-021, QA-022, QA-037, QA-039, QA-040 | ⬜ Propuesto, sin iniciar. |
 | Fuera de Sprint 8 (backlog) | QA-024 a QA-029, QA-042 (Mejoras futuras) | ⬜ No se implementan sin aprobación explícita de incorporarlas a un Sprint. |
 
@@ -60,6 +60,10 @@ Ver `docs/DECISIONS.md` D-041 a D-044 y `docs/CHANGELOG.md` (entradas v0.8.0 y v
 
 El usuario confirmó explícitamente que ejecutó las pruebas funcionales reales que D-102 había dejado pendientes y aprobó el Entregable 8.5 (QA-012, QA-016, QA-035, QA-038) de forma definitiva. Sin desglose caso por caso — mismo criterio ya aplicado en el cierre del Entregable 8.4. Ver `docs/DECISIONS.md` D-103.
 
+## ✅ Entregable 8.6 aprobado (aprobación final, tras pruebas funcionales reales)
+
+El usuario confirmó explícitamente que las 4 pruebas funcionales reales fueron exitosas (menú móvil, modal genérico, modal de éxito/error del formulario de cotización, lightbox de galería — ver `docs/DECISIONS.md` D-104) y aprobó el Entregable 8.6 (QA-036) de forma definitiva, sin desglose caso por caso. Ver `docs/DECISIONS.md` D-105.
+
 ## Próximo paso
 
-El Entregable 8.6 (QA-036) tiene ya la **integración de código completa** en `assets/js/main.js` (`docs/DECISIONS.md` D-104): nueva utilidad compartida `FocusTrap`, aplicada a `ModuleMobileNav` y `ModuleModals`, más un retrofit no disruptivo en `ModuleLightbox`. Falta que el usuario ejecute las pruebas funcionales reales listadas en esa misma entrada (trap de `Tab` y devolución de foco en menú móvil, en modales, en el flujo de envío del formulario de cotización, y en el lightbox) antes de aprobarlo, siguiendo el mismo patrón ya usado en los Entregables anteriores. Con esa aprobación, el Sprint 8 continuaría con el Entregable 8.7 (QA-019, QA-020, QA-021, QA-022, QA-037, QA-039, QA-040 — Bajos), siguiente y último en la reorganización de D-043.
+Con el Entregable 8.6 aprobado, el Sprint 8 queda habilitado para continuar con el **Entregable 8.7** (QA-019, QA-020, QA-021, QA-022, QA-037, QA-039, QA-040 — Bajos), último de la reorganización vigente de `DECISIONS.md` D-043. Conforme a D-038, el 8.7 **no inicia su implementación** sin que el usuario apruebe explícitamente su alcance concreto.

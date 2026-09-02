@@ -860,7 +860,7 @@ El usuario confirmó que ejecutó las pruebas funcionales reales pendientes de D
 
 ## Sprint 8, Entregable 8.6 — QA-036: gestión de foco centralizada para overlays
 
-**Estado:** 🟡 Integración de código completa — pendiente únicamente de pruebas funcionales reales (ver `docs/DECISIONS.md` D-104).
+**Estado:** ✅ Aprobado explícitamente por el usuario, tras pruebas funcionales reales (ver `docs/DECISIONS.md` D-104, D-105).
 
 **Decisión de diseño resuelta:** R-4 (`docs/QA_REPORT.md`) dejaba abierta la elección entre una utilidad de foco centralizada o una corrección aislada por componente. Se optó por la centralizada, tal como el propio R-4 recomendaba.
 
@@ -875,3 +875,9 @@ QA-037 (`aria-label` estático del botón de menú móvil) — hallazgo BAJO rel
 
 ### Decisiones clave
 Ver `docs/DECISIONS.md`: D-104.
+
+---
+
+## Sprint 8, Entregable 8.6 — Aprobación final (cierre)
+
+El usuario confirmó que las 4 pruebas funcionales reales listadas en D-104 fueron exitosas (menú móvil, modal genérico, modal de éxito/error del formulario de cotización, lightbox de galería) y aprobó el Entregable 8.6 de forma definitiva, sin desglose caso por caso. Con esto, **QA-036 / Entregable 8.6 queda cerrado y aprobado**, sin cambios de código adicionales. Ver `docs/DECISIONS.md` D-105.

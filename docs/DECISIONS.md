@@ -1130,3 +1130,11 @@
   3. Enviar el formulario de cotización (éxito o error) y confirmar que, al cerrar el modal resultante, el foco vuelve al botón "Enviar".
   4. Abrir un item de la galería (lightbox) y confirmar que el trap de `Tab` funciona igual que en el menú móvil/modales, sin regresión en la navegación prev/next con flechas de teclado ni en el cierre con Escape.
 - **Impacto documental de esta entrega:** `docs/QA_REPORT.md` (QA-036 pasa a "Implementado — pendiente de pruebas funcionales"), `docs/CURRENT_SPRINT.md` (Entregable 8.6), `docs/TODO.md` (sección 23), `docs/CHANGELOG.md` (nuevo bloque del Entregable 8.6), `docs/PROJECT_STATUS.md`. `docs/CURRENT_UX_SPRINT.md` no se modifica (mismo criterio que D-102: documento congelado de una fase ya cerrada, sin relación con Sprint 8).
+
+---
+
+### D-105 — Aprobación explícita del Entregable 8.6 (QA-036): pruebas funcionales reales ejecutadas por el usuario
+
+- **Confirmación del usuario:** el usuario indicó explícitamente que las pruebas funcionales reales fueron exitosas, tras la lista de 4 verificaciones detallada en D-104 (menú móvil, modal genérico, modal de éxito/error del formulario de cotización, lightbox de galería) y presentada de forma interactiva antes de esta confirmación. Sin desglose caso por caso — mismo criterio ya aplicado en D-101/D-103.
+- **Resolución:** **QA-036 / Entregable 8.6 queda aprobado de forma definitiva.** Ningún cambio de código como parte de esta aprobación — código ya entregado en D-104.
+- **Próximo paso:** con el 8.6 cerrado, el Sprint 8 queda habilitado para continuar con el **Entregable 8.7** (QA-019, QA-020, QA-021, QA-022, QA-037, QA-039, QA-040 — Bajos, según la reorganización vigente de D-043), último de esta reorganización. Conforme a D-038, el 8.7 **no inicia su implementación** sin que el usuario apruebe explícitamente su alcance concreto.
