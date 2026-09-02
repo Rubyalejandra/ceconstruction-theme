@@ -22,12 +22,130 @@
 	const $  = (sel, ctx = document) => ctx.querySelector(sel);
 	const $$ = (sel, ctx = document) => Array.from(ctx.querySelectorAll(sel));
 	const on = (el, ev, fn, opts) => el && el.addEventListener(ev, fn, opts);
+	// 🆕 QA-036 (Sprint 8, Entregable 8.6): hasta ahora ningún módulo
+	// necesitaba quitar un listener dinámico — `on()` (arriba) nunca
+	// tuvo su pareja. FocusTrap sí la necesita: el listener de `Tab`
+	// que atrapa el foco dentro de un overlay debe desactivarse al
+	// cerrarlo, o quedaría escuchando `keydown` sobre un contenedor ya
+	// oculto para siempre.
+	const off = (el, ev, fn, opts) => el && el.removeEventListener(ev, fn, opts);
 
 	const CE = window.ceConstructionData || {
 		ajaxUrl: '/wp-admin/admin-ajax.php',
 		quoteNonce: '',
 		whatsapp: '',
 		i18n: { sending: 'Enviando...', error: 'Ocurrió un error. Intenta nuevamente.' },
+	};
+
+	/* ============================================================
+	 * UTILIDAD COMPARTIDA: FOCUS TRAP
+	 *
+	 * QA-036 (Sprint 8, Entregable 8.6) / R-4 (QA_REPORT.md, "Gestión
+	 * de foco centralizada para overlays"): antes de esta corrección,
+	 * ningún overlay del tema (menú móvil, modales genéricos, popup de
+	 * oferta, lightbox) atrapaba el foco de teclado dentro de sí mismo
+	 * mientras estaba abierto — un usuario de teclado podía seguir
+	 * tabulando hacia elementos del fondo de la página, invisibles
+	 * detrás del overlay. `ModuleLightbox` ya movía el foco al abrir y
+	 * lo devolvía al cerrar (ver su open()/close() más abajo, ahora
+	 * migrados a usar esta misma utilidad en vez de su lógica manual
+	 * propia); `ModuleMobileNav` y `ModuleModals` no hacían ninguna de
+	 * las dos cosas.
+	 *
+	 * Diseño (R-4 pide explícitamente "centralizar", no una corrección
+	 * por componente): un único objeto `FocusTrap` con `.activate()`/
+	 * `.deactivate()`, reutilizado por los 3 overlays del tema en vez
+	 * de 3 implementaciones independientes del mismo patrón ARIA
+	 * "Dialog (Modal)". Solo puede haber un trap activo a la vez (este
+	 * tema nunca abre overlays anidados de verdad — cuando
+	 * `ModuleQuoteForm` cierra el modal de cotización para abrir el de
+	 * éxito/error, son secuenciales, no simultáneos — `activate()`
+	 * maneja ese reemplazo sin intentar restaurar el foco hacia el
+	 * overlay saliente, ya que el foco se va a mover de inmediato hacia
+	 * el entrante).
+	 * ============================================================ */
+	const FocusTrap = {
+		active: null, // { container, trigger, onKeydown }
+
+		/** Elementos realmente enfocables y visibles dentro de `container`. */
+		getFocusable(container) {
+			return $$(
+				'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+				container
+			).filter((el) => el.offsetParent !== null);
+		},
+
+		/**
+		 * Activa el trap sobre `container`: mueve el foco a
+		 * `options.initialFocus` (o al primer elemento enfocable si no
+		 * se indica) y mantiene el `Tab`/`Shift+Tab` circulando solo
+		 * entre los elementos enfocables de `container` mientras esté
+		 * activo.
+		 *
+		 * `options.trigger`: elemento al que se devuelve el foco en
+		 * `deactivate()`. Si no se indica, se usa `document.activeElement`
+		 * en el momento de activar — cubre el caso de `ModuleOfferPopup`
+		 * (se abre por temporizador, sin ningún disparador de usuario:
+		 * ahí `document.activeElement` normalmente es `<body>`, y
+		 * "devolver el foco a body" es un no-op inofensivo).
+		 */
+		activate(container, options = {}) {
+			if (!container) return;
+
+			// Reemplazo de un trap activo sobre OTRO contenedor (ver
+			// docblock arriba): se desmonta su listener sin restaurar
+			// foco, porque el foco va a moverse de inmediato al nuevo
+			// contenedor unas líneas más abajo.
+			if (this.active && this.active.container !== container) {
+				off(this.active.container, 'keydown', this.active.onKeydown);
+				this.active = null;
+			}
+
+			const trigger = 'trigger' in options ? options.trigger : document.activeElement;
+
+			const onKeydown = (e) => {
+				if (e.key !== 'Tab') return;
+				const focusable = this.getFocusable(container);
+				if (!focusable.length) {
+					e.preventDefault();
+					return;
+				}
+				const first = focusable[0];
+				const last = focusable[focusable.length - 1];
+				if (e.shiftKey && document.activeElement === first) {
+					e.preventDefault();
+					last.focus();
+				} else if (!e.shiftKey && document.activeElement === last) {
+					e.preventDefault();
+					first.focus();
+				}
+			};
+
+			on(container, 'keydown', onKeydown);
+			this.active = { container, trigger, onKeydown };
+
+			const initialFocus = options.initialFocus || this.getFocusable(container)[0];
+			if (initialFocus && typeof initialFocus.focus === 'function') {
+				initialFocus.focus();
+			}
+		},
+
+		/**
+		 * Desactiva el trap de `container` — sin efecto si `container`
+		 * no es el que tiene el trap activo ahora mismo (por ejemplo,
+		 * una llamada a `close()` sobre un overlay que ya no estaba
+		 * activo). Devuelve el foco al `trigger` registrado en
+		 * `activate()`, si sigue existiendo en el documento.
+		 */
+		deactivate(container) {
+			if (!this.active || this.active.container !== container) return;
+			const { trigger, onKeydown } = this.active;
+			off(container, 'keydown', onKeydown);
+			this.active = null;
+			if (trigger && typeof trigger.focus === 'function' && document.body.contains(trigger)) {
+				trigger.focus();
+			}
+		},
 	};
 
 	/* ============================================================
@@ -55,7 +173,10 @@
 				// success/error; no se crea ningún mecanismo nuevo de
 				// apertura/cierre — ver DECISIONS.md D-051.
 				if (target.classList.contains('ce-modal-overlay')) {
-					ModuleModals.open(targetId);
+					// QA-036: se pasa `link` (el propio <a> clicado) como
+					// trigger explícito — ver FocusTrap/ModuleModals.open()
+					// más abajo.
+					ModuleModals.open(targetId, { trigger: link });
 					document.dispatchEvent(new CustomEvent('ce:closeMobileNav'));
 					return;
 				}
@@ -101,6 +222,12 @@
 			this.toggle.classList.add('is-active');
 			this.toggle.setAttribute('aria-expanded', 'true');
 			document.body.classList.add('ce-no-scroll');
+
+			// QA-036: trap de foco dentro del panel. `this.toggle` es
+			// siempre el disparador real (es el único elemento que abre
+			// este menú), así que se pasa explícito en vez de confiar en
+			// document.activeElement.
+			FocusTrap.activate(this.nav, { trigger: this.toggle, initialFocus: this.closeBtn });
 		},
 		close() {
 			this.nav.classList.remove('is-open');
@@ -108,6 +235,11 @@
 			this.toggle.classList.remove('is-active');
 			this.toggle.setAttribute('aria-expanded', 'false');
 			document.body.classList.remove('ce-no-scroll');
+
+			// QA-036: sin efecto si el menú no era el trap activo (p. ej.
+			// close() disparado por 'ce:closeMobileNav' con el menú ya
+			// cerrado) — ver FocusTrap.deactivate() arriba.
+			FocusTrap.deactivate(this.nav);
 		},
 	};
 
@@ -504,7 +636,6 @@
 			this.buildMarkup();
 			this.groupItems  = this.items;
 			this.groupIndex  = 0;
-			this.lastTrigger = null;
 
 			this.items.forEach((item) => {
 				on(item, 'click', () => this.open(item));
@@ -563,11 +694,21 @@
 			this.prevBtn.style.display = multiple ? '' : 'none';
 			this.nextBtn.style.display = multiple ? '' : 'none';
 
-			this.lastTrigger = item;
 			this.show(this.groupIndex);
 			this.overlay.classList.add('is-open');
 			document.body.classList.add('ce-no-scroll');
-			this.closeBtn.focus();
+
+			// QA-036 (Sprint 8, Entregable 8.6): antes, este módulo ya
+			// movía el foco al botón de cerrar al abrir y lo devolvía al
+			// disparador al cerrar (ver `this.lastTrigger` en versiones
+			// previas) — pero sin ningún trap de `Tab` dentro del
+			// overlay. Se migra ambos comportamientos a la utilidad
+			// compartida `FocusTrap` (arriba en este archivo), que ahora
+			// también añade el trap que faltaba, en vez de mantener una
+			// segunda implementación manual del mismo patrón que
+			// `ModuleMobileNav`/`ModuleModals` ya usan (R-4: gestión de
+			// foco centralizada).
+			FocusTrap.activate(this.overlay, { trigger: item, initialFocus: this.closeBtn });
 		},
 		show(index) {
 			const total = this.groupItems.length;
@@ -624,12 +765,12 @@
 			this.overlay.classList.remove('is-open');
 			document.body.classList.remove('ce-no-scroll');
 			this.stopMedia();
-			// Devuelve el foco al botón/elemento que abrió el lightbox
-			// (Play del testimonio, o miniatura de la galería) — punto
-			// 10 del alcance de UX-7.8 (gestión de foco al cerrar).
-			if (this.lastTrigger && typeof this.lastTrigger.focus === 'function') {
-				this.lastTrigger.focus();
-			}
+			// QA-036: FocusTrap.deactivate() ya devuelve el foco al
+			// disparador (el `trigger` pasado en open(), arriba) — punto
+			// 10 del alcance de UX-7.8 (gestión de foco al cerrar), ahora
+			// resuelto por la utilidad compartida en vez de la lógica
+			// manual anterior de este mismo método.
+			FocusTrap.deactivate(this.overlay);
 		},
 	};
 
@@ -656,15 +797,29 @@
 				});
 			});
 		},
-		open(id) {
+		open(id, options = {}) {
 			const overlay = document.getElementById(id);
 			if (!overlay) return;
 			overlay.classList.add('is-open');
 			document.body.classList.add('ce-no-scroll');
+
+			// QA-036: trap de foco dentro del modal. `options.trigger`
+			// permite a quien llama indicar explícitamente el elemento
+			// que originó la apertura (más fiable que
+			// document.activeElement: un clic de mouse sobre un <a> no
+			// siempre deja ese enlace como activeElement, según el
+			// navegador) — ver los 4 call sites de ModuleModals.open()
+			// más abajo en este archivo. Sin `options.trigger`
+			// (ModuleOfferPopup, que abre por temporizador sin ningún
+			// disparador de usuario), FocusTrap usa su propio fallback a
+			// document.activeElement.
+			FocusTrap.activate(overlay, options.trigger !== undefined ? { trigger: options.trigger } : {});
 		},
 		close(overlay) {
 			overlay.classList.remove('is-open');
 			document.body.classList.remove('ce-no-scroll');
+
+			FocusTrap.deactivate(overlay);
 		},
 	};
 
@@ -845,7 +1000,12 @@
 							this.updateFileLabel();
 							$$('.ce-field', this.form).forEach((f) => f.classList.remove('is-valid', 'is-invalid'));
 							if (this.parentModalOverlay) ModuleModals.close(this.parentModalOverlay);
-							ModuleModals.open('ce-modal-success');
+							// QA-036: this.submitBtn como trigger explícito —
+							// al cerrar el modal de éxito, el foco vuelve al
+							// botón de envío, no a document.activeElement
+							// (que en este punto ya podría ser otra cosa,
+							// tras el reset del formulario).
+							ModuleModals.open('ce-modal-success', { trigger: this.submitBtn });
 							// 🆕 Sprint UX-7, Entregable UX-7.10 (D-079): evento
 							// desacoplado de "envío exitoso", sin tocar la lógica
 							// de validación/AJAX/nonce de este módulo. Lo escucha
@@ -860,7 +1020,7 @@
 							const msg = (data.data && data.data.message) || CE.i18n.error;
 							this.showStatus(msg, 'error');
 							if (this.parentModalOverlay) ModuleModals.close(this.parentModalOverlay);
-							ModuleModals.open('ce-modal-error');
+							ModuleModals.open('ce-modal-error', { trigger: this.submitBtn }); // QA-036
 
 							if (data.data && data.data.fields) {
 								Object.entries(data.data.fields).forEach(([name, msgField]) => {
@@ -876,7 +1036,7 @@
 					} catch (err) {
 						this.showStatus(CE.i18n.error, 'error');
 						if (this.parentModalOverlay) ModuleModals.close(this.parentModalOverlay);
-						ModuleModals.open('ce-modal-error');
+						ModuleModals.open('ce-modal-error', { trigger: this.submitBtn }); // QA-036
 					} finally {
 						this.setLoading(false);
 					}

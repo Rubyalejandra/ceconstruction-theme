@@ -839,7 +839,7 @@ El usuario confirmó que ejecutó las pruebas funcionales reales pendientes de D
 
 ## Sprint 8, Entregable 8.5 — QA-012, QA-016, QA-035, QA-038
 
-**Estado:** 🟡 Integración de código completa — pendiente únicamente de pruebas funcionales reales (ver `docs/DECISIONS.md` D-102).
+**Estado:** ✅ Aprobado explícitamente por el usuario, tras pruebas funcionales reales (ver `docs/DECISIONS.md` D-102, D-103).
 
 ### Corregido / añadido
 - **QA-012** — `inc/helpers.php`: caché de transient (1h) por id+límite para `ce_get_related_services()`, `ce_get_related_projects()` y `ce_get_related_services_for_project()`, con invalidación activa vía contador de versión al guardar `servicio`/`proyecto` o editar `categoria_servicio`/`categoria_proyecto`.
@@ -849,3 +849,29 @@ El usuario confirmó que ejecutó las pruebas funcionales reales pendientes de D
 
 ### Decisiones clave
 Ver `docs/DECISIONS.md`: D-102.
+
+---
+
+## Sprint 8, Entregable 8.5 — Aprobación final (cierre)
+
+El usuario confirmó que ejecutó las pruebas funcionales reales pendientes de D-102 y aprobó el Entregable 8.5 de forma definitiva, sin desglose caso por caso. Con esto, **QA-012, QA-016, QA-035 y QA-038 / Entregable 8.5 quedan cerrados y aprobados**, sin cambios de código adicionales. El usuario autorizó, en la misma sesión, iniciar el Entregable 8.6. Ver `docs/DECISIONS.md` D-103.
+
+---
+
+## Sprint 8, Entregable 8.6 — QA-036: gestión de foco centralizada para overlays
+
+**Estado:** 🟡 Integración de código completa — pendiente únicamente de pruebas funcionales reales (ver `docs/DECISIONS.md` D-104).
+
+**Decisión de diseño resuelta:** R-4 (`docs/QA_REPORT.md`) dejaba abierta la elección entre una utilidad de foco centralizada o una corrección aislada por componente. Se optó por la centralizada, tal como el propio R-4 recomendaba.
+
+### Corregido / añadido
+- **`assets/js/main.js`** — nueva utilidad compartida `FocusTrap` (`.activate(container, { trigger, initialFocus })` / `.deactivate(container)`), junto con un nuevo helper `off()` (pareja de `on()`, ausente hasta ahora).
+- **`ModuleMobileNav`** — `open()`/`close()` ahora usan `FocusTrap` (trigger: botón hamburguesa, foco inicial: botón de cerrar del panel).
+- **`ModuleModals`** — `open(id, options)` gana un parámetro opcional `{ trigger }`; `close(overlay)` desactiva el trap. Actualizados los 4 call sites con disparador de usuario identificable (ancla de `ModuleSmoothScroll`, y los 3 de `ModuleQuoteForm` con `this.submitBtn`). `ModuleOfferPopup` (se abre por temporizador, sin disparador real) queda sin trigger explícito a propósito.
+- **`ModuleLightbox`** — retrofit no disruptivo: su lógica manual previa de foco (mover foco al abrir, devolverlo al cerrar) se migró a `FocusTrap`, que ahora también añade el trap de `Tab` que faltaba. Sin cambios en su navegación prev/next ni en el manejo de tipos de medio.
+
+### No incluido en este Entregable
+QA-037 (`aria-label` estático del botón de menú móvil) — hallazgo BAJO relacionado pero distinto, agrupado en el Entregable 8.7.
+
+### Decisiones clave
+Ver `docs/DECISIONS.md`: D-104.

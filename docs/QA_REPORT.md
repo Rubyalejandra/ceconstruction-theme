@@ -33,16 +33,17 @@
 - **QA-013: 🟡 parcialmente corregido en Sprint 8, Entregable 8.1** (solo el comentario inexacto; la unificación real queda en backlog) — ver `DECISIONS.md` D-042.
 - **QA-015: ✅ verificado en Sprint 8, Entregable 8.1 — no se reproduce en el código actual, sin cambio de código.**
 - **QA-030 (Alto): ✅ corregido en Sprint 8, Entregable 8.2** (cache-busting por `filemtime()` + `CE_THEME_VERSION` derivada de `wp_get_theme()`) — ver `DECISIONS.md` D-044.
-- **QA-012, QA-016 (Medios):** 🟡 **implementados** — Sprint 8, Entregable 8.5 (`DECISIONS.md` D-102). Pendientes de pruebas funcionales reales del usuario.
+- **QA-012, QA-016 (Medios):** ✅ **corregidos y aprobados** — Sprint 8, Entregable 8.5 (`DECISIONS.md` D-102, D-103). Pruebas funcionales reales ejecutadas por el usuario.
 - QA-019 a QA-029: ⬜ pendientes / mejoras futuras según su clasificación.
 - **QA-031 (Alto):** ✅ **corregido y aprobado** — Sprint 8, Entregable 8.3 (`DECISIONS.md` D-096, D-097). Pruebas funcionales reales ejecutadas y verificadas por el usuario en el entorno real (Apache/2.4.68, PHP 8.2.33).
 - **QA-032, QA-033, QA-034 (Medios):** ✅ **corregidos y aprobados** — Sprint 8, Entregable 8.4 (`DECISIONS.md` D-098, D-099, D-101). Pruebas funcionales reales ejecutadas por el usuario.
-- **QA-035, QA-038 (Medios):** 🟡 **implementados** — Sprint 8, Entregable 8.5 (`DECISIONS.md` D-102). Pendientes de pruebas funcionales reales del usuario. QA-036, QA-037, QA-039, QA-040 permanecen abiertos según la auditoría integral (agrupados en Entregables 8.6/8.7 de D-043).
+- **QA-035, QA-038 (Medios):** ✅ **corregidos y aprobados** — Sprint 8, Entregable 8.5 (`DECISIONS.md` D-102, D-103). Pruebas funcionales reales ejecutadas por el usuario.
+- **QA-036 (Medio):** 🟡 **implementado** — Sprint 8, Entregable 8.6 (`DECISIONS.md` D-104). Pendiente de pruebas funcionales reales del usuario. QA-037, QA-039, QA-040 permanecen abiertos según la auditoría integral (agrupados en el Entregable 8.7 de D-043).
 - QA-041: ✅ **cerrado** — `page.php` no existía al momento de la verificación; fue creado después en Sprint UX-6 (Entregable UX-6.1, fuera del Sprint 8). Ver detalle sección 4.6.
 - QA-042: 🔵 mejora futura.
 - **QA-043:** ✅ **corregido** — `.ce-header__social` sin estilo base, resuelto en Sprint UX-11 (no en el Sprint 8, ver `docs/DECISIONS.md` D-087/D-090). Ver sección 4.7.
 
-**Resultado operativo (actualizado, Sprint 8 Entregable 8.4):** 21 hallazgos corregidos o cerrados (10 históricos + QA-010/011/014/017/030/031 nuevos + QA-032/QA-033/QA-034 + QA-013 parcial + QA-015 verificado como no reproducible); el resto permanece pendiente, sujeto a priorización y aprobación para los siguientes Entregables del Sprint 8 (ver `DECISIONS.md` D-043 para la planificación vigente de 8.5 a 8.7).
+**Resultado operativo (actualizado, Sprint 8 Entregable 8.5):** 25 hallazgos corregidos o cerrados (10 históricos + QA-010/011/014/017/030/031 nuevos + QA-032/QA-033/QA-034 + QA-012/QA-016/QA-035/QA-038 + QA-013 parcial + QA-015 verificado como no reproducible); el resto permanece pendiente, sujeto a priorización y aprobación para los siguientes Entregables del Sprint 8 (ver `DECISIONS.md` D-043 para la planificación vigente de 8.6 a 8.7).
 
 ---
 
@@ -111,7 +112,7 @@ La auditoría integral (`QA_REPORT_2.md`) declaró como alcance el estado del pr
 - **Corrección aplicada:** Se eliminó la clave `'transport' => 'postMessage'` de los 3 `add_setting()` de color; quedan en el default `refresh`, que es honesto con el comportamiento real. No se implementó el script de preview en vivo alternativo (mayor alcance, no solicitado).
 
 ### QA-012 — Consultas de "relacionados" sin caché (hasta 4 `WP_Query` extra por página)
-- **Estado:** 🟡 **Implementado en Sprint 8, Entregable 8.5 — pendiente de pruebas funcionales reales.** Ver `DECISIONS.md` D-102.
+- **Estado:** ✅ **Corregido y aprobado en Sprint 8, Entregable 8.5**, tras pruebas funcionales reales del usuario. Ver `DECISIONS.md` D-102, D-103.
 - **Archivo afectado:** `inc/helpers.php`
 - **Descripción:** `ce_get_related_services()`/`ce_get_related_projects()` no usan memoización ni transient, a diferencia de `ce_cpt_has_posts()`.
 - **Corrección aplicada:** transient de 1h por id+límite (también extendida a `ce_get_related_services_for_project()`, mismo patrón sin caché aunque no nombrada en el hallazgo original), con invalidación activa vía contador de versión al guardar `servicio`/`proyecto` o editar sus taxonomías. Ver `DECISIONS.md` D-102 para el detalle técnico completo.
@@ -134,7 +135,7 @@ La auditoría integral (`QA_REPORT_2.md`) declaró como alcance el estado del pr
 - **Descripción:** Se inspeccionó línea por línea el código actual: `$attachment_name` **sí se usa**, en `$attachment_data['post_title']` al construir el array pasado a `wp_insert_attachment()` (dentro del bloque de registro del adjunto como Media Library attachment, ver QA-002). No es código muerto en el estado actual del repositorio — el hallazgo, tal como está descrito, no se reproduce. No se realizó ningún cambio de código para este ítem; se cierra únicamente a nivel de este reporte.
 
 ### QA-016 — `<script>` inline en metabox sin `wp_enqueue_script`/dependencia declarada
-- **Estado:** 🟡 **Implementado en Sprint 8, Entregable 8.5 — pendiente de pruebas funcionales reales.** Ver `DECISIONS.md` D-102.
+- **Estado:** ✅ **Corregido y aprobado en Sprint 8, Entregable 8.5**, tras pruebas funcionales reales del usuario. Ver `DECISIONS.md` D-102, D-103.
 - **Archivo afectado:** `inc/meta-boxes.php` (`ce_render_proyecto_gallery()`)
 - **Descripción:** El selector de galería imprime `<script>` jQuery inline sin declarar `jquery` como dependencia formal.
 - **Corrección aplicada:** script movido a `assets/js/admin-proyecto-gallery.js` (nuevo), encolado en `inc/enqueue.php` con `array( 'jquery', 'media-editor' )` como dependencia formal, condicionado a la pantalla de edición del CPT `proyecto`. Ver `DECISIONS.md` D-102.
@@ -230,12 +231,13 @@ La única protección contra doble envío es del lado del cliente (`ModuleQuoteF
 **Slider de testimonios: mecanismo de pausa de autoplay no accesible a teclado/touch.** `ModuleTestimonialSlider` inicia autoplay (`setInterval`) y solo lo detiene con `mouseenter`/`mouseleave` sobre el contenedor. Un usuario que navega exclusivamente con teclado, o en un dispositivo táctil (donde no existe "hover"), no tiene forma de pausar el contenido en movimiento automático. Esto incumple el criterio WCAG 2.2.2 (Pausar, Detener, Ocultar), que exige un mecanismo de pausa accesible para cualquier contenido que se mueva/actualice automáticamente por más de 5 segundos y que no sea esencial.
 - **Archivo:** `assets/js/main.js` (`ModuleTestimonialSlider`).
 - **Severidad:** MEDIO.
-- **Estado:** 🟡 **Implementado en Sprint 8, Entregable 8.5 — pendiente de pruebas funcionales reales.** Botón de pausa/reanudación accesible (teclado + touch) más pausa automática al recibir foco de teclado, añadidos a `createSliderController()`/`ModuleTestimonialSlider`. `ModuleHeroSlider` no se modificó (decorativo, sin dots/flechas, decisión ya aprobada en D-055). Ver `DECISIONS.md` D-102.
+- **Estado:** ✅ **Corregido y aprobado en Sprint 8, Entregable 8.5**, tras pruebas funcionales reales del usuario. Botón de pausa/reanudación accesible (teclado + touch) más pausa automática al recibir foco de teclado, añadidos a `createSliderController()`/`ModuleTestimonialSlider`. `ModuleHeroSlider` no se modificó (decorativo, sin dots/flechas, decisión ya aprobada en D-055). Ver `DECISIONS.md` D-102, D-103.
 
 ### Nuevo hallazgo MEDIO — QA-036
 **Gestión de foco ausente en menú móvil off-canvas y en modales.** Ni `ModuleMobileNav.open()`/`close()` ni `ModuleModals.open()`/`close()` mueven el foco del teclado hacia el panel/modal al abrir, ni lo devuelven al elemento disparador al cerrar, ni implementan un *focus trap* que mantenga el `Tab` dentro del panel mientras está abierto. Un usuario de teclado puede, tras abrir el menú móvil o un modal, seguir tabulando por elementos del fondo de la página (fuera del panel visible), lo cual es una violación común de accesibilidad en overlays/diálogos (relacionado con el patrón ARIA "Dialog (Modal)").
 - **Archivos:** `assets/js/main.js` (`ModuleMobileNav`, `ModuleModals`), `header.php`, `footer.php`.
 - **Severidad:** MEDIO.
+- **Estado:** 🟡 **Implementado en Sprint 8, Entregable 8.6 — pendiente de pruebas funcionales reales.** Nueva utilidad compartida `FocusTrap` (`assets/js/main.js`), resolviendo la decisión de diseño que R-4 dejaba abierta (centralizar en vez de corregir por componente): trap de `Tab` + foco inicial + devolución de foco al disparador, aplicado a `ModuleMobileNav` y `ModuleModals`, y retrofit no disruptivo en `ModuleLightbox` (que ya movía el foco manualmente, ahora también con trap de `Tab`). Ver `DECISIONS.md` D-104.
 
 ### Nuevo hallazgo BAJO — QA-037
 **`aria-label` estático del botón de menú móvil.** El botón `.ce-nav-toggle` mantiene siempre `aria-label="Abrir menú"` (definido en `header.php`), sin actualizarse a "Cerrar menú" cuando `ModuleMobileNav` lo marca como `is-active`/`aria-expanded="true"`. El estado `aria-expanded` sí se actualiza correctamente, pero el `aria-label` no acompaña ese cambio, lo cual puede confundir a usuarios de lector de pantalla que dependen más del label que del atributo `aria-expanded`.
@@ -249,7 +251,7 @@ La única protección contra doble envío es del lado del cliente (`ModuleQuoteF
 ### Nuevo hallazgo MEDIO — QA-038
 **Ausencia de `<link rel="canonical">`.** `ce_construction_meta_tags()` en `inc/seo.php` emite `og:url` pero no un `<link rel="canonical" href="...">` explícito en `<head>`. Sin canonical explícito, el sitio depende enteramente de la heurística de Google para URLs canónicas, lo cual es un riesgo real de contenido duplicado indexable en escenarios con parámetros de query (paginación de comentarios, UTMs, `?s=` variantes, etc.), especialmente relevante dado que el tema sí tiene paginación (`paginate_links`) en varios archivos sin parámetro canonical explícito hacia la página base.
 - **Archivo:** `inc/seo.php`.
-- **Estado:** 🟡 **Implementado en Sprint 8, Entregable 8.5 — pendiente de pruebas funcionales reales.** Nueva función `ce_construction_get_canonical_url()`: delega en `wp_get_canonical_url()` nativo para contenido singular, y construye la URL base limpia por tipo de archivo (post type, taxonomía, autor, fecha, búsqueda, Home) para el resto, reaplicando paginación de forma auto-referencial. `og:url` no se tocó (fuera del alcance literal de este hallazgo). Ver `DECISIONS.md` D-102.
+- **Estado:** ✅ **Corregido y aprobado en Sprint 8, Entregable 8.5**, tras pruebas funcionales reales del usuario. Nueva función `ce_construction_get_canonical_url()`: delega en `wp_get_canonical_url()` nativo para contenido singular, y construye la URL base limpia por tipo de archivo (post type, taxonomía, autor, fecha, búsqueda, Home) para el resto, reaplicando paginación de forma auto-referencial. `og:url` no se tocó (fuera del alcance literal de este hallazgo). Ver `DECISIONS.md` D-102, D-103.
 
 ### Nuevo hallazgo BAJO — QA-039
 **Twitter Card incompleto.** Solo se emite `<meta name="twitter:card" content="summary_large_image">`, sin `twitter:title`, `twitter:description` ni `twitter:image` explícitos. La mayoría de los parsers de Twitter/X hacen fallback a las etiquetas `og:*` equivalentes, por lo que el impacto práctico es bajo, pero no está garantizado para todos los consumidores de la Card.
@@ -330,19 +332,19 @@ El problema de versión de assets congelada (QA-030) tiene una faceta de perform
 |---|---|---|
 | QA-010 | Filtro `defer` redundante | ✅ Corregido (Entregable 8.1) |
 | QA-011 | `postMessage` sin preview JS | ✅ Corregido (Entregable 8.1) |
-| QA-012 | Consultas relacionadas sin caché | 🟡 Implementado — pendiente de pruebas funcionales (Entregable 8.5, `DECISIONS.md` D-102) |
+| QA-012 | Consultas relacionadas sin caché | ✅ Corregido y aprobado (Entregable 8.5, `DECISIONS.md` D-102/D-103) |
 | QA-013 | Duplicación CSS/reset | 🟡 Parcial (Entregable 8.1 — solo comentario) |
 | QA-014 | JSON-LD sin endurecimiento contra `</script>` | ✅ Corregido (Entregable 8.1) |
 | QA-015 | `$attachment_name` sin uso | ✅ Verificado — ya no se reproduce (Entregable 8.1) |
-| QA-016 | Script inline de metabox sin dependencia formal | 🟡 Implementado — pendiente de pruebas funcionales (Entregable 8.5, `DECISIONS.md` D-102) |
+| QA-016 | Script inline de metabox sin dependencia formal | ✅ Corregido y aprobado (Entregable 8.5, `DECISIONS.md` D-102/D-103) |
 | QA-017 | Skip-link sin `tabindex="-1"` | ✅ Corregido (Entregable 8.1) |
 | QA-018 | Header top sin adaptación responsive | ✅ Corregido |
 | QA-032 | Race condition del rate-limit | ✅ Corregido y aprobado (Entregable 8.4, `DECISIONS.md` D-098/D-099/D-101) |
 | QA-033 | Archivo huérfano si falla `wp_insert_post()` | ✅ Corregido y aprobado (Entregable 8.4, `DECISIONS.md` D-098/D-099/D-101) |
 | QA-034 | Sin idempotencia de envíos | ✅ Corregido y aprobado (Entregable 8.4, `DECISIONS.md` D-098/D-099/D-101) |
-| QA-035 | Autoplay sin pausa accesible | 🟡 Implementado — pendiente de pruebas funcionales (Entregable 8.5, `DECISIONS.md` D-102) |
-| QA-036 | Sin gestión de foco en overlays | ⬜ Abierto |
-| QA-038 | Sin `<link rel="canonical">` | 🟡 Implementado — pendiente de pruebas funcionales (Entregable 8.5, `DECISIONS.md` D-102) |
+| QA-035 | Autoplay sin pausa accesible | ✅ Corregido y aprobado (Entregable 8.5, `DECISIONS.md` D-102/D-103) |
+| QA-036 | Sin gestión de foco en overlays | 🟡 Implementado — pendiente de pruebas funcionales (Entregable 8.6, `DECISIONS.md` D-104) |
+| QA-038 | Sin `<link rel="canonical">` | ✅ Corregido y aprobado (Entregable 8.5, `DECISIONS.md` D-102/D-103) |
 
 ## 🟢 BAJO
 
@@ -430,8 +432,8 @@ Hallazgos relevantes:
 - QA-005: contraste histórico corregido.
 - QA-017: skip-link corregido (Sprint 8, Entregable 8.1).
 - QA-018: header responsive corregido.
-- QA-035: autoplay de testimonios — pausa accesible implementada (Sprint 8, Entregable 8.5, pendiente de pruebas funcionales).
-- QA-036: gestión de foco de overlays pendiente.
+- QA-035: autoplay de testimonios — pausa accesible corregida y aprobada (Sprint 8, Entregable 8.5).
+- QA-036: gestión de foco de overlays implementada, pendiente de pruebas funcionales (Sprint 8, Entregable 8.6).
 - QA-037: `aria-label` estático del menú móvil.
 
 ---
@@ -502,7 +504,7 @@ El QA maestro consolida los dos reportes entregados y mantiene la trazabilidad d
 
 **Hallazgos de prioridad ALTA de la auditoría integral:** QA-030 corregido en Sprint 8, Entregable 8.2 (`DECISIONS.md` D-044); QA-031 corregido y aprobado en Sprint 8, Entregable 8.3 (`DECISIONS.md` D-096/D-097). No quedan hallazgos Altos abiertos a la fecha de esta actualización.
 
-**Nuevos hallazgos MEDIOS:** QA-032, QA-033 y QA-034 corregidos y aprobados en Sprint 8, Entregable 8.4 (`DECISIONS.md` D-098/D-099/D-101). QA-012, QA-016, QA-035 y QA-038 implementados en Sprint 8, Entregable 8.5, pendientes de pruebas funcionales reales (`DECISIONS.md` D-102). QA-036 permanece abierto, propuesto para el Entregable 8.6.
+**Nuevos hallazgos MEDIOS:** QA-032, QA-033 y QA-034 corregidos y aprobados en Sprint 8, Entregable 8.4 (`DECISIONS.md` D-098/D-099/D-101). QA-012, QA-016, QA-035 y QA-038 corregidos y aprobados en Sprint 8, Entregable 8.5 (`DECISIONS.md` D-102/D-103). QA-036 implementado en Sprint 8, Entregable 8.6, pendiente de pruebas funcionales reales (`DECISIONS.md` D-104).
 
 **Nuevos hallazgos BAJOS:** QA-037, QA-039 y QA-040.
 
