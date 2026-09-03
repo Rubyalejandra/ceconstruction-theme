@@ -221,6 +221,12 @@
 			this.overlay && this.overlay.classList.add('is-visible');
 			this.toggle.classList.add('is-active');
 			this.toggle.setAttribute('aria-expanded', 'true');
+			// 🆕 QA-037 (Sprint 8, Entregable 8.7): aria-expanded ya se
+			// actualizaba, pero el aria-label se quedaba siempre en
+			// "Abrir menú" — algunos lectores de pantalla anuncian el
+			// label antes que aria-expanded, así que dejarlo estático
+			// podía anunciar la acción equivocada con el menú ya abierto.
+			this.toggle.setAttribute('aria-label', CE.i18n.closeMobileNav || 'Cerrar menú');
 			document.body.classList.add('ce-no-scroll');
 
 			// QA-036: trap de foco dentro del panel. `this.toggle` es
@@ -234,6 +240,7 @@
 			this.overlay && this.overlay.classList.remove('is-visible');
 			this.toggle.classList.remove('is-active');
 			this.toggle.setAttribute('aria-expanded', 'false');
+			this.toggle.setAttribute('aria-label', CE.i18n.openMobileNav || 'Abrir menú'); // QA-037
 			document.body.classList.remove('ce-no-scroll');
 
 			// QA-036: sin efecto si el menú no era el trap activo (p. ej.
@@ -513,6 +520,19 @@
 			bindArrows() {
 				const prev = config.prevSelector ? $(config.prevSelector, this.root.parentElement) : null;
 				const next = config.nextSelector ? $(config.nextSelector, this.root.parentElement) : null;
+
+				// 🆕 QA-020 (Sprint 8, Entregable 8.7): con un solo slide no
+				// hay a dónde navegar — antes las flechas quedaban visibles
+				// igual (sin hacer nada útil al pulsarlas, ya que goTo()
+				// sobre un único slide vuelve siempre al mismo índice). Se
+				// ocultan aquí, en la fábrica compartida, en vez de en cada
+				// plantilla que las imprime — mismo criterio ya usado por
+				// ModuleLightbox para su propio prev/next
+				// (`this.prevBtn.style.display = multiple ? '' : 'none'`).
+				const multiple = this.slides.length > 1;
+				if (prev) prev.style.display = multiple ? '' : 'none';
+				if (next) next.style.display = multiple ? '' : 'none';
+
 				on(prev, 'click', () => this.goTo(this.current - 1));
 				on(next, 'click', () => this.goTo(this.current + 1));
 			},

@@ -107,6 +107,16 @@ function ce_construction_enqueue_assets() {
 			// resto de este array: ningún string vive hardcodeado en el JS.
 			'pauseSlider'  => __( 'Pausar', 'ce-construction' ),
 			'resumeSlider' => __( 'Reanudar', 'ce-construction' ),
+			// QA-037 (Sprint 8, Entregable 8.7): el botón hamburguesa
+			// mantenía siempre el mismo aria-label ("Abrir menú"), incluso
+			// con el menú ya abierto — ver ModuleMobileNav.open()/close()
+			// en assets/js/main.js. header.php sigue imprimiendo
+			// 'Abrir menú' como valor inicial vía esc_attr_e() normal (no
+			// depende de este array para el primer render); estas 2
+			// claves solo cubren la actualización dinámica en cada
+			// apertura/cierre.
+			'openMobileNav'  => __( 'Abrir menú', 'ce-construction' ),
+			'closeMobileNav' => __( 'Cerrar menú', 'ce-construction' ),
 		),
 	) );
 

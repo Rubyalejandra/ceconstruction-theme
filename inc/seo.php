@@ -198,6 +198,19 @@ function ce_construction_meta_tags() {
 		printf( '<meta property="og:image" content="%s">' . "\n", esc_url( $image ) );
 	}
 	printf( '<meta name="twitter:card" content="summary_large_image">' . "\n" );
+	// QA-039 (Sprint 8, Entregable 8.7): antes solo se emitía
+	// twitter:card, sin twitter:title/description/image explícitos.
+	// La mayoría de los parsers de Twitter/X hacen fallback a las
+	// etiquetas og:* equivalentes (ya impresas arriba), pero eso no
+	// está garantizado para todos los consumidores de la Card — se
+	// declaran aquí explícitas, reutilizando exactamente las mismas
+	// variables ya calculadas para og:title/og:description/og:image
+	// (sin ninguna consulta ni cálculo adicional).
+	printf( '<meta name="twitter:title" content="%s">' . "\n", esc_attr( $title ) );
+	printf( '<meta name="twitter:description" content="%s">' . "\n", esc_attr( wp_strip_all_tags( $description ) ) );
+	if ( $image ) {
+		printf( '<meta name="twitter:image" content="%s">' . "\n", esc_url( $image ) );
+	}
 }
 add_action( 'wp_head', 'ce_construction_meta_tags', 1 );
 
@@ -476,6 +489,47 @@ add_action( 'wp_head', 'ce_construction_schema_project' );
  * ========================================================= */
 
 /**
+ * QA-040 (Sprint 8, Entregable 8.7): Servicio y Proyecto (arriba) ya
+ * emiten su propio BreadcrumbList JSON-LD, cada uno con el array
+ * armado inline. Persona, Cliente y BlogPosting (las 3 funciones de
+ * schema de abajo) no lo hacían, pese a tener el mismo breadcrumb
+ * HTML de 3 niveles (Inicio > Archivo > Título) ya resuelto por
+ * ce_construction_breadcrumbs() más arriba en este archivo —
+ * inconsistencia de cobertura entre tipos de contenido
+ * estructuralmente iguales, sin que faltara ningún dato para
+ * completarla. Se introduce aquí un helper compartido para las 3
+ * funciones nuevas (evita triplicar el mismo array de 3 niveles) sin
+ * tocar las 2 ya existentes arriba, que siguen con su propio bloque
+ * inline tal cual estaban.
+ */
+function ce_construction_breadcrumb_schema( $archive_label, $archive_url, $item_label, $item_url ) {
+	ce_construction_output_json_ld( array(
+		'@context'        => 'https://schema.org',
+		'@type'           => 'BreadcrumbList',
+		'itemListElement' => array(
+			array(
+				'@type'    => 'ListItem',
+				'position' => 1,
+				'name'     => __( 'Inicio', 'ce-construction' ),
+				'item'     => home_url( '/' ),
+			),
+			array(
+				'@type'    => 'ListItem',
+				'position' => 2,
+				'name'     => $archive_label,
+				'item'     => $archive_url,
+			),
+			array(
+				'@type'    => 'ListItem',
+				'position' => 3,
+				'name'     => $item_label,
+				'item'     => $item_url,
+			),
+		),
+	) );
+}
+
+/**
  * Schema.org JSON-LD para single de Miembro del Equipo: `Person`,
  * vinculado a la organización mediante `worksFor`.
  */
@@ -511,6 +565,16 @@ function ce_construction_schema_person() {
 	}
 
 	ce_construction_output_json_ld( $schema );
+
+	// QA-040: BreadcrumbList (Inicio > Equipo > Nombre) — mismo trail
+	// que ce_construction_breadcrumbs() ya resuelve en HTML para este
+	// tipo de contenido.
+	ce_construction_breadcrumb_schema(
+		__( 'Equipo', 'ce-construction' ),
+		get_post_type_archive_link( 'miembro_equipo' ),
+		get_the_title( $post_id ),
+		get_permalink( $post_id )
+	);
 }
 add_action( 'wp_head', 'ce_construction_schema_person' );
 
@@ -542,6 +606,14 @@ function ce_construction_schema_client_organization() {
 	}
 
 	ce_construction_output_json_ld( $schema );
+
+	// QA-040: BreadcrumbList (Inicio > Clientes > Nombre).
+	ce_construction_breadcrumb_schema(
+		__( 'Clientes', 'ce-construction' ),
+		get_post_type_archive_link( 'cliente' ),
+		get_the_title( $post_id ),
+		get_permalink( $post_id )
+	);
 }
 add_action( 'wp_head', 'ce_construction_schema_client_organization' );
 
@@ -590,5 +662,15 @@ function ce_construction_schema_blog_post() {
 	}
 
 	ce_construction_output_json_ld( $schema );
+
+	// QA-040: BreadcrumbList (Inicio > Blog > Título) — misma resolución
+	// de la Página "de entradas" que ya usa ce_construction_breadcrumbs()
+	// para el equivalente en HTML de este mismo tipo de contenido.
+	ce_construction_breadcrumb_schema(
+		__( 'Blog', 'ce-construction' ),
+		get_permalink( get_option( 'page_for_posts' ) ),
+		get_the_title( $post_id ),
+		get_permalink( $post_id )
+	);
 }
 add_action( 'wp_head', 'ce_construction_schema_blog_post' );

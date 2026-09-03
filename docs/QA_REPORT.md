@@ -34,7 +34,7 @@
 - **QA-015: ✅ verificado en Sprint 8, Entregable 8.1 — no se reproduce en el código actual, sin cambio de código.**
 - **QA-030 (Alto): ✅ corregido en Sprint 8, Entregable 8.2** (cache-busting por `filemtime()` + `CE_THEME_VERSION` derivada de `wp_get_theme()`) — ver `DECISIONS.md` D-044.
 - **QA-012, QA-016 (Medios):** ✅ **corregidos y aprobados** — Sprint 8, Entregable 8.5 (`DECISIONS.md` D-102, D-103). Pruebas funcionales reales ejecutadas por el usuario.
-- QA-019 a QA-029: ⬜ pendientes / mejoras futuras según su clasificación.
+- **QA-019, QA-020, QA-037, QA-039, QA-040 (Bajos):** ✅ **corregidos y aprobados** — Sprint 8, Entregable 8.7 (`DECISIONS.md` D-106/D-107). Pruebas funcionales reales ejecutadas por el usuario. **QA-021, QA-022:** ✅ verificados como ya resueltos, efecto colateral de correcciones anteriores (Entregables 8.2 y 8.5). **Con esto, el Sprint 8 queda completo y cerrado.** QA-024 a QA-029: ⬜ pendientes / mejoras futuras según su clasificación, fuera del Sprint 8.
 - **QA-031 (Alto):** ✅ **corregido y aprobado** — Sprint 8, Entregable 8.3 (`DECISIONS.md` D-096, D-097). Pruebas funcionales reales ejecutadas y verificadas por el usuario en el entorno real (Apache/2.4.68, PHP 8.2.33).
 - **QA-032, QA-033, QA-034 (Medios):** ✅ **corregidos y aprobados** — Sprint 8, Entregable 8.4 (`DECISIONS.md` D-098, D-099, D-101). Pruebas funcionales reales ejecutadas por el usuario.
 - **QA-035, QA-038 (Medios):** ✅ **corregidos y aprobados** — Sprint 8, Entregable 8.5 (`DECISIONS.md` D-102, D-103). Pruebas funcionales reales ejecutadas por el usuario.
@@ -43,7 +43,7 @@
 - QA-042: 🔵 mejora futura.
 - **QA-043:** ✅ **corregido** — `.ce-header__social` sin estilo base, resuelto en Sprint UX-11 (no en el Sprint 8, ver `docs/DECISIONS.md` D-087/D-090). Ver sección 4.7.
 
-**Resultado operativo (actualizado, Sprint 8 Entregable 8.6):** 26 hallazgos corregidos o cerrados (10 históricos + QA-010/011/014/017/030/031 nuevos + QA-032/QA-033/QA-034 + QA-012/QA-016/QA-035/QA-038 + QA-036 + QA-013 parcial + QA-015 verificado como no reproducible); el resto permanece pendiente, sujeto a priorización y aprobación para el Entregable 8.7, último de la reorganización vigente (ver `DECISIONS.md` D-043).
+**Resultado operativo (Sprint 8 CERRADO Y APROBADO EN SU TOTALIDAD):** 33 hallazgos corregidos o cerrados (10 históricos + QA-010/011/014/017/030/031 nuevos + QA-032/QA-033/QA-034 + QA-012/QA-016/QA-035/QA-038 + QA-036 + QA-019/QA-020/QA-021/QA-022/QA-037/QA-039/QA-040 + QA-013 parcial + QA-015 verificado como no reproducible). No queda ningún hallazgo de severidad Alta o Media abierto en el proyecto. Restan como backlog fuera del Sprint 8: QA-024 a QA-029 y QA-042 (mejoras futuras, no priorizadas — no se implementan sin que el usuario decida incorporarlas a un Sprint futuro).
 
 ---
 
@@ -157,7 +157,7 @@ La auditoría integral (`QA_REPORT_2.md`) declaró como alcance el estado del pr
 
 ## 🟢 BAJO
 
-*(QA-019 a QA-023 — sin cambios respecto a versiones previas de este documento; ninguno fue tocado en este Entregable. Ver el detalle completo en el repositorio/entregas anteriores: reutilización de `.ce-modal__close` fuera de contexto, flechas de slider con 1 solo testimonio, discrepancia de versión ya resuelta como efecto colateral de QA-008, concatenación de HTML en JS del admin, y verificación positiva de `rel="noopener"` en todos los enlaces externos.)*
+*(QA-019, QA-020, QA-022, QA-023 corregidos/verificados en Sprint 8, Entregable 8.7 — ver detalle individual en la tabla de estado más abajo y en `DECISIONS.md` D-106. QA-021 verificado como ya resuelto por efecto colateral de QA-030/D-044.)*
 
 ## 🔵 MEJORAS FUTURAS
 
@@ -178,6 +178,8 @@ La auditoría integral (`QA_REPORT_2.md`) declaró como alcance el estado del pr
 **Actualización (Sprint 7, Entregable 7.3, v0.7.2):** de los 9 hallazgos Medios (QA-010 a QA-018), se corrigió únicamente **QA-018**, con autorización explícita puntual del usuario para ese hallazgo específico (no para el resto de Medios). Corrección documentada en `CHANGELOG.md` (v0.7.2) y `DECISIONS.md` (D-039).
 
 **Actualización (Sprint 8, Entregable 8.1):** re-evaluados contra el código real del repositorio los 8 hallazgos Medios restantes de la auditoría histórica (QA-010 a QA-017). Corregidos: QA-010, QA-011, QA-014, QA-017 (completos) y QA-013 (parcial, solo el comentario). Verificado como ya no reproducible: QA-015 (sin cambio de código). Pendientes: QA-012 y QA-016. Ver `DECISIONS.md` D-042 para el detalle completo de la re-evaluación y de por qué la agrupación de D-041 quedó superseded. Los hallazgos de la auditoría integral (QA-030 a QA-042) permanecen sin tocar — esta actualización se limitó al Entregable 8.1, que no los incluyó.
+
+**Cierre final (Sprint 8, Entregable 8.7 — SPRINT 8 COMPLETO):** con la aprobación explícita del Entregable 8.7 (`DECISIONS.md` D-106/D-107), los 7 Entregables de la reorganización vigente de D-043 quedan aprobados en su totalidad. No queda ningún hallazgo de severidad Alta o Media abierto en el proyecto. El único backlog restante son las Mejoras futuras (QA-024 a QA-029, QA-042), explícitamente fuera del Sprint 8 desde su planificación — no se implementan sin que el usuario decida incorporarlas a un Sprint futuro.
 
 ---
 
@@ -243,6 +245,7 @@ La única protección contra doble envío es del lado del cliente (`ModuleQuoteF
 **`aria-label` estático del botón de menú móvil.** El botón `.ce-nav-toggle` mantiene siempre `aria-label="Abrir menú"` (definido en `header.php`), sin actualizarse a "Cerrar menú" cuando `ModuleMobileNav` lo marca como `is-active`/`aria-expanded="true"`. El estado `aria-expanded` sí se actualiza correctamente, pero el `aria-label` no acompaña ese cambio, lo cual puede confundir a usuarios de lector de pantalla que dependen más del label que del atributo `aria-expanded`.
 - **Archivos:** `header.php`, `assets/js/main.js`.
 - **Severidad:** BAJO.
+- **Estado:** ✅ **Corregido y aprobado en Sprint 8, Entregable 8.7**, tras pruebas funcionales reales del usuario. Nuevas claves `openMobileNav`/`closeMobileNav` en `ceConstructionData.i18n` (`inc/enqueue.php`); `ModuleMobileNav.open()`/`close()` sincroniza el `aria-label` con el estado real. Ver `DECISIONS.md` D-106, D-107.
 
 ---
 
@@ -256,10 +259,12 @@ La única protección contra doble envío es del lado del cliente (`ModuleQuoteF
 ### Nuevo hallazgo BAJO — QA-039
 **Twitter Card incompleto.** Solo se emite `<meta name="twitter:card" content="summary_large_image">`, sin `twitter:title`, `twitter:description` ni `twitter:image` explícitos. La mayoría de los parsers de Twitter/X hacen fallback a las etiquetas `og:*` equivalentes, por lo que el impacto práctico es bajo, pero no está garantizado para todos los consumidores de la Card.
 - **Archivo:** `inc/seo.php`.
+- **Estado:** ✅ **Corregido y aprobado en Sprint 8, Entregable 8.7**, tras pruebas funcionales reales del usuario. `twitter:title`/`twitter:description`/`twitter:image` añadidos en `ce_construction_meta_tags()`, reutilizando las mismas variables ya calculadas para `og:*`. No son campos configurables — se generan automáticamente a partir de título/descripción/imagen ya existentes, sin ningún ajuste nuevo en el Customizer. Ver `DECISIONS.md` D-106, D-107.
 
 ### Nuevo hallazgo BAJO — QA-040
 **Inconsistencia de cobertura de `BreadcrumbList` JSON-LD entre tipos de contenido.** Servicio y Proyecto emiten su propio `BreadcrumbList`; Persona (Equipo), Cliente y BlogPosting no lo hacen, pese a que los 3 sí tienen breadcrumbs HTML equivalentes vía `ce_construction_breadcrumbs()`. No es un bug (nada está roto), pero es una inconsistencia de cobertura SEO entre tipos de contenido estructuralmente similares.
 - **Archivo:** `inc/seo.php`.
+- **Estado:** ✅ **Corregido y aprobado en Sprint 8, Entregable 8.7**, tras pruebas funcionales reales del usuario. Nuevo helper `ce_construction_breadcrumb_schema()`, aplicado a Persona/Cliente/BlogPosting; Servicio/Proyecto no se tocaron (ya lo tenían, con su propio bloque inline). Ver `DECISIONS.md` D-106, D-107.
 
 ---
 
@@ -350,14 +355,14 @@ El problema de versión de assets congelada (QA-030) tiene una faceta de perform
 
 | ID | Hallazgo | Estado |
 |---|---|---|
-| QA-019 | Reutilización de `.ce-modal__close` fuera de contexto | ⬜ Abierto |
-| QA-020 | Flechas de slider con un solo testimonio | ⬜ Abierto |
-| QA-021 | Discrepancia de versión documentada históricamente | ⬜/impacto relacionado con QA-030 |
-| QA-022 | Concatenación de HTML en JS del admin | ⬜ Abierto |
+| QA-019 | Reutilización de `.ce-modal__close` fuera de contexto | ✅ Corregido y aprobado (Entregable 8.7, `DECISIONS.md` D-106/D-107) |
+| QA-020 | Flechas de slider con un solo testimonio | ✅ Corregido y aprobado (Entregable 8.7, `DECISIONS.md` D-106/D-107) |
+| QA-021 | Discrepancia de versión documentada históricamente | ✅ Verificado como ya resuelto (efecto colateral de QA-030/D-044, Entregable 8.2) |
+| QA-022 | Concatenación de HTML en JS del admin | ✅ Verificado como ya resuelto (efecto colateral de QA-016/D-102, Entregable 8.5) |
 | QA-023 | Verificación positiva de `rel="noopener"` | ℹ️ Sin defecto confirmado |
-| QA-037 | `aria-label` estático del menú móvil | ⬜ Abierto |
-| QA-039 | Twitter Card incompleto | ⬜ Abierto |
-| QA-040 | `BreadcrumbList` JSON-LD inconsistente | ⬜ Abierto |
+| QA-037 | `aria-label` estático del menú móvil | ✅ Corregido y aprobado (Entregable 8.7, `DECISIONS.md` D-106/D-107) |
+| QA-039 | Twitter Card incompleto | ✅ Corregido y aprobado (Entregable 8.7, `DECISIONS.md` D-106/D-107) |
+| QA-040 | `BreadcrumbList` JSON-LD inconsistente | ✅ Corregido y aprobado (Entregable 8.7, `DECISIONS.md` D-106/D-107) |
 | QA-041 | `page.php` no existe en el repositorio (verificado) | ✅ Cerrado — `page.php` fue creado después, en Sprint UX-6 (fuera del Sprint 8) |
 | QA-043 | `.ce-header__social` sin estilo base | ✅ Corregido en Sprint UX-11 (D-087/D-090) |
 

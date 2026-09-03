@@ -101,7 +101,17 @@ $ce_quote_cta_url = ce_get_quote_cta_url();
 <!-- Menú móvil off-canvas -->
 <div class="ce-nav-overlay"></div>
 <nav id="ce-nav-mobile" class="ce-nav-mobile" aria-label="<?php esc_attr_e( 'Menú móvil', 'ce-construction' ); ?>">
-	<button class="ce-nav-mobile__close ce-modal__close" aria-label="<?php esc_attr_e( 'Cerrar menú', 'ce-construction' ); ?>">
+	<!-- QA-019 (Sprint 8, Entregable 8.7): antes reutilizaba también la
+	     clase .ce-modal__close (de footer.php/offer-popup.php) solo para
+	     heredar su estilo — sin relación funcional real con un modal
+	     (ModuleModals.init() nunca la seleccionaba aquí, ya que busca
+	     .ce-modal__close DENTRO de .ce-modal-overlay, y este botón vive
+	     dentro de .ce-nav-mobile). El acoplamiento era puramente visual
+	     e implícito: cualquier cambio futuro al estilo de los modales
+	     habría afectado este botón sin ninguna relación semántica.
+	     .ce-nav-mobile__close ahora tiene su propia regla en
+	     assets/css/main.css (misma apariencia, sin cambio visual). -->
+	<button class="ce-nav-mobile__close" aria-label="<?php esc_attr_e( 'Cerrar menú', 'ce-construction' ); ?>">
 		<i class="fa-solid fa-xmark" aria-hidden="true"></i>
 	</button>
 	<?php

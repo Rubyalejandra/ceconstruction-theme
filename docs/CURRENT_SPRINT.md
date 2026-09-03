@@ -7,7 +7,7 @@
 
 ## Estado del Sprint 8
 
-**Sprint 8 — "Cierre de Hallazgos QA": EN CURSO, PAUSADO desde antes del inicio de la fase "Optimización UX / Conversión".**
+**Sprint 8 — "Cierre de Hallazgos QA": ✅ COMPLETO Y CERRADO EN SU TOTALIDAD.** Los 7 Entregables de la reorganización vigente de D-043 quedaron aprobados explícitamente por el usuario. No queda ningún hallazgo de severidad Alta o Media abierto en el proyecto.
 
 | Entregable | Alcance | Estado |
 |---|---|---|
@@ -17,7 +17,7 @@
 | 8.4 | QA-032 (race condition del rate-limit), QA-033 (archivo huérfano si falla `wp_insert_post()`), QA-034 (sin idempotencia de envíos) | ✅ **Aprobado explícitamente por el usuario**, tras ejecutar las pruebas funcionales reales. Ver `docs/DECISIONS.md` D-098 (diseño e implementación inicial), D-099 (integración de los 2 archivos que faltaban) y D-101 (aprobación final). |
 | 8.5 | QA-012 (caché de consultas "relacionados"), QA-016 (script inline de metabox sin dependencia formal), QA-035 (autoplay de testimonios sin pausa accesible), QA-038 (`<link rel="canonical">` ausente) | ✅ **Aprobado explícitamente por el usuario**, tras pruebas funcionales reales. Ver `docs/DECISIONS.md` D-102 (implementación) y D-103 (aprobación). |
 | 8.6 | QA-036 (sin gestión de foco en overlays: menú móvil, modales, lightbox) | ✅ **Aprobado explícitamente por el usuario**, tras pruebas funcionales reales. Ver `docs/DECISIONS.md` D-104 (implementación) y D-105 (aprobación). |
-| 8.7 | Hallazgos Bajos: QA-019, QA-020, QA-021, QA-022, QA-037, QA-039, QA-040 | ⬜ Propuesto, sin iniciar. |
+| 8.7 | Hallazgos Bajos: QA-019, QA-020, QA-021, QA-022, QA-037, QA-039, QA-040 | ✅ **Aprobado explícitamente por el usuario**, tras pruebas funcionales reales. QA-019/020/037/039/040 con cambio de código; QA-021/022 verificados como ya resueltos por efecto colateral de Entregables anteriores. Ver `docs/DECISIONS.md` D-106 (implementación) y D-107 (aprobación — **cierre del Sprint 8**). |
 | Fuera de Sprint 8 (backlog) | QA-024 a QA-029, QA-042 (Mejoras futuras) | ⬜ No se implementan sin aprobación explícita de incorporarlas a un Sprint. |
 
 Esta agrupación de 8.3 a 8.7 es la **vigente** (`docs/DECISIONS.md` D-043), y **reemplaza** tanto la agrupación original de D-041 (nunca ejecutada) como la agrupación intermedia de D-042 (8.2=QA-030, 8.3=QA-016, 8.4=QA-012, 8.5=QA-031), que D-043 reemplazó explícitamente por razones de prioridad/dependencia/riesgo. **`docs/TODO.md` sección 23 todavía usaba la agrupación intermedia de D-042 y fue corregida en esta misma sesión de cierre** para reflejar D-043 (ver "Reconciliación documental" en el informe de cierre entregado al usuario).
@@ -64,6 +64,12 @@ El usuario confirmó explícitamente que ejecutó las pruebas funcionales reales
 
 El usuario confirmó explícitamente que las 4 pruebas funcionales reales fueron exitosas (menú móvil, modal genérico, modal de éxito/error del formulario de cotización, lightbox de galería — ver `docs/DECISIONS.md` D-104) y aprobó el Entregable 8.6 (QA-036) de forma definitiva, sin desglose caso por caso. Ver `docs/DECISIONS.md` D-105.
 
+## ✅ Entregable 8.7 aprobado (aprobación final, tras pruebas funcionales reales) — SPRINT 8 CERRADO
+
+El usuario confirmó explícitamente que ejecutó las 5 pruebas funcionales reales listadas en D-106 y aprobó el Entregable 8.7 (QA-019, QA-020, QA-021, QA-022, QA-037, QA-039, QA-040) de forma definitiva, tras una aclaración previa sobre el alcance de QA-039 (Twitter Card: metaetiquetas automáticas, no un campo del Customizer). Ver `docs/DECISIONS.md` D-107.
+
+**Al ser el último Entregable de la reorganización vigente de D-043, el Sprint 8 ("Cierre de Hallazgos QA") queda completo y cerrado en su totalidad.** No queda ningún hallazgo de severidad Alta o Media abierto en el proyecto.
+
 ## Próximo paso
 
-Con el Entregable 8.6 aprobado, el Sprint 8 queda habilitado para continuar con el **Entregable 8.7** (QA-019, QA-020, QA-021, QA-022, QA-037, QA-039, QA-040 — Bajos), último de la reorganización vigente de `DECISIONS.md` D-043. Conforme a D-038, el 8.7 **no inicia su implementación** sin que el usuario apruebe explícitamente su alcance concreto.
+No hay ningún Sprint o Entregable en curso. El único backlog restante son las **Mejoras futuras** (QA-024 a QA-029, QA-042), explícitamente fuera del Sprint 8 desde su planificación (D-043) — no se implementan sin que el usuario decida incorporarlas a un Sprint futuro (p. ej. un Sprint 9), conforme a D-038. Cualquier trabajo nuevo requiere que el usuario defina y apruebe explícitamente su alcance antes de iniciar cualquier implementación.

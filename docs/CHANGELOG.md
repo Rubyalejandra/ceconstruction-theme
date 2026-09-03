@@ -881,3 +881,31 @@ Ver `docs/DECISIONS.md`: D-104.
 ## Sprint 8, Entregable 8.6 — Aprobación final (cierre)
 
 El usuario confirmó que las 4 pruebas funcionales reales listadas en D-104 fueron exitosas (menú móvil, modal genérico, modal de éxito/error del formulario de cotización, lightbox de galería) y aprobó el Entregable 8.6 de forma definitiva, sin desglose caso por caso. Con esto, **QA-036 / Entregable 8.6 queda cerrado y aprobado**, sin cambios de código adicionales. Ver `docs/DECISIONS.md` D-105.
+
+---
+
+## Sprint 8, Entregable 8.7 — QA-019, QA-020, QA-021, QA-022, QA-037, QA-039, QA-040
+
+**Estado:** ✅ Aprobado explícitamente por el usuario, tras pruebas funcionales reales (ver `docs/DECISIONS.md` D-106, D-107).
+
+### Corregido / añadido
+- **QA-019** — `header.php`/`assets/css/main.css`: el botón de cerrar del menú móvil dejó de reutilizar `.ce-modal__close`; nueva regla propia `.ce-nav-mobile__close` (misma apariencia exacta, sin cambio visual).
+- **QA-020** — `assets/js/main.js`: `bindArrows()` (`createSliderController()`) oculta las flechas prev/next cuando hay un solo slide.
+- **QA-037** — `inc/enqueue.php` (nuevas claves `openMobileNav`/`closeMobileNav` en `ceConstructionData.i18n`) + `assets/js/main.js`: `ModuleMobileNav.open()`/`close()` sincroniza el `aria-label` del botón hamburguesa con el estado real.
+- **QA-039** — `inc/seo.php`: `twitter:title`/`twitter:description`/`twitter:image` añadidos a `ce_construction_meta_tags()`, reutilizando las variables ya calculadas para `og:*`.
+- **QA-040** — `inc/seo.php`: nuevo helper `ce_construction_breadcrumb_schema()`, aplicado a Persona/Cliente/BlogPosting (Servicio/Proyecto ya lo tenían, sin tocar).
+
+### Verificado sin cambio de código
+- **QA-021** — discrepancia de versión ya resuelta como efecto colateral de QA-030/D-044 (Entregable 8.2): `CE_THEME_VERSION` se deriva dinámicamente de `wp_get_theme()`, fuente única de verdad.
+- **QA-022** — concatenación de HTML en JS del admin ya resuelta como efecto colateral de QA-016/D-102 (Entregable 8.5): el único archivo con ese patrón (`admin-proyecto-gallery.js`) ya se corrigió entonces; el resto de JS del admin nunca lo tuvo.
+
+### Decisiones clave
+Ver `docs/DECISIONS.md`: D-106.
+
+---
+
+## Sprint 8, Entregable 8.7 — Aprobación final (cierre) — SPRINT 8 COMPLETO
+
+El usuario confirmó que ejecutó las 5 pruebas funcionales reales listadas en D-106 y aprobó el Entregable 8.7 de forma definitiva, tras una aclaración previa sobre el alcance de QA-039 (Twitter Card: metaetiquetas generadas automáticamente, no un campo del Customizer). Con esto, **QA-019, QA-020, QA-021, QA-022, QA-037, QA-039 y QA-040 / Entregable 8.7 quedan cerrados y aprobados**, sin cambios de código adicionales.
+
+**Al ser el último Entregable de la reorganización vigente de D-043, el Sprint 8 ("Cierre de Hallazgos QA") queda completo y cerrado en su totalidad**: los 7 Entregables (8.1 a 8.7) aprobados explícitamente. No queda ningún hallazgo de severidad Alta o Media abierto en el proyecto. Resta como backlog fuera del Sprint 8 únicamente las Mejoras futuras (QA-024 a QA-029, QA-042), sin implementar sin decisión explícita del usuario de incorporarlas a un Sprint futuro. Ver `docs/DECISIONS.md` D-107.

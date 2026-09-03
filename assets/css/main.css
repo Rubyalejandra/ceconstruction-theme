@@ -808,6 +808,20 @@ body.ce-no-scroll { overflow: hidden; }
 }
 .ce-modal__close:hover { background: var(--ce-color-neutral-300); }
 
+/* QA-019 (Sprint 8, Entregable 8.7): regla propia para el botón de
+   cerrar del menú móvil — antes reutilizaba .ce-modal__close (de un
+   componente sin relación) solo para heredar esta misma apariencia.
+   Misma declaración exacta, sin ningún cambio visual, ahora
+   desacoplada de los modales. */
+.ce-nav-mobile__close {
+  position: absolute; top: var(--ce-space-3); right: var(--ce-space-3);
+  width: 34px; height: 34px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--ce-color-neutral-100); color: var(--ce-color-neutral-600);
+  transition: background var(--ce-transition-fast);
+}
+.ce-nav-mobile__close:hover { background: var(--ce-color-neutral-300); }
+
 /* Lightbox */
 .ce-lightbox {
   position: fixed; inset: 0; background: rgba(8,26,43,0.92);
