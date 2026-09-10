@@ -153,7 +153,7 @@
 	<!-- Botones flotantes: WhatsApp + Volver arriba -->
 	<div class="ce-float-stack">
 		<?php if ( ce_get_whatsapp_number() ) : ?>
-			<a href="#" class="ce-float-btn ce-float-btn--whatsapp" aria-label="<?php esc_attr_e( 'Escríbenos por WhatsApp', 'ce-construction' ); ?>" data-message="<?php esc_attr_e( 'Hola, quisiera más información sobre sus servicios de construcción.', 'ce-construction' ); ?>">
+			<a href="#" class="ce-float-btn ce-float-btn--whatsapp" aria-label="<?php esc_attr_e( 'Escríbenos por WhatsApp', 'ce-construction' ); ?>" data-message="<?php esc_attr_e( 'Hola, quisiera más información sobre sus servicios de Remodelación.', 'ce-construction' ); ?>">
 				<i class="fa-brands fa-whatsapp" aria-hidden="true"></i>
 			</a>
 		<?php endif; ?>

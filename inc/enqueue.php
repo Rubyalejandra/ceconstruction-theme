@@ -340,7 +340,13 @@ function ce_construction_enqueue_proyecto_gallery_script( $hook ) {
 	);
 
 	wp_localize_script( 'ce-admin-proyecto-gallery', 'ceProyectoGalleryData', array(
-		'mediaTitle' => __( 'Seleccionar imágenes', 'ce-construction' ),
+		'mediaTitleImages'    => __( 'Seleccionar imágenes', 'ce-construction' ),
+		'mediaButtonImages'   => __( 'Añadir al proyecto', 'ce-construction' ),
+		'mediaTitleVideo'     => __( 'Seleccionar video de la Biblioteca de Medios', 'ce-construction' ),
+		'mediaButtonVideo'    => __( 'Usar este video', 'ce-construction' ),
+		'labelVideo'          => __( 'Video', 'ce-construction' ),
+		'labelImage'          => __( 'Imagen', 'ce-construction' ),
+		'labelInvalidUrl'     => __( 'Ingresa una URL de video válida antes de añadirla.', 'ce-construction' ),
 	) );
 }
 add_action( 'admin_enqueue_scripts', 'ce_construction_enqueue_proyecto_gallery_script' );

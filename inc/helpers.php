@@ -1408,3 +1408,200 @@ function ce_construction_trust_badge_title( $badge ) {
 	}
 	return $badge['label'];
 }
+
+/* =========================================================
+ * SPRINT UX-8, ENTREGABLE UX-8.1 — Galería mixta del Proyecto
+ * (imagen y/o video por ítem, reordenable).
+ *
+ * Nueva fuente de verdad: meta `_ce_proyecto_media` (JSON), array de
+ * ítems `{"type":"image","id":N}` / `{"type":"video-local","id":N}` /
+ * `{"type":"video-embed","url":"..."}`, en el orden que el
+ * administrador definió. Reemplaza a `_ce_proyecto_galeria` (lista
+ * plana de IDs, solo imágenes) como fuente principal, pero NO la
+ * elimina: `_ce_proyecto_galeria` se mantiene sincronizada
+ * automáticamente en cada guardado (solo con los IDs de los ítems de
+ * tipo 'image', en orden — ver ce_construction_save_meta_boxes() en
+ * inc/meta-boxes.php) para que `ce_get_gallery_ids()` y sus 2
+ * consumidores ya existentes (template-parts/gallery.php del Home, e
+ * inc/seo.php para el Schema.org de Proyecto) sigan funcionando sin
+ * ningún cambio — ninguno de los dos entra en el alcance aprobado de
+ * este Entregable.
+ *
+ * Migración de lectura, sin escritura automática: un proyecto editado
+ * antes de este Entregable no tiene `_ce_proyecto_media` guardado
+ * todavía — en ese caso se construye al vuelo a partir de
+ * `_ce_proyecto_galeria` (cada ID → `{"type":"image","id":ID}`), sin
+ * tocar la base de datos hasta que el administrador vuelva a publicar
+ * ese proyecto (momento en el que ya se guarda en el nuevo formato,
+ * con el `_ce_proyecto_galeria` derivado ya sincronizado).
+ * ========================================================= */
+
+/**
+ * Decodifica y normaliza el JSON de `_ce_proyecto_media` (o el valor
+ * recién enviado por el formulario, antes de guardarse). Única fuente
+ * de saneamiento estructural — la usan tanto el guardado
+ * (`ce_construction_save_meta_boxes()`, inc/meta-boxes.php) como la
+ * lectura para el preview del admin y el frontend
+ * (`ce_construction_get_proyecto_media_raw()`, más abajo).
+ *
+ * Deliberadamente NO valida aquí si el adjunto existe/tiene el mime
+ * correcto, ni resuelve oEmbed (eso implicaría, en el caso de
+ * video-embed, una petición HTTP saliente en cada guardado o en cada
+ * lectura del array crudo) — esa validación/resolución más costosa
+ * vive en `ce_construction_get_proyecto_media_items()` (frontend),
+ * que sí necesita el resultado final listo para renderizar.
+ *
+ * Límite defensivo de 40 ítems (mismo criterio ya usado en
+ * `ce_construction_decode_stats_items()`/`ce_construction_decode_trust_badges()`:
+ * "sin límite fijo bajo" no significa "sin ningún límite"), más
+ * generoso que esos repeaters porque una galería de proyecto real
+ * puede tener legítimamente varias decenas de fotos.
+ *
+ * @param string $raw JSON crudo o cadena vacía/corrupta.
+ * @return array<int,array{type:string,id?:int,url?:string}>
+ */
+function ce_construction_decode_proyecto_media_json( $raw ) {
+	$items = json_decode( (string) $raw, true );
+	if ( ! is_array( $items ) ) {
+		return array();
+	}
+
+	$normalized = array();
+	foreach ( $items as $item ) {
+		if ( ! is_array( $item ) || empty( $item['type'] ) ) {
+			continue;
+		}
+		$type = sanitize_key( $item['type'] );
+
+		if ( 'image' === $type || 'video-local' === $type ) {
+			$id = isset( $item['id'] ) ? absint( $item['id'] ) : 0;
+			if ( ! $id ) {
+				continue; // Sin ID no hay nada que resolver: se descarta en silencio.
+			}
+			$normalized[] = array( 'type' => $type, 'id' => $id );
+		} elseif ( 'video-embed' === $type ) {
+			$url = isset( $item['url'] ) ? esc_url_raw( $item['url'] ) : '';
+			if ( ! $url ) {
+				continue;
+			}
+			$normalized[] = array( 'type' => 'video-embed', 'url' => $url );
+		}
+		// Cualquier otro valor de 'type' (no reconocido) se descarta
+		// en silencio — mismo criterio de tolerancia ya usado en el
+		// resto de decoders de este archivo.
+
+		if ( count( $normalized ) >= 40 ) {
+			break;
+		}
+	}
+
+	return $normalized;
+}
+
+/**
+ * Ítems crudos (sin resolver) de la galería mixta de un Proyecto,
+ * con la migración de solo lectura desde `_ce_proyecto_galeria`
+ * cuando `_ce_proyecto_media` todavía no existe (ver docblock de
+ * sección arriba). Usada por el preview del admin
+ * (`ce_render_proyecto_gallery()`, inc/meta-boxes.php) y como base de
+ * `ce_construction_get_proyecto_media_items()` (frontend, más abajo).
+ *
+ * @param int $post_id
+ * @return array<int,array{type:string,id?:int,url?:string}>
+ */
+function ce_construction_get_proyecto_media_raw( $post_id ) {
+	$raw = get_post_meta( $post_id, '_ce_proyecto_media', true );
+	if ( '' !== $raw ) {
+		return ce_construction_decode_proyecto_media_json( $raw );
+	}
+
+	$legacy_ids = ce_get_gallery_ids( $post_id );
+	$items      = array();
+	foreach ( $legacy_ids as $legacy_id ) {
+		$items[] = array( 'type' => 'image', 'id' => $legacy_id );
+	}
+	return $items;
+}
+
+/**
+ * Ítems de la galería mixta de un Proyecto, ya validados y resueltos
+ * para renderizar en el frontend (single-proyecto.php). A diferencia
+ * de `ce_construction_get_proyecto_media_raw()`, aquí sí se verifica
+ * que cada adjunto exista y tenga el mime correcto (mismo criterio ya
+ * usado por `ce_get_testimonio_video()`), y se resuelve el oEmbed de
+ * los ítems de video externo — cualquier ítem que ya no sea válido
+ * (adjunto borrado, URL que oEmbed ya no puede resolver) se descarta
+ * en silencio en vez de romper el mosaico.
+ *
+ * Sin poster individual para 'video-local'/'video-embed' con miniatura
+ * propia del proveedor: a diferencia del video único de un Testimonio
+ * (D-077, donde la imagen destacada del propio testimonio tiene
+ * sentido como poster de "el" video), aquí puede haber varios ítems
+ * de video mezclados con imágenes en el mismo mosaico — usar la
+ * imagen destacada del Proyecto como poster de cada uno de ellos
+ * sería engañoso (parecería una imagen distinta por ítem). El único
+ * poster que sí se resuelve es el que el propio proveedor oEmbed
+ * ofrezca en su respuesta (mismo mecanismo ya usado por
+ * `ce_get_testimonio_video()`); sin él, el ítem se muestra con el
+ * tratamiento visual "sin poster" (fondo degradado + botón Play, ver
+ * `.ce-gallery-item--video` en assets/css/main.css) — misma
+ * limitación ya documentada para video local (sin dependencia externa
+ * de generación de miniaturas).
+ *
+ * @param int $post_id
+ * @return array Lista de ítems resueltos, cada uno con al menos 'type'.
+ */
+function ce_construction_get_proyecto_media_items( $post_id ) {
+	$raw_items = ce_construction_get_proyecto_media_raw( $post_id );
+	$resolved  = array();
+
+	foreach ( $raw_items as $item ) {
+		if ( 'image' === $item['type'] ) {
+			$thumb = wp_get_attachment_image_url( $item['id'], 'ce-card' );
+			$full  = wp_get_attachment_image_url( $item['id'], 'full' );
+			if ( ! $thumb || ! $full ) {
+				continue;
+			}
+			$resolved[] = array(
+				'type'  => 'image',
+				'id'    => $item['id'],
+				'thumb' => $thumb,
+				'full'  => $full,
+				'alt'   => get_post_meta( $item['id'], '_wp_attachment_image_alt', true ),
+			);
+		} elseif ( 'video-local' === $item['type'] ) {
+			$mime = get_post_mime_type( $item['id'] );
+			$src  = wp_get_attachment_url( $item['id'] );
+			if ( ! $src || ! $mime || 0 !== strpos( (string) $mime, 'video/' ) ) {
+				continue;
+			}
+			$resolved[] = array(
+				'type'   => 'video-local',
+				'id'     => $item['id'],
+				'src'    => $src,
+				'mime'   => $mime,
+				'poster' => '',
+			);
+		} elseif ( 'video-embed' === $item['type'] ) {
+			$embed_html = wp_oembed_get( $item['url'] );
+			if ( ! $embed_html ) {
+				continue;
+			}
+			$poster = '';
+			if ( function_exists( '_wp_oembed_get_object' ) ) {
+				$oembed_data = _wp_oembed_get_object()->get_data( $item['url'] );
+				if ( $oembed_data && ! empty( $oembed_data->thumbnail_url ) ) {
+					$poster = esc_url_raw( $oembed_data->thumbnail_url );
+				}
+			}
+			$resolved[] = array(
+				'type'   => 'video-embed',
+				'url'    => $item['url'],
+				'html'   => $embed_html,
+				'poster' => $poster,
+			);
+		}
+	}
+
+	return $resolved;
+}

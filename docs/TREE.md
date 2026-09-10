@@ -26,7 +26,7 @@ ce-construction-theme/
 ├── single-equipo.php                  ✅
 ├── archive-clientes.php               ✅
 ├── single-clientes.php                ✅
-├── single-proyecto.php                ✅
+├── single-proyecto.php                ✅ 🔧 UX-8.1 (D-108): mosaico de galería reescrito para ítems mixtos (imagen/video), reutiliza ModuleLightbox ya extendido desde UX-7.8
 ├── screenshot.png                     ✅ Sprint 7, Entregable 7.4
 │
 ├── docs/
@@ -38,16 +38,16 @@ ce-construction-theme/
 │
 ├── inc/
 │   ├── setup.php                      ✅
-│   ├── enqueue.php                    ✅ ce_construction_asset_version() vía filemtime() (QA-030, D-044). Encolado de admin-home-builder.js/admin-hero-slides.js/admin-stats-items.js/admin-trust-badges.js
+│   ├── enqueue.php                    ✅ ce_construction_asset_version() vía filemtime() (QA-030, D-044). Encolado de admin-home-builder.js/admin-hero-slides.js/admin-stats-items.js/admin-trust-badges.js/admin-proyecto-gallery.js — 🔧 UX-8.1 (D-108): ceProyectoGalleryData ampliada con etiquetas de video
 │   ├── customizer.php                 ✅ Secciones añadidas por UX-1.2 (Home Builder), UX-4.1/4.2 (Hero video/slider), UX-5.1 (CTA Secundario), UX-6 (sin cambios), UX-7.2 (layout Hero + Quote Form), UX-7.4 (icono/color CTA), UX-7.5 (logo footer), UX-7.6 (Estadísticas), UX-7.7 (Insignias de Confianza), UX-7.9 (Financiamiento), UX-7.10 (Popup de Oferta, incl. refuerzo D-080), UX-10.3 (Google Reviews/Trustindex), UX-11 (D-086: ce_hero_overlay_color/direction/extent; descripción de ce_hero_type actualizada tras D-084)
-│   ├── helpers.php                    ✅ ce_get_hero_slide_ids() (UX-4.2), ce_construction_get_hero_media_state() (UX-7.1, ahora exclusiva del Home, slides con posición desde UX-11/D-083), ce_get_testimonio_video() (UX-7.8), ce_get_offer_popup_data() (UX-7.10, ampliada en D-080), ce_construction_decode_trust_badges()/ce_construction_get_trust_badges()/ce_construction_trust_badge_title() (UX-7.7), ce_render_footer_logo() (UX-7.5), ce_construction_get_page_hero_image_url()/ce_construction_hex_to_rgb()/ce_construction_get_hero_overlay_gradient_css() (UX-11, D-084/D-086)
+│   ├── helpers.php                    ✅ ce_get_hero_slide_ids() (UX-4.2), ce_construction_get_hero_media_state() (UX-7.1, ahora exclusiva del Home, slides con posición desde UX-11/D-083), ce_get_testimonio_video() (UX-7.8), ce_get_offer_popup_data() (UX-7.10, ampliada en D-080), ce_construction_decode_trust_badges()/ce_construction_get_trust_badges()/ce_construction_trust_badge_title() (UX-7.7), ce_render_footer_logo() (UX-7.5), ce_construction_get_page_hero_image_url()/ce_construction_hex_to_rgb()/ce_construction_get_hero_overlay_gradient_css() (UX-11, D-084/D-086) — 🔧 UX-8.1 (D-108): ce_construction_decode_proyecto_media_json()/ce_construction_get_proyecto_media_raw()/ce_construction_get_proyecto_media_items() (galería mixta de Proyecto)
 │   ├── cpt-servicios.php              ✅
 │   ├── cpt-proyectos.php              ✅
 │   ├── cpt-testimonios.php            ✅ (registro del CPT sin cambios; metadatos de video de UX-7.8 gestionados desde meta-boxes.php)
 │   ├── cpt-equipo.php                 ✅
 │   ├── cpt-clientes.php               ✅
 │   ├── cpt-faq.php                    ✅
-│   ├── meta-boxes.php                 ✅ 🔧 UX-7.8: nuevo metabox ce_testimonio_video (_ce_testimonio_video_id/_ce_testimonio_video_url), nonce y guardado independientes
+│   ├── meta-boxes.php                 ✅ 🔧 UX-7.8: nuevo metabox ce_testimonio_video (_ce_testimonio_video_id/_ce_testimonio_video_url), nonce y guardado independientes — 🔧 UX-8.1 (D-108): ce_render_proyecto_gallery() reescrita (galería mixta imagen/video); guardado deriva _ce_proyecto_galeria automáticamente desde _ce_proyecto_media
 │   ├── quote-form.php                 ✅ sin cambios en toda la fase UX (protegido explícitamente, D-053/D-056/D-064/D-079) — 🔧 Sprint 8, Entregable 8.3 (D-096, QA-031): subida redirigida a carpeta protegida + renombrado aleatorio + columna "Adjunto" en el admin
 │   ├── seo.php                        ✅ ce_construction_output_json_ld() con endurecimiento contra </script> (QA-014, Sprint 8 Entregable 8.1)
 │   ├── widgets.php                    ✅ Sprint 7, Entregable 7.1
@@ -76,12 +76,13 @@ ce-construction-theme/
 │   └── google-reviews.php                                               ✅ 🆕 UX-10.3 (D-075/D-076) — embed Trustindex tal cual, sección independiente
 │
 └── assets/
-    ├── css/main.css                   ✅ 33 secciones. 9: iconos sociales del header (UX-11/QA-043, D-090). 10: altura del Hero reducida (UX-11/D-088). 24: QA-018. 25: modal Cotización (UX-3.2). 26/27: Hero video/slider (UX-4.1/4.2, exclusivos del Home desde UX-11). 28 (+28 bis): layout Hero/Quote Form (UX-7.2/D-065) + corrección de recorte y panel separado (UX-11/D-089). 29: Estadísticas (UX-7.6). 30: Insignias de Confianza (UX-7.7). 31: Google Reviews (UX-10.3). 32: video en testimonios (UX-7.8). 33: Popup de Oferta (UX-7.10, base D-079 + refuerzo D-080 + movimiento JS D-081). .ce-content-breakout añadida (UX-6.3/D-061), .ce-max-w-content sin modificar
+    ├── css/main.css                   ✅ 34 secciones. 9: iconos sociales del header (UX-11/QA-043, D-090). 10: altura del Hero reducida (UX-11/D-088). 24: QA-018. 25: modal Cotización (UX-3.2). 26/27: Hero video/slider (UX-4.1/4.2, exclusivos del Home desde UX-11). 28 (+28 bis): layout Hero/Quote Form (UX-7.2/D-065) + corrección de recorte y panel separado (UX-11/D-089). 29: Estadísticas (UX-7.6). 30: Insignias de Confianza (UX-7.7). 31: Google Reviews (UX-10.3). 32: video en testimonios (UX-7.8). 33: Popup de Oferta (UX-7.10, base D-079 + refuerzo D-080 + movimiento JS D-081). 34: galería mixta de Proyecto (.ce-gallery-item--video) + repeater admin (UX-8.1, D-108). .ce-content-breakout añadida (UX-6.3/D-061), .ce-max-w-content sin modificar
     ├── js/main.js                     ✅ 15 módulos. Añadidos en la fase UX: createSliderController() (fábrica compartida, UX-4.2) + ModuleHeroSlider (UX-4.2); ModuleLightbox extendido para video local/embebido (UX-7.8, D-077, Decisión 6); ModuleOfferPopup nuevo (UX-7.10, D-079, con rebote/nudge de D-081) + 1 línea aditiva en ModuleQuoteForm (evento ce:quoteFormSuccess)
     ├── js/admin-home-builder.js       ✅ UX-1.2 — control custom Home Builder (drag&drop)
     ├── js/admin-hero-slides.js        ✅ UX-4.2 — control custom ce_hero_slides
     ├── js/admin-stats-items.js        ✅ UX-7.6 — control custom del repeater de Estadísticas
     ├── js/admin-trust-badges.js       ✅ UX-7.7 — control custom del repeater de Insignias de Confianza
+    ├── js/admin-proyecto-gallery.js   🔧 UX-8.1 (D-108) — reescrito para el repeater de galería mixta (imagen/video local/video URL)
     └── img/                           ⬜ Vacía (assets/images/ contiene un archivo de prueba subido por el usuario, fuera del árbol versionado del tema)
 ```
 

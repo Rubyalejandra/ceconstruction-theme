@@ -27,7 +27,7 @@ $servicios_query = new WP_Query( array(
 			<span class="ce-eyebrow"><?php esc_html_e( 'Lo que hacemos', 'ce-construction' ); ?></span>
 			<h2 class="ce-section-title"><?php esc_html_e( 'Nuestros Servicios', 'ce-construction' ); ?></h2>
 			<p class="ce-section-lead" style="margin-inline:auto;">
-				<?php esc_html_e( 'Soluciones integrales de construcción adaptadas a las necesidades de cada proyecto, desde el diseño hasta la entrega.', 'ce-construction' ); ?>
+				<?php esc_html_e( 'Soluciones integrales de remodelación para transformar cada espacio con diseño, calidad y precisión.', 'ce-construction' ); ?>
 			</p>
 		</div>
 

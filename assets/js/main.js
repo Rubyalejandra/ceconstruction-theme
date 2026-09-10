@@ -307,7 +307,7 @@
 			if (!this.link || !CE.whatsapp) return;
 
 			const message = encodeURIComponent(
-				this.link.dataset.message || 'Hola, quisiera más información sobre sus servicios de construcción.'
+				this.link.dataset.message || 'Hola, quisiera más información sobre sus servicios de remodelacion.'
 			);
 			this.link.setAttribute(
 				'href',

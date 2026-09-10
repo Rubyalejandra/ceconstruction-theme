@@ -86,23 +86,81 @@ function ce_render_proyecto_fields( $post ) {
  * wp.media, sin wp_enqueue_script() ni dependencia formal de jQuery
  * declarada) se movió a assets/js/admin-proyecto-gallery.js, encolado
  * en inc/enqueue.php con array( 'jquery', 'media-editor' ) como
- * dependencia explícita. Mismo marcado, mismo comportamiento — ver el
- * docblock de ese archivo para el detalle completo de la corrección.
+ * dependencia explícita.
+ *
+ * Sprint UX-8, Entregable UX-8.1 ("Galería mixta del Proyecto: imagen
+ * y/o video, reordenable"): el selector de solo-imágenes anterior se
+ * reemplaza por un repeater de ítems mixtos (imagen / video de la
+ * Biblioteca / video por URL externa), reordenable con botones ↑/↓
+ * (mismo criterio ya usado por Estadísticas/Insignias de Confianza,
+ * sin jQuery UI Sortable). Fuente de verdad: meta `_ce_proyecto_media`
+ * (JSON), leída/normalizada por `ce_construction_get_proyecto_media_raw()`
+ * (inc/helpers.php), que además migra en modo solo-lectura desde el
+ * formato antiguo `_ce_proyecto_galeria` si un proyecto no tiene
+ * `_ce_proyecto_media` guardado todavía — ver el docblock de esa
+ * función para el detalle completo. `_ce_proyecto_galeria` no se
+ * elimina: `ce_construction_save_meta_boxes()` la mantiene
+ * sincronizada automáticamente (solo con los ítems de tipo 'image')
+ * en cada guardado, para que `ce_get_gallery_ids()` y sus 2
+ * consumidores ya existentes (template-parts/gallery.php del Home,
+ * inc/seo.php para el Schema.org de Proyecto) sigan funcionando sin
+ * ningún cambio — ninguno de los dos entra en el alcance de este
+ * Entregable (eso es UX-8.2, todavía sin aprobar).
+ *
+ * JS real (añadir imagen/video-local/video-url, quitar, reordenar,
+ * serializar a JSON en el hidden input): assets/js/admin-proyecto-gallery.js.
  */
 function ce_render_proyecto_gallery( $post ) {
-	$gallery_ids = get_post_meta( $post->ID, '_ce_proyecto_galeria', true );
+	$items = ce_construction_get_proyecto_media_raw( $post->ID );
 	?>
-	<input type="hidden" id="ce_proyecto_galeria" name="ce_proyecto_galeria" value="<?php echo esc_attr( $gallery_ids ); ?>">
-	<div id="ce-gallery-preview" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
-		<?php
-		if ( $gallery_ids ) {
-			foreach ( explode( ',', $gallery_ids ) as $img_id ) {
-				echo wp_get_attachment_image( absint( $img_id ), 'thumbnail' );
-			}
-		}
-		?>
+	<input type="hidden" id="ce_proyecto_media" name="ce_proyecto_media" value="<?php echo esc_attr( wp_json_encode( $items ) ); ?>">
+
+	<ul id="ce-proyecto-media-list" class="ce-proyecto-media-list">
+		<?php foreach ( $items as $item ) : ?>
+			<?php if ( 'image' === $item['type'] ) : ?>
+				<?php $thumb_url = wp_get_attachment_image_url( $item['id'], 'thumbnail' ); ?>
+				<li class="ce-proyecto-media-item" data-type="image" data-id="<?php echo esc_attr( $item['id'] ); ?>">
+					<span class="ce-proyecto-media-item__preview"><?php if ( $thumb_url ) : ?><img src="<?php echo esc_url( $thumb_url ); ?>" alt=""><?php endif; ?></span>
+					<span class="ce-proyecto-media-item__label"><?php esc_html_e( 'Imagen', 'ce-construction' ); ?></span>
+					<span class="ce-proyecto-media-item__actions">
+						<button type="button" class="button ce-proyecto-media-item__up" aria-label="<?php esc_attr_e( 'Mover antes', 'ce-construction' ); ?>">&uarr;</button>
+						<button type="button" class="button ce-proyecto-media-item__down" aria-label="<?php esc_attr_e( 'Mover después', 'ce-construction' ); ?>">&darr;</button>
+						<button type="button" class="button ce-proyecto-media-item__remove" aria-label="<?php esc_attr_e( 'Quitar', 'ce-construction' ); ?>">&times;</button>
+					</span>
+				</li>
+			<?php elseif ( 'video-local' === $item['type'] ) : ?>
+				<li class="ce-proyecto-media-item" data-type="video-local" data-id="<?php echo esc_attr( $item['id'] ); ?>">
+					<span class="ce-proyecto-media-item__preview ce-proyecto-media-item__preview--icon"><span class="dashicons dashicons-video-alt3"></span></span>
+					<span class="ce-proyecto-media-item__label"><?php echo esc_html( basename( (string) get_attached_file( $item['id'] ) ) ); ?></span>
+					<span class="ce-proyecto-media-item__actions">
+						<button type="button" class="button ce-proyecto-media-item__up" aria-label="<?php esc_attr_e( 'Mover antes', 'ce-construction' ); ?>">&uarr;</button>
+						<button type="button" class="button ce-proyecto-media-item__down" aria-label="<?php esc_attr_e( 'Mover después', 'ce-construction' ); ?>">&darr;</button>
+						<button type="button" class="button ce-proyecto-media-item__remove" aria-label="<?php esc_attr_e( 'Quitar', 'ce-construction' ); ?>">&times;</button>
+					</span>
+				</li>
+			<?php else : // 'video-embed' ?>
+				<li class="ce-proyecto-media-item" data-type="video-embed" data-url="<?php echo esc_url( $item['url'] ); ?>">
+					<span class="ce-proyecto-media-item__preview ce-proyecto-media-item__preview--icon"><span class="dashicons dashicons-video-alt3"></span></span>
+					<span class="ce-proyecto-media-item__label"><?php echo esc_html( $item['url'] ); ?></span>
+					<span class="ce-proyecto-media-item__actions">
+						<button type="button" class="button ce-proyecto-media-item__up" aria-label="<?php esc_attr_e( 'Mover antes', 'ce-construction' ); ?>">&uarr;</button>
+						<button type="button" class="button ce-proyecto-media-item__down" aria-label="<?php esc_attr_e( 'Mover después', 'ce-construction' ); ?>">&darr;</button>
+						<button type="button" class="button ce-proyecto-media-item__remove" aria-label="<?php esc_attr_e( 'Quitar', 'ce-construction' ); ?>">&times;</button>
+					</span>
+				</li>
+			<?php endif; ?>
+		<?php endforeach; ?>
+	</ul>
+
+	<div class="ce-proyecto-media-actions">
+		<button type="button" class="button" id="ce-proyecto-media-add-images"><?php esc_html_e( 'Añadir imágenes', 'ce-construction' ); ?></button>
+		<button type="button" class="button" id="ce-proyecto-media-add-video-local"><?php esc_html_e( 'Añadir video de la Biblioteca', 'ce-construction' ); ?></button>
+		<span class="ce-proyecto-media-url-adder">
+			<input type="url" id="ce-proyecto-media-video-url-input" placeholder="https://www.youtube.com/watch?v=...">
+			<button type="button" class="button" id="ce-proyecto-media-add-video-url"><?php esc_html_e( 'Añadir video por URL', 'ce-construction' ); ?></button>
+		</span>
 	</div>
-	<button type="button" class="button" id="ce-gallery-upload-btn"><?php esc_html_e( 'Seleccionar imágenes de galería', 'ce-construction' ); ?></button>
+	<p class="description"><?php esc_html_e( 'Combina imágenes y videos en el orden en que quieres que aparezcan. El video por URL debe ser de un proveedor compatible con oEmbed de WordPress (ej. YouTube, Vimeo).', 'ce-construction' ); ?></p>
 	<?php
 }
 
@@ -280,9 +338,37 @@ function ce_construction_save_meta_boxes( $post_id ) {
 			if ( isset( $_POST['ce_proyecto_fecha'] ) ) {
 				update_post_meta( $post_id, '_ce_proyecto_fecha', sanitize_text_field( wp_unslash( $_POST['ce_proyecto_fecha'] ) ) );
 			}
-			if ( isset( $_POST['ce_proyecto_galeria'] ) ) {
-				$ids = array_filter( array_map( 'absint', explode( ',', wp_unslash( $_POST['ce_proyecto_galeria'] ) ) ) );
-				update_post_meta( $post_id, '_ce_proyecto_galeria', implode( ',', $ids ) );
+			// Sprint UX-8, Entregable UX-8.1: `_ce_proyecto_media`
+			// (galería mixta) reemplaza a `_ce_proyecto_galeria` como
+			// campo enviado por el formulario — el nombre del campo
+			// oculto cambió en ce_render_proyecto_gallery() (ver
+			// arriba), por lo que `$_POST['ce_proyecto_galeria']` ya
+			// no llega desde el nuevo admin UI. Se sanea con la misma
+			// función usada en lectura (ce_construction_decode_proyecto_media_json(),
+			// inc/helpers.php) — única fuente de saneamiento para
+			// este dato, evitando que el guardado y la lectura puedan
+			// divergir.
+			if ( isset( $_POST['ce_proyecto_media'] ) ) {
+				$media_items = ce_construction_decode_proyecto_media_json( wp_unslash( $_POST['ce_proyecto_media'] ) );
+				update_post_meta( $post_id, '_ce_proyecto_media', wp_json_encode( $media_items ) );
+
+				// `_ce_proyecto_galeria` se deriva y sincroniza
+				// automáticamente (solo los ítems de tipo 'image', en
+				// orden) — NUNCA se elimina ni se deja de actualizar:
+				// `ce_get_gallery_ids()` la sigue usando tal cual, sin
+				// saber que la fuente real ahora es la galería mixta.
+				// Consumidores ya existentes que dependen de ella
+				// (template-parts/gallery.php del Home, inc/seo.php
+				// para el Schema.org de Proyecto) siguen funcionando
+				// sin ningún cambio — ambos quedan fuera del alcance
+				// de este Entregable (ver UX-8.2, pendiente).
+				$legacy_ids = array();
+				foreach ( $media_items as $media_item ) {
+					if ( 'image' === $media_item['type'] ) {
+						$legacy_ids[] = $media_item['id'];
+					}
+				}
+				update_post_meta( $post_id, '_ce_proyecto_galeria', implode( ',', $legacy_ids ) );
 			}
 		}
 	}

@@ -16,7 +16,7 @@ get_header();
 get_template_part( 'template-parts/page-hero', null, array(
 	'eyebrow'  => __( 'CE Construction', 'ce-construction' ),
 	'title'    => post_type_archive_title( '', false ),
-	'subtitle' => __( 'Soluciones integrales de construcción adaptadas a las necesidades de cada proyecto, desde el diseño hasta la entrega.', 'ce-construction' ),
+	'subtitle' => __( 'Soluciones integrales de remodelación para transformar cada espacio con diseño, calidad y precisión.', 'ce-construction' ),
 ) );
 ?>
 

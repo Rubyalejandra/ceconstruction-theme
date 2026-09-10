@@ -12,8 +12,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 $reasons = apply_filters( 'ce_why_us_items', array(
 	array(
 		'icon'  => 'fa-solid fa-shield-halved',
-		'title' => __( 'Seguridad Garantizada', 'ce-construction' ),
-		'text'  => __( 'Cumplimos rigurosos protocolos de seguridad industrial en cada etapa de la obra.', 'ce-construction' ),
+		'title' => __( 'Calidad en cada detalle', 'ce-construction' ),
+		'text'  => __( 'Cuidamos cada etapa de la remodelación para garantizar acabados de calidad y resultados que superen tus expectativas.', 'ce-construction' ),
 	),
 	array(
 		'icon'  => 'fa-solid fa-clock',
@@ -27,8 +27,8 @@ $reasons = apply_filters( 'ce_why_us_items', array(
 	),
 	array(
 		'icon'  => 'fa-solid fa-people-group',
-		'title' => __( 'Equipo Certificado', 'ce-construction' ),
-		'text'  => __( 'Profesionales calificados y en constante capacitación técnica.', 'ce-construction' ),
+		'title' => __( 'Experiencia que transforma', 'ce-construction' ),
+		'text'  => __( 'Más de una década de experiencia nos permite afrontar cada remodelación con precisión, criterio y profesionalismo.', 'ce-construction' ),
 	),
 	array(
 		'icon'  => 'fa-solid fa-trowel-bricks',
@@ -37,8 +37,8 @@ $reasons = apply_filters( 'ce_why_us_items', array(
 	),
 	array(
 		'icon'  => 'fa-solid fa-headset',
-		'title' => __( 'Soporte Postventa', 'ce-construction' ),
-		'text'  => __( 'Acompañamiento y garantía después de la entrega de cada proyecto.', 'ce-construction' ),
+		'title' => __( 'Acompañamiento de principio a fin', 'ce-construction' ),
+		'text'  => __( 'Te acompañamos durante todo el proceso, desde la planificación hasta los últimos detalles de tu remodelación.', 'ce-construction' ),
 	),
 ) );
 ?>

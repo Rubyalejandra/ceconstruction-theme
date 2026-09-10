@@ -909,3 +909,25 @@ Ver `docs/DECISIONS.md`: D-106.
 El usuario confirmó que ejecutó las 5 pruebas funcionales reales listadas en D-106 y aprobó el Entregable 8.7 de forma definitiva, tras una aclaración previa sobre el alcance de QA-039 (Twitter Card: metaetiquetas generadas automáticamente, no un campo del Customizer). Con esto, **QA-019, QA-020, QA-021, QA-022, QA-037, QA-039 y QA-040 / Entregable 8.7 quedan cerrados y aprobados**, sin cambios de código adicionales.
 
 **Al ser el último Entregable de la reorganización vigente de D-043, el Sprint 8 ("Cierre de Hallazgos QA") queda completo y cerrado en su totalidad**: los 7 Entregables (8.1 a 8.7) aprobados explícitamente. No queda ningún hallazgo de severidad Alta o Media abierto en el proyecto. Resta como backlog fuera del Sprint 8 únicamente las Mejoras futuras (QA-024 a QA-029, QA-042), sin implementar sin decisión explícita del usuario de incorporarlas a un Sprint futuro. Ver `docs/DECISIONS.md` D-107.
+
+---
+
+## Sprint UX-8, Entregable UX-8.1 — Galería mixta del Proyecto (imagen y/o video, reordenable)
+
+**Estado:** Entregado — pendiente de aprobación explícita del usuario (ver `docs/DECISIONS.md` D-038, D-108).
+
+### Añadido
+- `inc/helpers.php`: `ce_construction_decode_proyecto_media_json()`, `ce_construction_get_proyecto_media_raw()` (con migración de solo lectura desde `_ce_proyecto_galeria`), `ce_construction_get_proyecto_media_items()` (resolución para frontend, incluida validación de mime y oEmbed).
+- `assets/css/main.css`: sección 34 (aditiva) — `.ce-gallery-item--video` (mosaico del frontend) + estilos del repeater admin del metabox.
+
+### Cambiado
+- `inc/meta-boxes.php`: `ce_render_proyecto_gallery()` reescrita para el nuevo repeater mixto; guardado deriva y sincroniza `_ce_proyecto_galeria` automáticamente a partir de `_ce_proyecto_media` (sin tocar sus 2 consumidores existentes).
+- `inc/enqueue.php`: `ceProyectoGalleryData` ampliada con las etiquetas del nuevo flujo (añadir video local/por URL).
+- `single-proyecto.php`: bloque de galería reescrito para renderizar el mosaico mixto, reutilizando `ModuleLightbox` (sin cambios de JS, ya extendido para video desde UX-7.8).
+- `assets/js/admin-proyecto-gallery.js`: reescrito íntegramente.
+
+### Sin cambios
+`template-parts/gallery.php`, `inc/seo.php`, `template-parts/content-proyecto.php`, `assets/js/main.js`, todo el Sprint 8 (cerrado).
+
+### Decisiones clave
+Ver `docs/DECISIONS.md`: D-108.

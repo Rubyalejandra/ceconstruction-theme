@@ -17,7 +17,7 @@ get_header();
 get_template_part( 'template-parts/page-hero', null, array(
 	'eyebrow'  => __( 'CE Construction', 'ce-construction' ),
 	'title'    => post_type_archive_title( '', false ),
-	'subtitle' => __( 'Una muestra de los proyectos que hemos ejecutado con éxito para nuestros clientes, desde obras residenciales hasta desarrollos industriales.', 'ce-construction' ),
+	'subtitle' => __( 'Una muestra de nuestras remodelaciones, donde cada proyecto refleja nuestro compromiso con la calidad, el diseño y la atención a cada detalle.', 'ce-construction' ),
 ) );
 ?>
 

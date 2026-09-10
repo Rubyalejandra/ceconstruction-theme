@@ -539,3 +539,29 @@ documentación desactualizada, detente y consúltame antes de tocar
 código o documentación. Entrega archivos completos con ruta exacta, no
 diffs.
 ```
+
+---
+
+## 🆕 Sprint UX-8 — "Galería de Proyectos: medios flexibles y curación del Home" — Estado: En curso.
+
+> Retoma y amplía el "Sprint UX-8 — Video en Proyectos" que quedaba como backlog futuro en `docs/UX_CONVERSION_ANALISIS_Y_PLAN.md` §8.4, a solicitud explícita del usuario tras el cierre completo del Sprint 8 (D-107). El alcance original (un único campo de video separado) se amplía, por decisión explícita del usuario, a una galería mixta reordenable — ver `docs/DECISIONS.md` D-108.
+
+| Entregable | Objetivo | Estado |
+|---|---|---|
+| UX-8.1 | Galería mixta del Proyecto (imagen y/o video, reordenable) | 🟡 **Entregado — pendiente de tu aprobación explícita.** Ver `docs/DECISIONS.md` D-108. |
+| UX-8.2 | Curación de la Galería del Home (proyecto destacado + imagen favorita) | ⬜ Propuesto, sin iniciar — depende de la estructura de datos que introduce UX-8.1. |
+
+### Trabajo realizado (UX-8.1)
+
+Nueva fuente de verdad `_ce_proyecto_media` (JSON), con migración de solo lectura desde `_ce_proyecto_galeria` y derivación automática de vuelta hacia ese mismo meta en cada guardado (para no tocar `template-parts/gallery.php` ni `inc/seo.php`, fuera de alcance de este Entregable). Metabox reescrito (`ce_render_proyecto_gallery()`) con repeater de 3 acciones — añadir imágenes, añadir video de la Biblioteca, añadir video por URL — reordenable por botones. Frontend (`single-proyecto.php`) renderiza el mosaico mixto reutilizando `ModuleLightbox` ya extendido para video desde UX-7.8, sin ningún cambio de JS de frontend.
+
+### Archivos creados / modificados (UX-8.1)
+- Modificados: `inc/meta-boxes.php`, `inc/helpers.php`, `inc/enqueue.php`, `single-proyecto.php`, `assets/css/main.css`.
+- Reescrito íntegramente: `assets/js/admin-proyecto-gallery.js`.
+- Sin cambios: `template-parts/gallery.php`, `inc/seo.php`, `template-parts/content-proyecto.php`, `assets/js/main.js`, Sprint 8.
+
+### Documentación actualizada en este cierre
+`docs/DECISIONS.md` (D-108), este mismo archivo, `docs/TREE.md`, `docs/CHANGELOG.md`. Sin cambios en `docs/PROJECT_STATUS.md`/`docs/QA_REPORT.md`/`docs/CURRENT_SPRINT.md` (Sprint 8, cerrado, sin relación con este Sprint nuevo).
+
+### Próximo paso
+Con UX-8.1 entregado, **UX-8.2 no inicia sin tu aprobación explícita de UX-8.1** (D-038). Ver el prompt de continuación al final de `docs/HANDOFF.md`/este documento para retomar cuando lo apruebes.

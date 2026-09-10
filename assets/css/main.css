@@ -2026,6 +2026,23 @@ a.ce-trust-badge--compact:hover .ce-trust-badge__label {
   display: block;
 }
 
+/* -- FIX D-XXX: el reset global de la sección 1 (`img, picture, svg,
+   video { display: block; }`, línea ~39) es una regla de hoja de autor,
+   y ese origen gana siempre sobre `[hidden] { display: none; }` de la
+   hoja de agente de usuario, sin importar la especificidad. Resultado:
+   `this.videoEl.hidden = true` / `this.imgEl.hidden = true` en
+   ModuleLightbox.show() (main.js) quedaban sin efecto visual y el
+   `<video>` nativo (vacío) seguía ocupando espacio junto al `<iframe>`
+   dentro de `.ce-lightbox` (flex), mostrando ambos reproductores lado
+   a lado. Se restaura `display: none` explícitamente en la propia hoja
+   de autor, con selectores acotados a estos tres medios del lightbox
+   para no alterar el uso de `[hidden]` en el resto del tema. */
+.ce-lightbox__img[hidden],
+.ce-lightbox__video[hidden],
+.ce-lightbox__embed[hidden] {
+  display: none;
+}
+
 @media (max-width: 480px) {
   .ce-testimonial-video-trigger__icon i {
     width: 48px;
@@ -2197,3 +2214,151 @@ a.ce-trust-badge--compact:hover .ce-trust-badge__label {
     padding: 4px 10px;
   }
 }
+
+/* =============================================================
+   34. SPRINT UX-8, ENTREGABLE UX-8.1 — GALERÍA MIXTA DE PROYECTO
+   (imagen y/o video en el mismo mosaico). Ver DECISIONS.md D-108.
+
+   `.ce-gallery-item--video`: modificador de `.ce-gallery-item`
+   (sección 11, GALLERY) — reutiliza esa clase base (forma, radio,
+   overflow, `aspect-ratio: 1/1`, cursor) sin tocarla. Deliberadamente
+   NO se reutiliza `.ce-testimonial-video-trigger` (sección 32,
+   UX-7.8): esa clase fija `aspect-ratio: 16/9`, que entraría en
+   conflicto con el `1/1` de `.ce-gallery-item` (misma especificidad,
+   ganaría la que se declare después en cascada) y rompería el ritmo
+   cuadriculado del mosaico de imágenes. En su lugar se reutiliza
+   `.ce-gallery-item__icon` (ya existente, overlay de la lupa de
+   imagen) como base del botón Play, cambiando únicamente su opacidad
+   (siempre visible, no solo al pasar el cursor — sin miniatura de
+   fondo que lo justifique, ver ce_construction_get_proyecto_media_items()
+   en inc/helpers.php) y el tamaño/color del ícono interior.
+
+   Se usa `<button>` en vez de `<div>` para el ítem de video (necesario
+   para que sea un control accesible por teclado con `aria-label`
+   propio) — el reset global de botones (sección 1) ya quita
+   padding/border/background por defecto; esta regla solo normaliza
+   el `display`/ancho dentro del grid y el texto alineado a la
+   izquierda (sin efecto visual real, ya que no hay texto visible).
+   ============================================================= */
+.ce-gallery-item--video {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  text-align: left;
+  font: inherit;
+  /* Corrección defensiva: fuerza que el navegador nunca aplique su
+     apariencia nativa de botón (fondo/highlight de sistema al pasar
+     el cursor) por encima del fondo degradado de abajo — sin esto,
+     algunos navegadores pueden mostrar el botón "en blanco" hasta
+     el :hover, incluso con background ya declarado. */
+  -webkit-appearance: none;
+  appearance: none;
+  background: linear-gradient(135deg, var(--ce-color-primary), var(--ce-color-neutral-800));
+}
+.ce-gallery-item--video .ce-gallery-item__icon {
+  opacity: 1;
+  background: rgba(15, 42, 67, 0.25);
+}
+.ce-gallery-item--video__poster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ce-gallery-item--video .ce-gallery-item__icon i {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--ce-color-primary);
+  font-size: 1rem;
+}
+.ce-gallery-item--video:focus-visible {
+  outline: 3px solid var(--ce-color-secondary);
+  outline-offset: 2px;
+}
+
+/* --- Admin: repeater de la galería mixta (metabox de Proyecto) ---
+   Impreso en wp-admin (ce_render_proyecto_gallery(), inc/meta-boxes.php)
+   — mismo criterio del resto del tema de mantener el CSS del admin
+   junto al del frontend en este único archivo encolado en
+   admin_enqueue_scripts (ver inc/enqueue.php), sin crear una hoja de
+   estilos de admin separada solo para este metabox. */
+.ce-proyecto-media-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 12px;
+  padding: 0;
+  list-style: none;
+}
+.ce-proyecto-media-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 320px;
+  padding: 6px 8px;
+  background: #fff;
+  border: 1px solid #dcdcde;
+  border-radius: 3px;
+}
+.ce-proyecto-media-item__preview {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: #f0f0f1;
+}
+.ce-proyecto-media-item__preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.ce-proyecto-media-item__preview--icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #787c82;
+}
+.ce-proyecto-media-item__label {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ce-proyecto-media-item__actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.ce-proyecto-media-item__actions .button {
+  min-width: 26px;
+  padding: 0 4px;
+  line-height: 24px;
+}
+.ce-proyecto-media-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.ce-proyecto-media-url-adder {
+  display: inline-flex;
+  gap: 6px;
+}
+.ce-proyecto-media-url-adder input[type="url"] {
+  min-width: 240px;
+}
+
