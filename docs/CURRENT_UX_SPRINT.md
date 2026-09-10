@@ -549,7 +549,7 @@ diffs.
 | Entregable | Objetivo | Estado |
 |---|---|---|
 | UX-8.1 | Galería mixta del Proyecto (imagen y/o video, reordenable) | 🟡 **Entregado — pendiente de tu aprobación explícita.** Ver `docs/DECISIONS.md` D-108. |
-| UX-8.2 | Curación de la Galería del Home (proyecto destacado + imagen favorita) | ⬜ Propuesto, sin iniciar — depende de la estructura de datos que introduce UX-8.1. |
+| UX-8.2 | Curación de la Galería del Home (proyecto destacado + imagen favorita) | 🟡 **Entregado — pendiente de tu aprobación explícita.** Ver `docs/DECISIONS.md` D-109. |
 
 ### Trabajo realizado (UX-8.1)
 
@@ -560,8 +560,18 @@ Nueva fuente de verdad `_ce_proyecto_media` (JSON), con migración de solo lectu
 - Reescrito íntegramente: `assets/js/admin-proyecto-gallery.js`.
 - Sin cambios: `template-parts/gallery.php`, `inc/seo.php`, `template-parts/content-proyecto.php`, `assets/js/main.js`, Sprint 8.
 
+### Trabajo realizado (UX-8.2)
+
+Curación explícita de la Galería del Home, reemplazando la selección automática "primeros proyectos publicados, cronológico". Checkbox `_ce_proyecto_destacado` por proyecto + flag `favorite` por ítem de imagen dentro de `_ce_proyecto_media` (exclusividad de 1 favorita por proyecto, aplicada en cliente y servidor). Resolución curada centralizada en `ce_construction_get_home_gallery_images()` (`inc/helpers.php`): favorita → primera imagen → destacada del post, por proyecto; destacados primero, relleno con no-destacados hasta 8; sin destacados, la sección se oculta por completo (sin fallback al comportamiento anterior). Responsive añadido en la misma aprobación: grid en desktop/tablet (sin cambios), carrusel de 1 imagen por vista en móvil (`ModuleHomeGallerySlider`, reutiliza `createSliderController()`/D-055 con el botón de pausa accesible de QA-035/D-102 — sin slider nuevo).
+
+### Archivos creados / modificados (UX-8.2)
+- Modificados: `inc/meta-boxes.php`, `inc/helpers.php`, `inc/enqueue.php`, `assets/js/main.js`, `assets/css/main.css`.
+- Reescrito íntegramente: `template-parts/gallery.php`.
+- Editado (no reescrito): `assets/js/admin-proyecto-gallery.js` (botón de favorita añadido sobre el archivo ya reescrito en UX-8.1).
+- Sin cambios: `single-proyecto.php`, `.ce-gallery-grid`/`.ce-gallery-item` (regla existente), `inc/seo.php`, `ModuleLightbox`, `createSliderController()`.
+
 ### Documentación actualizada en este cierre
-`docs/DECISIONS.md` (D-108), este mismo archivo, `docs/TREE.md`, `docs/CHANGELOG.md`. Sin cambios en `docs/PROJECT_STATUS.md`/`docs/QA_REPORT.md`/`docs/CURRENT_SPRINT.md` (Sprint 8, cerrado, sin relación con este Sprint nuevo).
+`docs/DECISIONS.md` (D-108, D-109), este mismo archivo. **Pendientes, sin cambios de alcance:** `docs/TREE.md`, `docs/CHANGELOG.md`, `docs/PROJECT_STATUS.md`, `docs/TODO.md`, `docs/HANDOFF.md` — se actualizan en el mismo cierre en que apruebes UX-8.1 + UX-8.2, no antes (mismo criterio ya usado en Entregables previos: evitar reescribir documentación de cierre sobre un alcance todavía no confirmado). Sin cambios en `docs/PROJECT_STATUS.md`/`docs/QA_REPORT.md`/`docs/CURRENT_SPRINT.md` (Sprint 8, cerrado, sin relación con este Sprint nuevo).
 
 ### Próximo paso
-Con UX-8.1 entregado, **UX-8.2 no inicia sin tu aprobación explícita de UX-8.1** (D-038). Ver el prompt de continuación al final de `docs/HANDOFF.md`/este documento para retomar cuando lo apruebes.
+UX-8.1 y UX-8.2 están ambos entregados. **Ninguno de los dos se da por cerrado, y no se inicia ningún Entregable ni Sprint nuevo, sin tu aprobación explícita** (D-038) — incluida la confirmación de la prueba funcional real en WordPress pendiente en ambos (ver D-108/D-109). Ver el prompt de continuación al final de este documento para retomar cuando apruebes.

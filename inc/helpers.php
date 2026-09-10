@@ -1478,7 +1478,27 @@ function ce_construction_decode_proyecto_media_json( $raw ) {
 			if ( ! $id ) {
 				continue; // Sin ID no hay nada que resolver: se descarta en silencio.
 			}
-			$normalized[] = array( 'type' => $type, 'id' => $id );
+			$normalized_item = array( 'type' => $type, 'id' => $id );
+
+			// Sprint UX-8, Entregable UX-8.2 (D-109, ampliado en D-110):
+			// "imagen(es) favorita(s)". El flag solo tiene sentido para
+			// 'image' — el mosaico de la Galería del Home no puede usar
+			// un video como miniatura (ver alcance aprobado) — por eso
+			// se descarta explícitamente para 'video-local', aunque un
+			// POST manipulado enviara `favorite:true` en ese ítem.
+			//
+			// 🆕 D-110: a diferencia de la versión original de D-109
+			// (máximo 1 favorita por proyecto, enforcement eliminado en
+			// este mismo Entregable), ahora se permite marcar CUALQUIER
+			// cantidad de imágenes como favoritas dentro de un mismo
+			// proyecto — no hay ningún límite que aplicar aquí. Ver
+			// ce_construction_resolve_home_gallery_images() (plural,
+			// más abajo) para cómo se consumen.
+			if ( 'image' === $type && ! empty( $item['favorite'] ) ) {
+				$normalized_item['favorite'] = true;
+			}
+
+			$normalized[] = $normalized_item;
 		} elseif ( 'video-embed' === $type ) {
 			$url = isset( $item['url'] ) ? esc_url_raw( $item['url'] ) : '';
 			if ( ! $url ) {
@@ -1604,4 +1624,185 @@ function ce_construction_get_proyecto_media_items( $post_id ) {
 	}
 
 	return $resolved;
+}
+
+/* =========================================================
+ * Sprint UX-8, Entregable UX-8.2 (D-109, ampliado en D-110): curación
+ * de la Galería del Home — "proyecto destacado" (`_ce_proyecto_destacado`,
+ * checkbox en ce_render_proyecto_fields(), inc/meta-boxes.php) +
+ * "imagen(es) favorita(s)" (flag `favorite` por ítem `type:image`
+ * dentro de `_ce_proyecto_media`, ver el decoder de arriba). Reemplaza
+ * la selección automática anterior de template-parts/gallery.php (los
+ * primeros proyectos publicados, en orden cronológico, con TODAS sus
+ * imágenes hasta completar 8) por esta curación explícita.
+ *
+ * 🆕 D-110 (cambio de alcance sobre D-109, aprobado explícitamente por
+ * el usuario tras una ronda de pruebas): D-109 original permitía como
+ * máximo 1 imagen favorita por proyecto, y esta sección devolvía por
+ * tanto 1 sola imagen por proyecto. Ahora se permite marcar cualquier
+ * cantidad de favoritas por proyecto, y TODAS entran al mosaico —
+ * `ce_construction_resolve_home_gallery_image()` (singular) se
+ * reemplaza por `ce_construction_resolve_home_gallery_images()`
+ * (plural, devuelve un array).
+ * ========================================================= */
+
+/**
+ * Resuelve TODAS las imágenes representativas de UN proyecto para el
+ * mosaico del Home:
+ *   - Si tiene una o más imágenes marcadas como favoritas → devuelve
+ *     TODAS ellas, en el orden guardado en el repeater (sin tope por
+ *     proyecto — decisión explícita del usuario, D-110).
+ *   - Si no tiene ninguna favorita marcada → devuelve solo la PRIMERA
+ *     imagen de `_ce_proyecto_media` (sin cambios respecto a D-109:
+ *     esta parte de la regla no se tocó).
+ *   - Si no tiene ninguna imagen en absoluto → devuelve la imagen
+ *     destacada del post, si existe.
+ *   - Si ninguna de las 3 existe, devuelve un array vacío — el
+ *     proyecto no aporta ninguna imagen al mosaico, sin dejar un
+ *     hueco (ver ce_construction_get_home_gallery_images(), abajo).
+ *
+ * Se aplica exactamente igual a proyectos destacados y no destacados
+ * (misma regla de resolución para ambos, D-110) — solo cambia el
+ * ORDEN en que se recorren los proyectos, no cómo se eligen sus
+ * imágenes.
+ *
+ * @param int $post_id
+ * @return array<int,int> IDs de adjunto de imagen (puede estar vacío).
+ */
+function ce_construction_resolve_home_gallery_images( $post_id ) {
+	$media_items = ce_construction_get_proyecto_media_raw( $post_id );
+	$image_items = array_values( array_filter( $media_items, function( $item ) {
+		return isset( $item['type'] ) && 'image' === $item['type'];
+	} ) );
+
+	if ( ! empty( $image_items ) ) {
+		$favorite_ids = array();
+		foreach ( $image_items as $image_item ) {
+			if ( ! empty( $image_item['favorite'] ) ) {
+				$favorite_ids[] = (int) $image_item['id'];
+			}
+		}
+
+		if ( ! empty( $favorite_ids ) ) {
+			// 🆕 D-110: todas las favoritas marcadas, sin tope por
+			// proyecto — el corte al tope global de 8 lo aplica
+			// exclusivamente ce_construction_get_home_gallery_images().
+			return $favorite_ids;
+		}
+
+		// Sin ninguna favorita marcada: solo la primera imagen en el
+		// orden guardado del repeater (sin cambios respecto a D-109).
+		return array( (int) $image_items[0]['id'] );
+	}
+
+	if ( has_post_thumbnail( $post_id ) ) {
+		return array( (int) get_post_thumbnail_id( $post_id ) );
+	}
+
+	return array();
+}
+
+/**
+ * Lista final de IDs de imagen para el mosaico de la Galería del
+ * Home, ya curada. Único punto de entrada consumido por
+ * template-parts/gallery.php — ese archivo no vuelve a tocar
+ * `_ce_proyecto_destacado`/`_ce_proyecto_media` directamente.
+ *
+ * Fallbacks aprobados explícitamente por el usuario (D-109, con el
+ * ajuste de D-110 anotado en el punto 2) antes de escribir esta
+ * función:
+ *   1. Sin NINGÚN proyecto destacado → devuelve un array vacío. La
+ *      plantilla oculta la sección por completo (mismo criterio de
+ *      auto-ocultado que stats.php/trust-badges.php) — NO cae de
+ *      vuelta al comportamiento "todos los proyectos" que existía
+ *      antes de este Entregable.
+ *   2. Menos de `$cap` imágenes entre los destacados → se completa
+ *      con proyectos NO destacados (destacados siempre primero, orden
+ *      cronológico descendente en ambos grupos). 🆕 D-110: tanto los
+ *      destacados como los no-destacados aportan TODAS sus favoritas
+ *      (o su única imagen resuelta, si no tienen ninguna favorita) —
+ *      ya no es "1 imagen por proyecto" en ninguno de los 2 grupos.
+ *   3. Tope de imágenes: fijo en 8, sin campo nuevo en el Customizer
+ *      (D-109). 🆕 D-110: el corte es EXACTO en 8 — si las favoritas
+ *      de un proyecto hacen que el acumulado supere el tope, se
+ *      recortan a la mitad con `array_slice()` (decisión explícita
+ *      del usuario: "se corta exactamente en 8", no se muestra el
+ *      proyecto completo aunque eso implique una favorita de más).
+ *
+ * @return array<int,int> IDs de adjunto de imagen, máximo 8.
+ */
+function ce_construction_get_home_gallery_images() {
+	$cap = 8;
+
+	if ( ! ce_cpt_has_posts( 'proyecto' ) ) {
+		return array();
+	}
+
+	$images            = array();
+	$used_project_ids  = array();
+
+	// 1. Proyectos destacados, en orden cronológico descendente (sin
+	// `orderby` explícito, mismo criterio por defecto que ya tenía
+	// esta sección antes de este Entregable).
+	$destacados = new WP_Query( array(
+		'post_type'      => 'proyecto',
+		'post_status'    => 'publish',
+		'posts_per_page' => -1,
+		'meta_key'       => '_ce_proyecto_destacado',
+		'meta_value'     => '1',
+		'no_found_rows'  => true,
+	) );
+
+	if ( ! $destacados->have_posts() ) {
+		wp_reset_postdata();
+		// Fallback 1 (aprobado): sin destacados, sección oculta por
+		// completo — ver docblock de arriba.
+		return array();
+	}
+
+	while ( $destacados->have_posts() ) {
+		$destacados->the_post();
+		$used_project_ids[] = get_the_ID();
+		if ( count( $images ) >= $cap ) {
+			continue; // Se sigue recorriendo solo para completar $used_project_ids (evita reprocesar estos mismos proyectos en el relleno de abajo).
+		}
+		// 🆕 D-110: se acumulan TODAS las imágenes que devuelva el
+		// proyecto (antes era como máximo 1 por la naturaleza de
+		// resolve_home_gallery_image(), singular).
+		foreach ( ce_construction_resolve_home_gallery_images( get_the_ID() ) as $image_id ) {
+			$images[] = $image_id;
+		}
+	}
+	wp_reset_postdata();
+
+	// 2. Fallback 2 (aprobado): faltan imágenes para llegar al tope →
+	// se completa con proyectos NO destacados, mismo orden
+	// cronológico descendente, excluyendo los ya recorridos arriba.
+	// 🆕 D-110: también aportan TODAS sus favoritas (mismo criterio
+	// que los destacados, no solo 1 imagen cada uno).
+	if ( count( $images ) < $cap ) {
+		$relleno = new WP_Query( array(
+			'post_type'      => 'proyecto',
+			'post_status'    => 'publish',
+			'posts_per_page' => -1,
+			'post__not_in'   => $used_project_ids,
+			'no_found_rows'  => true,
+		) );
+
+		while ( $relleno->have_posts() && count( $images ) < $cap ) {
+			$relleno->the_post();
+			foreach ( ce_construction_resolve_home_gallery_images( get_the_ID() ) as $image_id ) {
+				$images[] = $image_id;
+			}
+		}
+		wp_reset_postdata();
+	}
+
+	// 🆕 D-110: corte EXACTO en el tope — puede cortar a la mitad las
+	// favoritas del último proyecto procesado (destacado o de
+	// relleno), decisión explícita del usuario. `array_slice()` ya
+	// hacía este corte exacto desde D-109; lo que cambia en D-110 es
+	// que ahora sí puede recortar mid-proyecto (antes era imposible,
+	// porque cada proyecto aportaba como máximo 1 imagen).
+	return array_slice( $images, 0, $cap );
 }

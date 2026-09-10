@@ -347,6 +347,14 @@ function ce_construction_enqueue_proyecto_gallery_script( $hook ) {
 		'labelVideo'          => __( 'Video', 'ce-construction' ),
 		'labelImage'          => __( 'Imagen', 'ce-construction' ),
 		'labelInvalidUrl'     => __( 'Ingresa una URL de video válida antes de añadirla.', 'ce-construction' ),
+		// 🆕 Sprint UX-8, Entregable UX-8.2 (D-109): botón ★/☆ de
+		// "imagen favorita" (ver buildImageItem()/toggle de favorita en
+		// admin-proyecto-gallery.js). Solo se usa en ítems type:image
+		// añadidos dinámicamente vía wp.media — los ya guardados al
+		// cargar la página imprimen su label inicial directamente desde
+		// PHP (ce_render_proyecto_gallery(), inc/meta-boxes.php).
+		'labelMarkFavorite'   => __( 'Marcar como favorita', 'ce-construction' ),
+		'labelUnmarkFavorite' => __( 'Quitar de favoritas', 'ce-construction' ),
 	) );
 }
 add_action( 'admin_enqueue_scripts', 'ce_construction_enqueue_proyecto_gallery_script' );

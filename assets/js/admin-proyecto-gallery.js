@@ -24,6 +24,12 @@
  * `proyecto` (ver condición de carga en inc/enqueue.php) — nunca en
  * el frontend público del tema ni en otras pantallas del admin.
  *
+ * 🆕 Sprint UX-8, Entregable UX-8.2 (D-109, ampliado en D-110): cada
+ * ítem de imagen incorpora un botón ★/☆ de "imagen(es) favorita(s)"
+ * (sin límite por proyecto desde D-110 — antes exclusivo, máximo 1),
+ * consumida por ce_construction_get_home_gallery_images()
+ * (inc/helpers.php) para curar la Galería del Home.
+ *
  * @package CE_Construction
  */
 
@@ -42,7 +48,17 @@
 			var $item = $( this );
 			var type = $item.data( 'type' );
 
-			if ( 'image' === type || 'video-local' === type ) {
+			if ( 'image' === type ) {
+				// 🆕 Sprint UX-8, Entregable UX-8.2 (D-109): "imagen
+				// favorita" — se lee del estado real de la clase
+				// `is-favorite` del <li> (fuente de verdad visual, ver
+				// toggleFavorite() más abajo), no de un dato cacheado.
+				var imageEntry = { type: type, id: parseInt( $item.data( 'id' ), 10 ) || 0 };
+				if ( $item.hasClass( 'is-favorite' ) ) {
+					imageEntry.favorite = true;
+				}
+				items.push( imageEntry );
+			} else if ( 'video-local' === type ) {
 				items.push( { type: type, id: parseInt( $item.data( 'id' ), 10 ) || 0 } );
 			} else if ( 'video-embed' === type ) {
 				items.push( { type: 'video-embed', url: String( $item.data( 'url' ) || '' ) } );
@@ -62,7 +78,10 @@
 
 		$item.append( $( '<span class="ce-proyecto-media-item__preview"></span>' ).append( $( '<img>' ).attr( 'src', thumbUrl ).attr( 'alt', '' ) ) );
 		$item.append( $( '<span class="ce-proyecto-media-item__label"></span>' ).text( ceProyectoGalleryData.labelImage || 'Imagen' ) );
-		$item.append( buildActions() );
+		// 'true': una imagen recién añadida vía wp.media nunca nace
+		// favorita (mismo criterio que el resto de campos nuevos del
+		// tema: sin preselección implícita).
+		$item.append( buildActions( true ) );
 
 		return $item;
 	}
@@ -86,12 +105,39 @@
 		return $item;
 	}
 
-	function buildActions() {
+	/**
+	 * @param {boolean} [withFavorite] 🆕 UX-8.2 (D-109): añade el botón
+	 *   ★/☆ de "imagen favorita" al inicio de las acciones. Solo lo
+	 *   pasa `true` buildImageItem() (arriba) — los ítems de video
+	 *   (buildVideoItem()) nunca lo reciben, misma restricción ya
+	 *   aplicada en el servidor (ce_construction_decode_proyecto_media_json()).
+	 */
+	function buildActions( withFavorite ) {
 		var $actions = $( '<span class="ce-proyecto-media-item__actions"></span>' );
+		if ( withFavorite ) {
+			$actions.append(
+				$( '<button type="button" class="button ce-proyecto-media-item__favorite" aria-pressed="false">&#9734;</button>' )
+					.attr( 'aria-label', ceProyectoGalleryData.labelMarkFavorite || 'Marcar como favorita' )
+			);
+		}
 		$actions.append( $( '<button type="button" class="button ce-proyecto-media-item__up">&uarr;</button>' ) );
 		$actions.append( $( '<button type="button" class="button ce-proyecto-media-item__down">&darr;</button>' ) );
 		$actions.append( $( '<button type="button" class="button ce-proyecto-media-item__remove">&times;</button>' ) );
 		return $actions;
+	}
+
+	/**
+	 * Sincroniza el ícono (★/☆), aria-pressed y aria-label de un botón
+	 * de favorita con el estado dado. Usado tanto al marcar como al
+	 * desmarcar (incluida la favorita "perdedora" al elegir otra).
+	 */
+	function updateFavoriteButton( $btn, isFavorite ) {
+		$btn
+			.html( isFavorite ? '&#9733;' : '&#9734;' )
+			.attr( 'aria-pressed', isFavorite ? 'true' : 'false' )
+			.attr( 'aria-label', isFavorite
+				? ( ceProyectoGalleryData.labelUnmarkFavorite || 'Quitar de favoritas' )
+				: ( ceProyectoGalleryData.labelMarkFavorite || 'Marcar como favorita' ) );
 	}
 
 	/**
@@ -161,6 +207,25 @@
 			$list.append( buildVideoItem( 'video-embed', url, url ) );
 			serialize( $list, $input );
 			$urlInput.val( '' );
+		} );
+
+		// 🆕 Sprint UX-8, Entregable UX-8.2 (D-109, ampliado en D-110):
+		// botón ★/☆ de "imagen(es) favorita(s)". D-109 original
+		// desmarcaba cualquier otra favorita del repeater (exclusividad,
+		// máximo 1 por proyecto). D-110 quita esa exclusividad —
+		// cualquier cantidad de imágenes puede estar marcada como
+		// favorita a la vez; este handler solo alterna el estado del
+		// ítem sobre el que se hizo click, sin tocar a los demás.
+		$list.on( 'click', '.ce-proyecto-media-item__favorite', function ( e ) {
+			e.preventDefault();
+			var $btn  = $( this );
+			var $item = $btn.closest( '.ce-proyecto-media-item' );
+			var makingFavorite = ! $item.hasClass( 'is-favorite' );
+
+			$item.toggleClass( 'is-favorite', makingFavorite );
+			updateFavoriteButton( $btn, makingFavorite );
+
+			serialize( $list, $input );
 		} );
 
 		$list.on( 'click', '.ce-proyecto-media-item__remove', function ( e ) {

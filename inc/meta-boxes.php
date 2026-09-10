@@ -63,6 +63,14 @@ function ce_render_proyecto_fields( $post ) {
 	$cliente  = get_post_meta( $post->ID, '_ce_proyecto_cliente', true );
 	$ubicacion = get_post_meta( $post->ID, '_ce_proyecto_ubicacion', true );
 	$fecha    = get_post_meta( $post->ID, '_ce_proyecto_fecha', true );
+	// Sprint UX-8, Entregable UX-8.2 (D-109): "proyecto destacado" para
+	// la curación de la Galería del Home — ver
+	// ce_construction_get_home_gallery_images() en inc/helpers.php.
+	// Campo independiente de `_ce_proyecto_media` (galería mixta,
+	// D-108): un proyecto puede estar destacado sin tener ninguna
+	// imagen todavía (en ese caso simplemente no aporta imagen al
+	// mosaico, ver el fallback aprobado de esa función).
+	$destacado = (bool) get_post_meta( $post->ID, '_ce_proyecto_destacado', true );
 	?>
 	<p>
 		<label><strong><?php esc_html_e( 'Cliente', 'ce-construction' ); ?></strong></label><br>
@@ -77,6 +85,13 @@ function ce_render_proyecto_fields( $post ) {
 		<input type="date" name="ce_proyecto_fecha" value="<?php echo esc_attr( $fecha ); ?>">
 	</p>
 	<p class="description"><?php esc_html_e( 'El "Estado" se gestiona con la taxonomía Estado de Proyecto en la barra lateral.', 'ce-construction' ); ?></p>
+	<p>
+		<label>
+			<input type="checkbox" name="ce_proyecto_destacado" value="1" <?php checked( $destacado ); ?>>
+			<strong><?php esc_html_e( 'Proyecto destacado en la Galería del Home', 'ce-construction' ); ?></strong>
+		</label><br>
+		<span class="description"><?php esc_html_e( 'Marca los proyectos que quieres curar para la sección "Galería" del Home. Si ninguno está marcado, esa sección se oculta. Si faltan imágenes para completar el mosaico, se rellena automáticamente con proyectos no destacados.', 'ce-construction' ); ?></span>
+	</p>
 	<?php
 }
 
@@ -109,6 +124,16 @@ function ce_render_proyecto_fields( $post ) {
  *
  * JS real (añadir imagen/video-local/video-url, quitar, reordenar,
  * serializar a JSON en el hidden input): assets/js/admin-proyecto-gallery.js.
+ *
+ * 🆕 Sprint UX-8, Entregable UX-8.2 (D-109, ampliado en D-110): cada
+ * ítem `type:image` incorpora además un botón ★/☆ de "imagen(es)
+ * favorita(s)" (flag `favorite` en `_ce_proyecto_media`, saneado en
+ * ce_construction_decode_proyecto_media_json() — sin límite por
+ * proyecto desde D-110, cualquier cantidad de imágenes puede estar
+ * marcada a la vez). Los ítems de video no tienen este botón: la
+ * favorita solo tiene sentido para el mosaico de imágenes de la
+ * Galería del Home (ver ce_construction_get_home_gallery_images(),
+ * inc/helpers.php), que nunca muestra un video como miniatura.
  */
 function ce_render_proyecto_gallery( $post ) {
 	$items = ce_construction_get_proyecto_media_raw( $post->ID );
@@ -118,11 +143,16 @@ function ce_render_proyecto_gallery( $post ) {
 	<ul id="ce-proyecto-media-list" class="ce-proyecto-media-list">
 		<?php foreach ( $items as $item ) : ?>
 			<?php if ( 'image' === $item['type'] ) : ?>
-				<?php $thumb_url = wp_get_attachment_image_url( $item['id'], 'thumbnail' ); ?>
-				<li class="ce-proyecto-media-item" data-type="image" data-id="<?php echo esc_attr( $item['id'] ); ?>">
+				<?php
+				$thumb_url = wp_get_attachment_image_url( $item['id'], 'thumbnail' );
+				// Sprint UX-8, Entregable UX-8.2 (D-109): "imagen favorita".
+				$is_favorite = ! empty( $item['favorite'] );
+				?>
+				<li class="ce-proyecto-media-item<?php echo $is_favorite ? ' is-favorite' : ''; ?>" data-type="image" data-id="<?php echo esc_attr( $item['id'] ); ?>">
 					<span class="ce-proyecto-media-item__preview"><?php if ( $thumb_url ) : ?><img src="<?php echo esc_url( $thumb_url ); ?>" alt=""><?php endif; ?></span>
 					<span class="ce-proyecto-media-item__label"><?php esc_html_e( 'Imagen', 'ce-construction' ); ?></span>
 					<span class="ce-proyecto-media-item__actions">
+						<button type="button" class="button ce-proyecto-media-item__favorite" aria-pressed="<?php echo $is_favorite ? 'true' : 'false'; ?>" aria-label="<?php echo esc_attr( $is_favorite ? __( 'Quitar de favoritas', 'ce-construction' ) : __( 'Marcar como favorita', 'ce-construction' ) ); ?>"><?php echo $is_favorite ? '&#9733;' : '&#9734;'; /* ★ / ☆ */ ?></button>
 						<button type="button" class="button ce-proyecto-media-item__up" aria-label="<?php esc_attr_e( 'Mover antes', 'ce-construction' ); ?>">&uarr;</button>
 						<button type="button" class="button ce-proyecto-media-item__down" aria-label="<?php esc_attr_e( 'Mover después', 'ce-construction' ); ?>">&darr;</button>
 						<button type="button" class="button ce-proyecto-media-item__remove" aria-label="<?php esc_attr_e( 'Quitar', 'ce-construction' ); ?>">&times;</button>
@@ -337,6 +367,19 @@ function ce_construction_save_meta_boxes( $post_id ) {
 			}
 			if ( isset( $_POST['ce_proyecto_fecha'] ) ) {
 				update_post_meta( $post_id, '_ce_proyecto_fecha', sanitize_text_field( wp_unslash( $_POST['ce_proyecto_fecha'] ) ) );
+			}
+			// Sprint UX-8, Entregable UX-8.2 (D-109): checkbox "Proyecto
+			// destacado". A diferencia de los campos de texto de arriba
+			// (gateados con `isset()` porque un <input> siempre se envía),
+			// un checkbox NO marcado no llega en absoluto en $_POST — por
+			// eso este bloque no puede seguir el mismo patrón: debe borrar
+			// explícitamente el meta cuando la key está ausente, o
+			// desmarcar el checkbox nunca tendría efecto tras el primer
+			// guardado.
+			if ( isset( $_POST['ce_proyecto_destacado'] ) ) {
+				update_post_meta( $post_id, '_ce_proyecto_destacado', '1' );
+			} else {
+				delete_post_meta( $post_id, '_ce_proyecto_destacado' );
 			}
 			// Sprint UX-8, Entregable UX-8.1: `_ce_proyecto_media`
 			// (galería mixta) reemplaza a `_ce_proyecto_galeria` como

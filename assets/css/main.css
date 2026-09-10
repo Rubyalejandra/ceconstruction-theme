@@ -682,6 +682,64 @@ body.ce-no-scroll { overflow: hidden; }
 }
 .ce-gallery-item:hover .ce-gallery-item__icon { opacity: 1; }
 
+/* -------------------------------------------------------------
+   Sprint UX-8, Entregable UX-8.2 (D-109): contenedor de la Galería
+   del Home curada (proyecto destacado + imagen favorita). Clase
+   NUEVA y EXCLUSIVA del Home (`.ce-home-gallery`/`.ce-home-gallery__track`)
+   — deliberadamente NO se reutiliza `.ce-gallery-grid` como
+   contenedor aquí, para que este cambio de layout responsive nunca
+   pueda afectar al mosaico de single-proyecto.php (D-108), que sigue
+   usando `.ce-gallery-grid` tal cual, sin ningún cambio. El ítem en
+   sí (`.ce-gallery-item`, arriba) SÍ se reutiliza sin modificarlo —
+   mismo hover/zoom/ícono de lupa en ambos contextos, es solo el
+   contenedor el que cambia.
+
+   Mobile-first, igual que el resto de este archivo: las reglas base
+   (sin media query) son las de MÓVIL — aquí, el carrusel — y
+   `@media (min-width: 768px)` las sustituye por el grid de
+   desktop/tablet. Mecánica de slide (transform/transición/track) a
+   cargo de ModuleHomeGallerySlider (createSliderController(),
+   assets/js/main.js) — ese módulo solo se inicializa en viewport
+   móvil, así que en desktop `.ce-home-gallery__track` nunca recibe
+   ningún estilo inline ni estas reglas de transform llegan a
+   ejecutarse contra un `.ce-gallery-item` de ancho parcial.
+   ------------------------------------------------------------- */
+.ce-home-gallery { position: relative; overflow: hidden; }
+.ce-home-gallery__track {
+  display: flex;
+  transition: transform var(--ce-transition-slow);
+  will-change: transform;
+}
+.ce-home-gallery__track .ce-gallery-item { flex: 0 0 100%; }
+
+/* Flechas/dots/pausa: mismos componentes genéricos que ya usa el
+   slider de Testimonios (.ce-slider-arrow/.ce-slider-nav/.ce-slider-dot/
+   .ce-slider-pause, ver más arriba en este archivo) — sin CSS nuevo
+   para ellos. Se ocultan aquí por defecto porque createSliderController()
+   los construye siempre que el módulo se inicializa, y en desktop
+   ModuleHomeGallerySlider.init() no llega a ejecutarse (ver docblock
+   del módulo) — pero antes de que el JS corra, o si llegara a fallar,
+   estas 2 reglas evitan que el <button> de flecha ya impreso en el
+   HTML se vea suelto sobre el grid de desktop. */
+.ce-home-gallery-wrap .ce-slider-arrow,
+.ce-home-gallery-wrap .ce-slider-nav { display: none; }
+
+@media (min-width: 768px) {
+  .ce-home-gallery { overflow: visible; }
+  .ce-home-gallery__track {
+    display: grid;
+    gap: var(--ce-space-3);
+    grid-template-columns: repeat(3, 1fr);
+    transform: none !important; /* Guarda de seguridad: nunca debe quedar un transform de móvil aplicado si el viewport ya es desktop. */
+  }
+  .ce-home-gallery__track .ce-gallery-item { flex: initial; }
+}
+
+@media (max-width: 767.98px) {
+  .ce-home-gallery-wrap .ce-slider-arrow,
+  .ce-home-gallery-wrap .ce-slider-nav { display: flex; }
+}
+
 /* CTA */
 .ce-cta {
   background: linear-gradient(120deg, var(--ce-color-primary), var(--ce-color-primary-dark));
@@ -2026,17 +2084,21 @@ a.ce-trust-badge--compact:hover .ce-trust-badge__label {
   display: block;
 }
 
-/* -- FIX D-XXX: el reset global de la sección 1 (`img, picture, svg,
-   video { display: block; }`, línea ~39) es una regla de hoja de autor,
-   y ese origen gana siempre sobre `[hidden] { display: none; }` de la
-   hoja de agente de usuario, sin importar la especificidad. Resultado:
-   `this.videoEl.hidden = true` / `this.imgEl.hidden = true` en
-   ModuleLightbox.show() (main.js) quedaban sin efecto visual y el
-   `<video>` nativo (vacío) seguía ocupando espacio junto al `<iframe>`
-   dentro de `.ce-lightbox` (flex), mostrando ambos reproductores lado
-   a lado. Se restaura `display: none` explícitamente en la propia hoja
-   de autor, con selectores acotados a estos tres medios del lightbox
-   para no alterar el uso de `[hidden]` en el resto del tema. */
+/* -- QA-045: el reset global de la sección 1 (`img, picture, svg,
+   video { display: block; }`, línea ~39) es una regla de hoja de
+   autor, y ese origen gana siempre sobre `[hidden] { display: none; }`
+   de la hoja de agente de usuario, sin importar la especificidad.
+   Resultado: `this.imgEl.hidden = true` / `this.videoEl.hidden = true` /
+   `this.embedEl.hidden = true` en ModuleLightbox.show() (assets/js/main.js)
+   quedaban sin efecto visual — el medio no activo (imagen, `<video>`
+   nativo vacío, o `<div>` de embed) seguía ocupando espacio dentro de
+   `.ce-lightbox` (flex), mostrándose superpuesto/al lado del medio
+   real, en cualquier resolución de pantalla (reportado en pruebas
+   desde el Home y desde la Galería del Proyecto por igual — mismo
+   `.ce-lightbox` compartido por ambos). Se restaura `display: none`
+   explícitamente en la propia hoja de autor, acotado a estos 3
+   elementos para no alterar el uso de `[hidden]` en el resto del
+   tema. */
 .ce-lightbox__img[hidden],
 .ce-lightbox__video[hidden],
 .ce-lightbox__embed[hidden] {

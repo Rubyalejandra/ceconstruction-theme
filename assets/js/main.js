@@ -620,6 +620,59 @@
 	});
 
 	/* ============================================================
+	 * MÓDULO: SLIDER DE LA GALERÍA DEL HOME (solo móvil)
+	 * 🆕 Sprint UX-8, Entregable UX-8.2 (D-109). El mosaico curado de
+	 * template-parts/gallery.php (`.ce-home-gallery`) se muestra como
+	 * grid en desktop/tablet — sin JS, puro CSS, igual que el
+	 * `.ce-gallery-grid` que ya usa single-proyecto.php — y como
+	 * carrusel de una imagen por vista en móvil (`max-width: 767.98px`,
+	 * mismo breakpoint que QA-018/D-039), reutilizando
+	 * createSliderController() (arriba) — la MISMA fábrica de
+	 * ModuleTestimonialSlider/ModuleHeroSlider, sin ningún mecanismo de
+	 * slide nuevo. `pausable: true` reutiliza tal cual el botón de
+	 * pausa/reanudación accesible por teclado/touch que QA-035 (D-102)
+	 * ya añadió a la fábrica (WCAG 2.2.2) — no es una segunda
+	 * implementación del mismo control.
+	 *
+	 * A diferencia de ModuleTestimonialSlider/ModuleHeroSlider, este
+	 * slider NO se inicializa incondicionalmente: `init()` primero
+	 * comprueba el viewport y solo delega en el controlador interno
+	 * (`inner`, construido con la fábrica) si el viewport actual es
+	 * móvil. Esto es deliberado, no un descuido — si se llamara siempre,
+	 * `goTo(0)` aplicaría `transform: translateX(0)` sobre
+	 * `.ce-home-gallery__track` también en desktop (inofensivo por sí
+	 * solo, translateX(0) no mueve nada) PERO `buildNav()`/
+	 * `buildPauseToggle()` SÍ crearían dots y un botón de pausa
+	 * visibles en el layout de grid de desktop, donde no tienen ningún
+	 * sentido (no hay "slides" que recorrer, todas las imágenes ya son
+	 * visibles a la vez). No hay listener de `resize`/`matchMedia`
+	 * dinámico: mismo criterio de simplicidad que el resto de este
+	 * archivo (ningún otro módulo reacciona en vivo a un cambio de
+	 * viewport tras la carga inicial) — un cambio de orientación/resize
+	 * that cruce el breakpoint requiere recargar la página, igual que
+	 * cualquier otro layout responsive puramente por CSS de este tema.
+	 * ============================================================ */
+	const ModuleHomeGallerySlider = {
+		inner: createSliderController({
+			rootSelector: '.ce-home-gallery',
+			trackSelector: '.ce-home-gallery__track',
+			slideSelector: '.ce-gallery-item',
+			navSelector: '.ce-slider-nav',
+			prevSelector: '.ce-slider-arrow--prev',
+			nextSelector: '.ce-slider-arrow--next',
+			dotLabel: 'Imagen',
+			defaultDelay: 6000,
+			pausable: true,
+			pauseLabel: 'Galería:',
+		}),
+		init() {
+			const isMobile = window.matchMedia && window.matchMedia('(max-width: 767.98px)').matches;
+			if (!isMobile) return;
+			this.inner.init();
+		},
+	};
+
+	/* ============================================================
 	 * MÓDULO: LIGHTBOX (GALERÍA DE IMÁGENES + VIDEO DE TESTIMONIOS)
 	 *
 	 * Sprint UX-7, Entregable UX-7.8 (D-077): módulo existente
@@ -1459,6 +1512,7 @@
 		ModuleCounters.init();
 		ModuleTestimonialSlider.init();
 		ModuleHeroSlider.init(); // 🆕 Sprint UX-4, Entregable UX-4.2 (ver DECISIONS.md D-055).
+		ModuleHomeGallerySlider.init(); // 🆕 Sprint UX-8, Entregable UX-8.2 (ver DECISIONS.md D-109). Solo tiene efecto en viewport móvil (ver docblock del módulo).
 		ModuleLightbox.init();
 		ModuleModals.init();
 		ModuleQuoteForm.init();
