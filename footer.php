@@ -24,9 +24,11 @@
 						<p class="ce-footer__about">
 							<?php
 							echo wp_kses_post(
-								get_theme_mod(
-									'ce_footer_about',
-									__( 'Empresa constructora especializada en proyectos residenciales, comerciales e industriales, comprometida con la calidad, la seguridad y el cumplimiento de cada obra.', 'ce-construction' )
+								ce_construction_pll__(
+									get_theme_mod(
+										'ce_footer_about',
+										__( 'Empresa constructora especializada en proyectos residenciales, comerciales e industriales, comprometida con la calidad, la seguridad y el cumplimiento de cada obra.', 'ce-construction' )
+									)
 								)
 							);
 							?>
@@ -103,7 +105,7 @@
 						<?php if ( get_theme_mod( 'ce_schedule' ) ) : ?>
 							<div class="ce-footer__contact-item">
 								<i class="fa-regular fa-clock" aria-hidden="true"></i>
-								<span><?php echo nl2br( esc_html( get_theme_mod( 'ce_schedule' ) ) ); ?></span>
+								<span><?php echo nl2br( esc_html( ce_construction_pll__( get_theme_mod( 'ce_schedule' ) ) ) ); ?></span>
 							</div>
 						<?php endif; ?>
 					</div>
@@ -130,15 +132,41 @@
 			<div class="ce-container ce-flex ce-justify-between ce-flex-wrap ce-gap-3">
 				<span>
 					<?php
+					/*
+					 * 🆕 Sprint 9, Entregable 9.5 (i18n/Polylang) —
+					 * estrategia de "plantilla protegida" aprobada en
+					 * docs/I18N_DECISIONES_9.2.md, punto 8: se traduce la
+					 * FRASE con los placeholders %1$d (año)/%2$s (nombre
+					 * del sitio) todavía sin interpolar — nunca el
+					 * resultado final ya armado. El año y el nombre del
+					 * sitio se insertan DESPUÉS de obtener la cadena ya
+					 * traducida, exactamente igual que ya funcionaba el
+					 * valor por defecto (sprintf() aplicado al final).
+					 * Esto evita que un traductor humano borre, duplique
+					 * o invierta el orden de %1$d/%2$s sin saber que son
+					 * marcadores de posición.
+					 *
+					 * ce_construction_footer_copyright_template()
+					 * (inc/polylang-strings.php) es la única fuente de
+					 * verdad de esa plantilla, reutilizada aquí y en el
+					 * registro de Polylang — evita que ambos puntos
+					 * puedan desincronizarse.
+					 */
+					$ce_footer_copyright_template = get_theme_mod( 'ce_footer_copyright', '' );
+					if ( '' === $ce_footer_copyright_template ) {
+						// Sin personalizar desde el Customizer (mismo
+						// criterio "cadena vacía = sin personalizar" ya
+						// usado en todo el proyecto desde D-050, incluida
+						// la persistencia de theme_mods vacíos tras el
+						// primer guardado del Customizer).
+						$ce_footer_copyright_template = ce_construction_footer_copyright_template();
+					}
+					$ce_footer_copyright_template = ce_construction_pll__( $ce_footer_copyright_template );
 					echo esc_html(
-						get_theme_mod(
-							'ce_footer_copyright',
-							sprintf(
-								/* translators: %1$d: año actual, %2$s: nombre del sitio */
-								__( '&copy; %1$d %2$s. Todos los derechos reservados.', 'ce-construction' ),
-								gmdate( 'Y' ),
-								get_bloginfo( 'name' )
-							)
+						sprintf(
+							$ce_footer_copyright_template,
+							gmdate( 'Y' ),
+							get_bloginfo( 'name' )
 						)
 					);
 					?>

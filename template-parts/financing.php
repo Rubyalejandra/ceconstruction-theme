@@ -41,9 +41,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-$title = get_theme_mod( 'ce_financing_title', __( 'Opciones de financiamiento a tu medida', 'ce-construction' ) );
-$text  = get_theme_mod( 'ce_financing_text', __( 'Habla con nosotros sobre planes de pago flexibles y pre-aprobación sin afectar tu historial crediticio.', 'ce-construction' ) );
-$btn_text = get_theme_mod( 'ce_financing_btn_text', __( 'Conocer opciones de pago', 'ce-construction' ) );
+$title = ce_construction_pll__( get_theme_mod( 'ce_financing_title', __( 'Opciones de financiamiento a tu medida', 'ce-construction' ) ) );
+$text  = ce_construction_pll__( get_theme_mod( 'ce_financing_text', __( 'Habla con nosotros sobre planes de pago flexibles y pre-aprobación sin afectar tu historial crediticio.', 'ce-construction' ) ) );
+$btn_text = ce_construction_pll__( get_theme_mod( 'ce_financing_btn_text', __( 'Conocer opciones de pago', 'ce-construction' ) ) );
 $btn_url  = get_theme_mod( 'ce_financing_btn_url', '' );
 if ( '' === $btn_url ) {
 	// Mismo fix de D-050/D-056: get_theme_mod()'s segundo argumento

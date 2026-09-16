@@ -8,7 +8,15 @@
  *   - ajaxUrl
  *   - quoteNonce
  *   - whatsapp
- *   - i18n { sending, error }
+ *   - i18n { sending, error, pauseSlider, resumeSlider, openMobileNav,
+ *            closeMobileNav, nombreInvalido, emailInvalido,
+ *            telefonoInvalido, servicioRequerido, mensajeCorto,
+ *            revisaCampos, whatsappFallback, testimonioDotLabel,
+ *            testimoniosPauseLabel, lightboxCerrar, lightboxAnterior,
+ *            lightboxSiguiente } — Sprint 9, Entregable 9.3 (i18n):
+ *            las últimas 12 claves sustituyen los strings que antes
+ *            vivían hardcodeados aquí mismo (ver docs/DECISIONS.md D-113
+ *            y docs/I18N_DECISIONES_9.2.md punto 1).
  *
  * @package CE_Construction
  */
@@ -307,7 +315,7 @@
 			if (!this.link || !CE.whatsapp) return;
 
 			const message = encodeURIComponent(
-				this.link.dataset.message || 'Hola, quisiera más información sobre sus servicios de remodelacion.'
+				this.link.dataset.message || CE.i18n.whatsappFallback || 'Hola, quisiera más información sobre sus servicios de remodelacion.'
 			);
 			this.link.setAttribute(
 				'href',
@@ -582,7 +590,7 @@
 		navSelector: '.ce-slider-nav',
 		prevSelector: '.ce-slider-arrow--prev',
 		nextSelector: '.ce-slider-arrow--next',
-		dotLabel: 'Testimonio',
+		dotLabel: CE.i18n.testimonioDotLabel || 'Testimonio',
 		defaultDelay: 6000,
 		// 🆕 QA-035 (Sprint 8, Entregable 8.5): mecanismo de pausa
 		// accesible por teclado/touch (WCAG 2.2.2) — ver
@@ -592,7 +600,7 @@
 		// ausencia de controles fue una decisión de diseño explícita y
 		// ya aprobada (D-055) que QA-035 no menciona ni pide revisar.
 		pausable: true,
-		pauseLabel: 'Testimonios:',
+		pauseLabel: CE.i18n.testimoniosPauseLabel || 'Testimonios:',
 	});
 
 	/* ============================================================
@@ -618,59 +626,6 @@
 		swipe: false,
 		pauseOnHover: false,
 	});
-
-	/* ============================================================
-	 * MÓDULO: SLIDER DE LA GALERÍA DEL HOME (solo móvil)
-	 * 🆕 Sprint UX-8, Entregable UX-8.2 (D-109). El mosaico curado de
-	 * template-parts/gallery.php (`.ce-home-gallery`) se muestra como
-	 * grid en desktop/tablet — sin JS, puro CSS, igual que el
-	 * `.ce-gallery-grid` que ya usa single-proyecto.php — y como
-	 * carrusel de una imagen por vista en móvil (`max-width: 767.98px`,
-	 * mismo breakpoint que QA-018/D-039), reutilizando
-	 * createSliderController() (arriba) — la MISMA fábrica de
-	 * ModuleTestimonialSlider/ModuleHeroSlider, sin ningún mecanismo de
-	 * slide nuevo. `pausable: true` reutiliza tal cual el botón de
-	 * pausa/reanudación accesible por teclado/touch que QA-035 (D-102)
-	 * ya añadió a la fábrica (WCAG 2.2.2) — no es una segunda
-	 * implementación del mismo control.
-	 *
-	 * A diferencia de ModuleTestimonialSlider/ModuleHeroSlider, este
-	 * slider NO se inicializa incondicionalmente: `init()` primero
-	 * comprueba el viewport y solo delega en el controlador interno
-	 * (`inner`, construido con la fábrica) si el viewport actual es
-	 * móvil. Esto es deliberado, no un descuido — si se llamara siempre,
-	 * `goTo(0)` aplicaría `transform: translateX(0)` sobre
-	 * `.ce-home-gallery__track` también en desktop (inofensivo por sí
-	 * solo, translateX(0) no mueve nada) PERO `buildNav()`/
-	 * `buildPauseToggle()` SÍ crearían dots y un botón de pausa
-	 * visibles en el layout de grid de desktop, donde no tienen ningún
-	 * sentido (no hay "slides" que recorrer, todas las imágenes ya son
-	 * visibles a la vez). No hay listener de `resize`/`matchMedia`
-	 * dinámico: mismo criterio de simplicidad que el resto de este
-	 * archivo (ningún otro módulo reacciona en vivo a un cambio de
-	 * viewport tras la carga inicial) — un cambio de orientación/resize
-	 * that cruce el breakpoint requiere recargar la página, igual que
-	 * cualquier otro layout responsive puramente por CSS de este tema.
-	 * ============================================================ */
-	const ModuleHomeGallerySlider = {
-		inner: createSliderController({
-			rootSelector: '.ce-home-gallery',
-			trackSelector: '.ce-home-gallery__track',
-			slideSelector: '.ce-gallery-item',
-			navSelector: '.ce-slider-nav',
-			prevSelector: '.ce-slider-arrow--prev',
-			nextSelector: '.ce-slider-arrow--next',
-			dotLabel: 'Imagen',
-			defaultDelay: 6000,
-			pausable: true,
-			pauseLabel: 'Galería:',
-		}),
-		init() {
-			const isMobile = window.matchMedia && window.matchMedia('(max-width: 767.98px)').matches;
-			if (!isMobile) return;
-			this.inner.init();
-		},
-	};
 
 	/* ============================================================
 	 * MÓDULO: LIGHTBOX (GALERÍA DE IMÁGENES + VIDEO DE TESTIMONIOS)
@@ -738,12 +693,12 @@
 			// añaden dos elementos nuevos, ocultos por defecto
 			// (`hidden`), que conviven con `.ce-lightbox__img` de siempre.
 			this.overlay.innerHTML = `
-				<button class="ce-lightbox__close" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
-				<button class="ce-lightbox__nav ce-lightbox__nav--prev" aria-label="Anterior"><i class="fa-solid fa-chevron-left"></i></button>
+				<button class="ce-lightbox__close" aria-label="${CE.i18n.lightboxCerrar || 'Cerrar'}"><i class="fa-solid fa-xmark"></i></button>
+				<button class="ce-lightbox__nav ce-lightbox__nav--prev" aria-label="${CE.i18n.lightboxAnterior || 'Anterior'}"><i class="fa-solid fa-chevron-left"></i></button>
 				<img class="ce-lightbox__img" src="" alt="">
 				<video class="ce-lightbox__video" controls playsinline hidden></video>
 				<div class="ce-lightbox__embed" hidden></div>
-				<button class="ce-lightbox__nav ce-lightbox__nav--next" aria-label="Siguiente"><i class="fa-solid fa-chevron-right"></i></button>
+				<button class="ce-lightbox__nav ce-lightbox__nav--next" aria-label="${CE.i18n.lightboxSiguiente || 'Siguiente'}"><i class="fa-solid fa-chevron-right"></i></button>
 			`;
 			document.body.appendChild(this.overlay);
 			this.closeBtn = $('.ce-lightbox__close', this.overlay);
@@ -949,11 +904,11 @@
 				parentModalOverlay: formEl.closest('.ce-modal-overlay'),
 
 				rules: {
-					name:    (v) => v.trim().length >= 2 || 'Ingresa un nombre válido.',
-					email:   (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) || 'Ingresa un correo válido.',
-					phone:   (v) => /^[0-9+\-\s()]{7,20}$/.test(v) || 'Ingresa un teléfono válido.',
-					service: (v) => v.trim().length > 0 || 'Selecciona el servicio requerido.',
-					message: (v) => v.trim().length >= 10 || 'Cuéntanos un poco más (mínimo 10 caracteres).',
+					name:    (v) => v.trim().length >= 2 || CE.i18n.nombreInvalido || 'Ingresa un nombre válido.',
+					email:   (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) || CE.i18n.emailInvalido || 'Ingresa un correo válido.',
+					phone:   (v) => /^[0-9+\-\s()]{7,20}$/.test(v) || CE.i18n.telefonoInvalido || 'Ingresa un teléfono válido.',
+					service: (v) => v.trim().length > 0 || CE.i18n.servicioRequerido || 'Selecciona el servicio requerido.',
+					message: (v) => v.trim().length >= 10 || CE.i18n.mensajeCorto || 'Cuéntanos un poco más (mínimo 10 caracteres).',
 				},
 
 				bindLiveValidation() {
@@ -1044,7 +999,7 @@
 					e.preventDefault();
 
 					if (!this.validateAll()) {
-						this.showStatus('Revisa los campos marcados en rojo.', 'error');
+						this.showStatus(CE.i18n.revisaCampos || 'Revisa los campos marcados en rojo.', 'error');
 						return;
 					}
 
@@ -1512,7 +1467,6 @@
 		ModuleCounters.init();
 		ModuleTestimonialSlider.init();
 		ModuleHeroSlider.init(); // 🆕 Sprint UX-4, Entregable UX-4.2 (ver DECISIONS.md D-055).
-		ModuleHomeGallerySlider.init(); // 🆕 Sprint UX-8, Entregable UX-8.2 (ver DECISIONS.md D-109). Solo tiene efecto en viewport móvil (ver docblock del módulo).
 		ModuleLightbox.init();
 		ModuleModals.init();
 		ModuleQuoteForm.init();

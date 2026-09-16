@@ -54,15 +54,15 @@ $ce_cta_is_secondary  = 'secondary' === $ce_cta_variant;
 $ce_cta_is_sidebar    = 'sidebar' === $ce_cta_variant;
 $ce_cta_prefix        = $ce_cta_is_secondary ? 'ce_cta2_' : 'ce_cta_';
 
-$title    = get_theme_mod( $ce_cta_prefix . 'title', $ce_cta_is_secondary
+$title    = ce_construction_pll__( get_theme_mod( $ce_cta_prefix . 'title', $ce_cta_is_secondary
 	? __( '¿Prefieres que te contactemos nosotros?', 'ce-construction' )
 	: __( '¿Listo para construir tu próximo proyecto?', 'ce-construction' )
-);
-$text     = get_theme_mod( $ce_cta_prefix . 'text', $ce_cta_is_secondary
+) );
+$text     = ce_construction_pll__( get_theme_mod( $ce_cta_prefix . 'text', $ce_cta_is_secondary
 	? __( 'Déjanos tus datos y un asesor se comunicará contigo para resolver tus dudas antes de que decidas.', 'ce-construction' )
 	: __( 'Solicita una cotización gratuita y un asesor se pondrá en contacto contigo en menos de 24 horas.', 'ce-construction' )
-);
-$btn_text = get_theme_mod( $ce_cta_prefix . 'btn_text', __( 'Solicitar Cotización', 'ce-construction' ) );
+) );
+$btn_text = ce_construction_pll__( get_theme_mod( $ce_cta_prefix . 'btn_text', __( 'Solicitar Cotización', 'ce-construction' ) ) );
 $btn_icon = get_theme_mod( $ce_cta_prefix . 'icon', 'fa-solid fa-paper-plane' );
 $btn_url  = get_theme_mod( $ce_cta_prefix . 'btn_url', '' );
 if ( '' === $btn_url ) {

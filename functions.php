@@ -72,6 +72,7 @@ function ce_construction_require_modules() {
 		'inc/quote-attachments.php', // Protección de adjuntos de cotización (Sprint 8, Entregable 8.3 — QA-031).
 		'inc/seo.php',              // Meta tags, Open Graph, Schema, breadcrumbs.
 		'inc/helpers.php',          // Funciones auxiliares reutilizables.
+		'inc/polylang-strings.php', // Registro de theme_mod TEXTO ante Polylang (Sprint 9, Entregable 9.5).
 		'inc/widgets.php',          // Widgets / sidebars del footer.
 		'inc/home-builder.php',     // Home Builder: registro/orden de secciones del Home (Sprint UX-1).
 		'inc/section-shortcode.php', // Shortcode [ce_section]: reutilización de secciones fuera del Home (Sprint UX-6.2).
