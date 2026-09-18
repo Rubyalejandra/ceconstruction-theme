@@ -4,7 +4,7 @@ Theme URI: https://ceconstruction.com
 Author: CE Construction Dev Team
 Author URI: https://ceconstruction.com
 Description: Tema profesional a medida para CE Construction. Desarrollado 100% con PHP, HTML5, CSS3 y JavaScript moderno, sin builders visuales. Incluye Custom Post Types para Servicios, Proyectos, Testimonios, Equipo, Clientes y Preguntas Frecuentes, Theme Customizer completo, formulario de cotización seguro con Nonces, y arquitectura modular por componentes.
-Version: 0.8.5
+Version: 1.0.0
 Requires at least: 6.0
 Requires PHP: 7.4
 Text Domain: ce-construction
@@ -46,6 +46,31 @@ CE Construction Theme is distributed under the terms of the GNU GPL v2 or later.
    disco (ver ce_construction_asset_version() en inc/enqueue.php),
    que se actualiza automáticamente en cada cambio sin depender
    de que nadie recuerde subir este número. Ver DECISIONS.md D-044.
+   ========================================================= */
+
+/* =========================================================
+   v1.0.0 — PRIMERA VERSIÓN ESTABLE (ver DECISIONS.md D-111).
+   Con el cierre del Sprint 8 (Cierre de Hallazgos QA, D-107) y
+   de la fase "Optimización UX / Conversión" completa (Sprints
+   UX-1 a UX-11 y UX-8, este último cerrado en esta misma sesión
+   con la aprobación de los Entregables UX-8.1/D-108 y
+   UX-8.2/D-109-D-110), el proyecto no tiene ningún hallazgo de
+   severidad Alta o Media abierto ni ningún Entregable pendiente
+   de aprobación — primer punto del proyecto donde "versión
+   estable 1.0" describe el estado real y verificado del
+   repositorio.
+
+   Esquema de versionamiento adoptado a partir de aquí: Semantic
+   Versioning (SemVer, MAYOR.MENOR.PARCHE) — el mismo formato de
+   3 componentes que el proyecto ya usaba de facto desde su
+   origen (0.1.0 → 0.8.5), formalizado ahora explícitamente como
+   estándar del proyecto:
+     - MAYOR: hitos de estabilidad o cambios que rompen
+       compatibilidad hacia atrás.
+     - MENOR: Sprints/Entregables que añaden funcionalidad nueva
+       de forma retrocompatible.
+     - PARCHE: correcciones puntuales (QA, bugfixes aislados)
+       sin funcionalidad nueva.
    ========================================================= */
 
 :root{

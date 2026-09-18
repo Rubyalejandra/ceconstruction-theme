@@ -40,7 +40,7 @@ class CE_Construction_Widget_Contact extends WP_Widget {
 		$phone    = ! empty( $instance['phone'] ) ? $instance['phone'] : get_theme_mod( 'ce_phone', '' );
 		$email    = ! empty( $instance['email'] ) ? $instance['email'] : get_theme_mod( 'ce_email', '' );
 		$address  = ! empty( $instance['address'] ) ? $instance['address'] : get_theme_mod( 'ce_address', '' );
-		$schedule = ! empty( $instance['schedule'] ) ? $instance['schedule'] : ce_construction_pll__( get_theme_mod( 'ce_schedule', '' ) );
+		$schedule = ! empty( $instance['schedule'] ) ? $instance['schedule'] : get_theme_mod( 'ce_schedule', '' );
 
 		echo $args['before_widget']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- before/after_widget vienen de register_sidebar(), controlados por el tema.
 

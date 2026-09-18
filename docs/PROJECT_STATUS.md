@@ -3,87 +3,62 @@
 > Este documento es la fuente oficial de verdad del proyecto.
 > Se actualiza al finalizar cada módulo. No se reinicia ni se resume: solo se agrega/actualiza estado.
 
-**Última actualización (Sprint 8 COMPLETO Y CERRADO EN SU TOTALIDAD):** Sprint 7 COMPLETADO. Sprint UX-11 CERRADO Y APROBADO EN SU TOTALIDAD (`DECISIONS.md` D-083 a D-094). **Sprint 8 ("Cierre de Hallazgos QA") CERRADO: los 7 Entregables (8.1 a 8.7) aprobados explícitamente por el usuario** (el 8.3 con aprobación final tras 4 pruebas funcionales reales en Apache/2.4.68 + PHP 8.2.33, `DECISIONS.md` D-096/D-097; el 8.4, 8.5, 8.6 y 8.7 tras pruebas funcionales reales confirmadas por el usuario, `DECISIONS.md` D-098/D-099/D-101, D-102/D-103, D-104/D-105 y D-106/D-107). No queda ningún hallazgo de severidad Alta o Media abierto en el proyecto. Único backlog restante: Mejoras futuras (QA-024 a QA-029, QA-042), fuera del Sprint 8, sin implementar sin decisión explícita del usuario de incorporarlas a un Sprint futuro (D-038). QA-041 verificado y cerrado (`page.php` no existía al momento de la verificación; fue creado después, en Sprint UX-6). No hay ningún Sprint o Entregable en curso.
+**Última actualización (PRIMERA VERSIÓN ESTABLE — v1.0.0):** Sprint 7 COMPLETADO. Sprint UX-11 CERRADO Y APROBADO EN SU TOTALIDAD (`DECISIONS.md` D-083 a D-094). **Sprint 8 ("Cierre de Hallazgos QA") CERRADO Y APROBADO EN SU TOTALIDAD** (`DECISIONS.md` D-095 a D-107) — no queda ningún hallazgo de severidad Alta o Media abierto en el proyecto. **Sprint UX-8 ("Galería de Proyectos: medios flexibles y curación del Home") CERRADO Y APROBADO EN SU TOTALIDAD** — UX-8.1 (galería mixta imagen/video del Proyecto, `DECISIONS.md` D-108) y UX-8.2 (curación de la Galería del Home, `DECISIONS.md` D-109 y D-110) ambos aprobados explícitamente por el usuario. **Con esto, no queda ningún Sprint ni Entregable pendiente en todo el proyecto**, y el usuario declaró esta la **Primera Versión Estable del tema**, formalizada en `DECISIONS.md` D-111.
 
-**Versión de proyecto correspondiente:** v0.8.5 (ver `style.css`; `docs/CHANGELOG.md` no registra entradas individuales de la fase UX-7/UX-10 más allá del resumen consolidado añadido en la sesión de cierre de esa fase).
+**Versión de proyecto correspondiente:** **v1.0.0** (ver `style.css`) — Semantic Versioning (SemVer, `MAYOR.MENOR.PARCHE`), adoptado formalmente como estándar del proyecto en `DECISIONS.md` D-111. `docs/CHANGELOG.md` recoge la entrada consolidada de esta versión (Sprint UX-8 completo + declaración de estabilidad).
 
-**Nota (Fase "Optimización UX / Conversión"):** esta fase, ejecutada en paralelo al Sprint 8, quedó **formal y completamente cerrada** tras UX-7, UX-10 y ahora UX-11 (incluidos sus 3 ajustes puntuales, D-091 a D-093). Ver `docs/DECISIONS.md` D-083 a D-094. Quedan como backlog no bloqueante, sin aprobar ni iniciar: UX-5.2 (documentación de "objetivo de plantilla"), Sprint UX-8 ("Video en Proyectos") y Sprint UX-9 (registro documental de Responsive). Ver `docs/CURRENT_UX_SPRINT.md` para el detalle completo. Con la fase UX cerrada, el foco vuelve exclusivamente al Sprint 8, descrito en el resto de este documento.
+**Nota (Fase "Optimización UX / Conversión"):** esta fase, ejecutada en paralelo al Sprint 8, quedó **formal y completamente cerrada** tras UX-7, UX-10, UX-11 y, en esta sesión, **UX-8** (galería mixta de Proyecto + curación de la Galería del Home). Quedan como backlog no bloqueante, sin aprobar ni iniciar: UX-5.2 (documentación de "objetivo de plantilla") y Sprint UX-9 (registro documental de Responsive). Ver `docs/CURRENT_UX_SPRINT.md` para el detalle completo.
 
 ---
 
 ## 1. Estado actual del proyecto
 
-El tema tiene: backend 100% funcional, frontend completo (Home, Servicios, Proyectos, Equipo, Clientes, Blog, páginas genéricas, 404, `archive.php` genérico), `inc/widgets.php` (2 widgets custom), `screenshot.png` como vista previa del tema, y ahora **6 hallazgos QA Medios corregidos o cerrados** (QA-010, QA-011, QA-014, QA-017, QA-018 completos; QA-013 parcial; QA-015 verificado sin necesitar código) de un total de 42 hallazgos documentados en `QA_REPORT.md`.
+El tema tiene: backend 100% funcional, frontend completo (Home, Servicios, Proyectos, Equipo, Clientes, Blog, páginas genéricas, 404, `archive.php` genérico), `inc/widgets.php` (2 widgets custom), `screenshot.png` como vista previa del tema, el Sprint 8 de QA cerrado en su totalidad (42 hallazgos históricos e integrales, sin ningún hallazgo Alto o Medio abierto), la fase de Optimización UX/Conversión completa (Sprints UX-1 a UX-11), y ahora la galería mixta del Proyecto y la curación de la Galería del Home (Sprint UX-8). **El proyecto se encuentra en su Primera Versión Estable (v1.0.0).**
 
 ---
 
-## 2. Módulos terminados
+## 2. Módulos terminados (resumen — ver `CHANGELOG.md`/`DECISIONS.md` para el detalle completo por Sprint/Entregable)
 
-| # | Módulo | Archivos | Estado |
-|---|--------|----------|--------|
-| 22 | Entregable 7.1 — `inc/widgets.php` | `inc/widgets.php` | ✅ Completado |
-| 23 | Entregable 7.2 — `archive.php` genérico | `archive.php` | ✅ Completado |
-| 24 | Entregable 7.3 — Corrección QA-018 | `assets/css/main.css` | ✅ Completado |
-| 25 | Entregable 7.4 — `screenshot.png` | `screenshot.png` | ✅ Completado |
-| 26 | Entregable 8.1 — QA-010, QA-011, QA-013 (parcial), QA-014, QA-015 (verificación), QA-017 | `header.php`, `inc/enqueue.php`, `inc/customizer.php`, `inc/seo.php`, `style.css` | ✅ **Aprobado explícitamente por el usuario** (`DECISIONS.md` D-095) |
-| 27 | Entregable 8.2 — QA-030 (`CE_THEME_VERSION`/`style.css`: cache-busting por `filemtime()`) | `functions.php`, `inc/enqueue.php`, `style.css` | ✅ **Aprobado explícitamente por el usuario** (`DECISIONS.md` D-095) |
-| 28 | Sprint UX-11 — 6 puntos base + 3 ajustes puntuales (D-091/D-092/D-093) | `template-parts/hero.php`, `template-parts/page-hero.php`, `template-parts/quote-form.php`, `inc/helpers.php`, `inc/customizer.php`, `inc/hero-image-position.php`, `assets/css/main.css`, `assets/js/main.js` | ✅ **Cerrado y aprobado en su totalidad** (`DECISIONS.md` D-083 a D-094) |
-| 29 | Entregable 8.3 — QA-031 (adjuntos de cotización protegidos) | `inc/quote-attachments.php` (nuevo), `inc/quote-form.php`, `functions.php` | ✅ **Aprobado explícitamente por el usuario**, con pruebas funcionales reales verificadas (`DECISIONS.md` D-096/D-097) |
-| 30 | Entregable 8.4 — QA-032, QA-033, QA-034 (robustez del formulario de cotización: concurrencia e integridad de datos) | `inc/form-guards.php` (nuevo), `inc/quote-form.php`, `functions.php`, `template-parts/quote-form.php` | ✅ **Aprobado explícitamente por el usuario**, tras pruebas funcionales reales (`DECISIONS.md` D-098/D-099/D-101) |
-| 31 | Entregable 8.5 — QA-012 (caché "relacionados"), QA-016 (script inline de metabox), QA-035 (autoplay accesible), QA-038 (canonical) | `inc/helpers.php`, `inc/meta-boxes.php`, `inc/enqueue.php`, `inc/seo.php`, `assets/js/main.js`, `assets/css/main.css`, `assets/js/admin-proyecto-gallery.js` (nuevo) | ✅ **Aprobado explícitamente por el usuario**, tras pruebas funcionales reales (`DECISIONS.md` D-102/D-103) |
-| 32 | Entregable 8.6 — QA-036 (gestión de foco centralizada para overlays: menú móvil, modales, lightbox) | `assets/js/main.js` (utilidad `FocusTrap`) | ✅ **Aprobado explícitamente por el usuario**, tras pruebas funcionales reales (`DECISIONS.md` D-104/D-105) |
-| 33 | Entregable 8.7 — QA-019, QA-020, QA-021, QA-022, QA-037, QA-039, QA-040 (Bajos, último de D-043) | `header.php`, `assets/css/main.css`, `assets/js/main.js`, `inc/enqueue.php`, `inc/seo.php` | ✅ **Aprobado explícitamente por el usuario**, tras pruebas funcionales reales — **SPRINT 8 CERRADO** (`DECISIONS.md` D-106/D-107) |
+| # | Módulo | Estado |
+|---|--------|--------|
+| 1–33 | Sprints 1 a 8 (arquitectura, contenido, QA histórico e integral) | ✅ Completados — ver entradas previas de este documento y `DECISIONS.md` D-001 a D-107 |
+| 34 | Fase "Optimización UX / Conversión" — Sprints UX-1 a UX-11 | ✅ Completados y aprobados en su totalidad — `DECISIONS.md` D-045 a D-094 |
+| 35 | Sprint UX-8, Entregable UX-8.1 — Galería mixta del Proyecto (imagen y/o video, reordenable) | ✅ **Aprobado explícitamente por el usuario** — `DECISIONS.md` D-108 |
+| 36 | Sprint UX-8, Entregable UX-8.2 — Curación de la Galería del Home (proyecto destacado + imagen(es) favorita(s), múltiples favoritas por proyecto tras D-110, responsive con carrusel móvil accesible) | ✅ **Aprobado explícitamente por el usuario** — `DECISIONS.md` D-109 y D-110 |
+| 37 | Declaración de Primera Versión Estable (v1.0.0), `style.css` | ✅ **Aprobado explícitamente por el usuario** — `DECISIONS.md` D-111 |
 
 ## 3. Módulos en desarrollo
 
-Ninguno activo. El Sprint 8 quedó completo y cerrado en su totalidad. No hay ningún Sprint o Entregable en curso, pendiente de que el usuario defina y apruebe el alcance de la próxima línea de trabajo (D-038).
+Ninguno activo. No hay ningún Sprint o Entregable en curso, pendiente de que el usuario defina y apruebe el alcance de la próxima línea de trabajo (D-038).
 
 ## 4. Módulos pendientes
 
 | # | Módulo | Prioridad |
 |---|--------|-----------|
-| 34 | Backlog fuera de Sprint 8 — QA-024 a QA-029, QA-042 (Mejoras futuras, no se implementan sin aprobación de incorporarlas a un Sprint) | Baja |
-| 35 | Sprint 9 (futuro) — Auditoría de accesibilidad y performance | Media |
-| 36 | Reemplazo de `screenshot.png` por fotografías reales del cliente | Baja (cliente-dependiente) |
-| 37 | Backlog UX no bloqueante: UX-5.2 (doc. objetivo de plantilla), Sprint UX-8 (video en Proyectos), Sprint UX-9 (registro documental Responsive) | Baja, sujeta a aprobación |
+| 38 | Backlog fuera del Sprint 8 — QA-024 a QA-029, QA-042 (Mejoras futuras, no se implementan sin aprobación de incorporarlas a un Sprint) | Baja |
+| 39 | Sprint 9 (futuro, no definido) | A definir |
+| 40 | Reemplazo de `screenshot.png` por fotografías reales del cliente | Baja (cliente-dependiente) |
+| 41 | Backlog UX no bloqueante: UX-5.2 (doc. objetivo de plantilla), Sprint UX-9 (registro documental Responsive) | Baja, sujeta a aprobación |
 
 ## 5. Decisiones arquitectónicas tomadas
 
-- **D-036 a D-040** — Sprint 7 (ver `DECISIONS.md`).
-- **D-041** — Agrupación original del Sprint 8 propuesta antes de consolidar `QA_REPORT.md` con la auditoría integral — **superseded por D-042**.
-- **D-042** — Re-evaluación del Sprint 8 contra el estado real del repositorio: nueva agrupación en 5 Entregables, cierre de QA-015 (ya no aplica), ejecución del Entregable 8.1 — **agrupación de 8.2 a 8.5 superseded por D-043**.
-- **D-043** — Reorganización completa del Sprint 8 (8.2 a 8.7) por prioridad (seguridad/privacidad/integridad primero), dependencias (QA-033/034 dependen de la decisión de QA-031) y riesgo (QA-030 y QA-031 aislados entre sí y del resto por ser ambos "Alto" con decisiones arquitectónicas independientes). Incluye la verificación de QA-041 (`page.php` no existía en ese momento, `TREE.md` corregido).
-- **D-044** — Corrección QA-030 (Entregable 8.2): cache-busting por `filemtime()` + `CE_THEME_VERSION` derivada de `wp_get_theme()`. Implementada en código, aprobada.
-- **D-045 a D-081** — Fase "Optimización UX / Conversión" (Sprints UX-1 a UX-10). Ver `docs/CURRENT_UX_SPRINT.md`.
-- **D-083 a D-094** — Sprint UX-11 completo ("Hero, Formulario del Hero y Header"), incluidos los 3 ajustes puntuales posteriores. Cerrado y aprobado en su totalidad en esta sesión.
-- **D-095** — Resolución del estado de aprobación del Entregable 8.1 (confirmado aprobado) y aprobación explícita del Entregable 8.2. El Sprint 8 se retoma en el Entregable 8.3.
-- **D-045 a D-081** — Fase "Optimización UX / Conversión" completa (Sprints UX-1 a UX-10), en paralelo al Sprint 8 pausado. Ver `docs/CURRENT_UX_SPRINT.md` para el detalle Entregable por Entregable. **Fase cerrada en esta sesión** (UX-7.10, D-079/D-080/D-081, aprobado explícitamente).
-- **D-096/D-097** — Corrección de QA-031 (Entregable 8.3) y aprobación final tras pruebas funcionales reales en Apache/2.4.68 + PHP 8.2.33.
-- **D-098/D-099** — Corrección de QA-032/033/034 (Entregable 8.4): diseño e implementación inicial (D-098) e integración final de los 2 archivos que faltaban (D-099).
-- **D-100** — QA-044 (hallazgo puntual, no forma parte del Sprint 8): etiqueta visual del adjunto no se limpiaba tras un envío exitoso.
-- **D-101** — Aprobación explícita del Entregable 8.4 (QA-032, QA-033, QA-034), tras pruebas funcionales reales confirmadas por el usuario.
-- **D-102** — Corrección de QA-012/016/035/038 (Entregable 8.5): integración de código completa en 7 archivos, pendiente de pruebas funcionales reales.
-- **D-103** — Aprobación explícita del Entregable 8.5 (QA-012, QA-016, QA-035, QA-038), tras pruebas funcionales reales confirmadas por el usuario.
-- **D-104** — Corrección de QA-036 (Entregable 8.6): utilidad compartida `FocusTrap`, decisión de diseño de R-4 resuelta a favor de la centralizada, pendiente de pruebas funcionales reales.
-- **D-105** — Aprobación explícita del Entregable 8.6 (QA-036), tras pruebas funcionales reales confirmadas por el usuario.
-- **D-106** — Corrección de QA-019/020/037/039/040 (Entregable 8.7): integración de código completa en 5 archivos; QA-021/022 verificados como ya resueltos por efecto colateral, sin cambio de código.
-- **D-107** — Aprobación explícita del Entregable 8.7, tras pruebas funcionales reales confirmadas por el usuario. **Cierre del Sprint 8 en su totalidad** — los 7 Entregables (8.1 a 8.7) aprobados.
+Registro completo y acumulativo en `docs/DECISIONS.md` (D-001 a D-111 a la fecha). Últimas entradas relevantes:
+
+- **D-107** — Aprobación explícita del Entregable 8.7, tras pruebas funcionales reales confirmadas por el usuario. **Cierre del Sprint 8 en su totalidad.**
+- **D-108** — Sprint UX-8, Entregable UX-8.1: Galería mixta del Proyecto (imagen y/o video, reordenable). Nueva fuente de verdad `_ce_proyecto_media`, con migración de solo lectura desde `_ce_proyecto_galeria`.
+- **D-109** — Sprint UX-8, Entregable UX-8.2: Curación de la Galería del Home (proyecto destacado + imagen favorita, responsive con carrusel móvil accesible).
+- **D-110** — Cambio de alcance sobre UX-8.2: múltiples imágenes favoritas por proyecto, sin tope por proyecto (el tope global de 8 se mantiene).
+- **D-111** — Aprobación explícita del Entregable UX-8.2 (D-109+D-110), cierre del Sprint UX-8, y declaración de la Primera Versión Estable (v1.0.0) — versionado bajo Semantic Versioning (SemVer), adoptado formalmente como estándar del proyecto.
 
 ## 6. Riesgos detectados
 
 | Riesgo | Severidad | Detalle |
 |---|---|---|
-| QA-030: cache-busting de CSS/JS | 🟢 Resuelto | Corregido y **aprobado** en el Entregable 8.2 (`DECISIONS.md` D-044/D-095). |
-| QA-031: adjuntos de cotización potencialmente accesibles por URL directa | 🟢 Resuelto | Corregido y **aprobado de forma definitiva** en el Entregable 8.3, con pruebas funcionales reales verificadas en Apache/2.4.68 + PHP 8.2.33 (`DECISIONS.md` D-096/D-097). Limitación conocida sobre Nginx documentada para instalaciones futuras; sin acción pendiente en esta instalación. |
-| QA-032/033/034: robustez del formulario de cotización (concurrencia, archivo huérfano, idempotencia) | 🟢 Resuelto | Corregido y **aprobado de forma definitiva** en el Entregable 8.4, tras pruebas funcionales reales confirmadas por el usuario (`docs/DECISIONS.md` D-098/D-099/D-101). |
-| QA-012, QA-016, QA-035, QA-038: hallazgos Medios aislados | 🟢 Resuelto | Corregidos y **aprobados de forma definitiva** en el Entregable 8.5, tras pruebas funcionales reales confirmadas por el usuario (`docs/DECISIONS.md` D-102/D-103). |
-| QA-036: sin gestión de foco en overlays (menú móvil, modales) | 🟢 Resuelto | Corregido y **aprobado de forma definitiva** en el Entregable 8.6, tras pruebas funcionales reales confirmadas por el usuario (`docs/DECISIONS.md` D-104/D-105). |
-| QA-019, QA-020, QA-037, QA-039, QA-040: hallazgos Bajos aislados | 🟢 Resuelto | Corregidos y **aprobados de forma definitiva** en el Entregable 8.7, tras pruebas funcionales reales confirmadas por el usuario (`docs/DECISIONS.md` D-106/D-107). |
-| QA-021, QA-022: hallazgos Bajos | 🟢 Resuelto | Verificados como ya resueltos por efecto colateral de QA-030/D-044 y QA-016/D-102 respectivamente — sin cambio de código en el Entregable 8.7. |
-| QA-013: unificación real de `:root` entre `style.css`/`main.css` pendiente | 🟢 Baja | Solo se corrigió el comentario inexacto en 8.1; la unificación es una decisión arquitectónica en backlog. |
-| `page.php` no existe (QA-041, verificado) | 🟢 Baja | Sin impacto funcional — `index.php` cubre el fallback. `TREE.md` corregido. Crear la plantilla dedicada es mejora futura sujeta a aprobación. |
+| No queda ningún hallazgo de severidad Alta o Media abierto (Sprint 8, D-107) | 🟢 Resuelto | Ver `docs/QA_REPORT.md` para el detalle completo. |
+| Backlog de Mejoras futuras (QA-024 a QA-029, QA-042) | 🟢 Baja | Fuera del Sprint 8, no se implementan sin decisión explícita del usuario de incorporarlas a un Sprint futuro (D-038). |
 | `screenshot.png` es un mockup ilustrativo, no fotografías reales | 🟢 Baja | Reversible sin cambio de código — ver `DECISIONS.md` D-040. |
+| Documentación arquitectónica de detalle (`ARCHITECTURE.md`, `QA_REPORT.md`, `CONTEXT_MAP.md`) no incorpora todavía el detalle de UX-8 | 🟢 Baja | Diferido explícitamente por criterio D-034 a un próximo cierre significativo; no afecta el estado funcional ni de aprobación del Sprint UX-8, ya reflejado en `DECISIONS.md`/`CHANGELOG.md`/`TREE.md`. |
 
 ## 7. Próximo módulo recomendado
 
-Con la fase UX cerrada en su totalidad (Sprints UX-1 a UX-11) y con el Sprint 8 completo y cerrado en su totalidad (los 7 Entregables 8.1 a 8.7 aprobados — `DECISIONS.md` D-095, D-096/D-097, D-098/D-099/D-101, D-102/D-103, D-104/D-105, D-106/D-107), **no hay ningún Sprint o Entregable en curso**. No queda ningún hallazgo de severidad Alta o Media abierto en el proyecto. El único candidato pendiente es el backlog de Mejoras futuras (QA-024 a QA-029, QA-042) o un eventual Sprint 9 — ninguno de los dos inicia su implementación sin que el usuario defina y apruebe explícitamente su alcance concreto (D-038).
+Con el Sprint 8 (QA) cerrado en su totalidad, la fase de Optimización UX/Conversión completa (Sprints UX-1 a UX-11), y ahora el Sprint UX-8 (galería mixta + curación de la Galería del Home) también cerrado y aprobado, **el tema alcanza su Primera Versión Estable (v1.0.0)**. **No hay ningún Sprint o Entregable en curso.** Los únicos candidatos pendientes son el backlog de Mejoras futuras (QA-024 a QA-029, QA-042), el backlog UX no bloqueante (UX-5.2, Sprint UX-9), o un eventual Sprint 9 nuevo — ninguno de ellos inicia su implementación sin que el usuario defina y apruebe explícitamente su alcance concreto (D-038).

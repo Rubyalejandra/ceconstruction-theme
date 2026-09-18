@@ -148,9 +148,9 @@ $hero_show_quote_form = (bool) get_theme_mod( 'ce_hero_show_quote_form', false )
 // que antes de este Entregable, sin importar $hero_layout.
 $hero_use_columns = $hero_show_quote_form && in_array( $hero_layout, array( '2', '3' ), true );
 
-$title    = ce_construction_pll__( get_theme_mod( 'ce_hero_title', __( 'Construimos con precisión, entregamos con confianza', 'ce-construction' ) ) );
-$subtitle = ce_construction_pll__( get_theme_mod( 'ce_hero_subtitle', __( 'Más de una década ejecutando proyectos residenciales, comerciales e industriales con los más altos estándares de calidad y seguridad.', 'ce-construction' ) ) );
-$btn1_text = ce_construction_pll__( get_theme_mod( 'ce_hero_btn1_text', __( 'Cotización Gratuita', 'ce-construction' ) ) );
+$title    = get_theme_mod( 'ce_hero_title', __( 'Construimos con precisión, entregamos con confianza', 'ce-construction' ) );
+$subtitle = get_theme_mod( 'ce_hero_subtitle', __( 'Más de una década ejecutando proyectos residenciales, comerciales e industriales con los más altos estándares de calidad y seguridad.', 'ce-construction' ) );
+$btn1_text = get_theme_mod( 'ce_hero_btn1_text', __( 'Cotización Gratuita', 'ce-construction' ) );
 $btn1_url  = get_theme_mod( 'ce_hero_btn1_url', '' );
 if ( '' === $btn1_url ) {
 	// CORRECCIÓN (revisión post-entrega de UX-3.1, ver DECISIONS.md D-050):
@@ -162,7 +162,7 @@ if ( '' === $btn1_url ) {
 	// guardado como '' tras cualquier publicación del Customizer.
 	$btn1_url = ce_get_quote_cta_url();
 }
-$btn2_text = ce_construction_pll__( get_theme_mod( 'ce_hero_btn2_text', __( 'Ver Proyectos', 'ce-construction' ) ) );
+$btn2_text = get_theme_mod( 'ce_hero_btn2_text', __( 'Ver Proyectos', 'ce-construction' ) );
 $btn2_url  = get_theme_mod( 'ce_hero_btn2_url', post_type_exists( 'proyecto' ) ? get_post_type_archive_link( 'proyecto' ) : '#proyectos' );
 ?>
 <?php

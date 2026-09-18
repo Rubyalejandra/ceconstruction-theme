@@ -44,7 +44,7 @@ $ce_quote_cta_url = ce_get_quote_cta_url();
 					</a>
 				<?php endif; ?>
 				<?php if ( get_theme_mod( 'ce_schedule' ) ) : ?>
-					<span><i class="fa-regular fa-clock" aria-hidden="true"></i> <?php echo esc_html( ce_construction_pll__( get_theme_mod( 'ce_schedule' ) ) ); ?></span>
+					<span><i class="fa-regular fa-clock" aria-hidden="true"></i> <?php echo esc_html( get_theme_mod( 'ce_schedule' ) ); ?></span>
 				<?php endif; ?>
 			</div>
 			<?php ce_render_social_icons( 'header' ); ?>
